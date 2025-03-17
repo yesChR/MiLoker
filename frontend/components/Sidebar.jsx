@@ -12,7 +12,7 @@ import { BiSolidReport } from "react-icons/bi";
 import { CollapsIcon, LogoutIcon } from "./icons";
 
 const menuItems = [
-  { id: 1, label: "Administración", icon: BsPersonFillGear, link: "/administracion" },
+  { id: 1, label: "Administración", icon: BsPersonFillGear, link: "/" },
   { id: 2, label: "Docente", icon: FaChalkboardTeacher, link: "/docente" },
   { id: 3, label: "Casillero", icon: GiLockers, link: "/casillero" },
   { id: 4, label: "Estudiante", icon: FaBookReader, link: "/estudiante" },
