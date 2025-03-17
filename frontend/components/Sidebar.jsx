@@ -1,22 +1,23 @@
 import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import React, { useState, useMemo } from "react";
-import {
-  ArticleIcon,
-  CollapsIcon,
-  HomeIcon,
-  LogoIcon,
-  LogoutIcon,
-  UsersIcon,
-  VideosIcon,
-} from "./icons";
+import { FaChalkboardTeacher } from "react-icons/fa";
+import { GiLockers } from "react-icons/gi";
+import { FaBookReader } from "react-icons/fa";
+import { BsPersonFillExclamation } from "react-icons/bs";
+import { BsPersonFillGear } from "react-icons/bs";
+import { BiSolidReport } from "react-icons/bi";
+import { CollapsIcon, LogoutIcon } from "./icons";
 
 const menuItems = [
-  { id: 1, label: "Home", icon: HomeIcon, link: "/" },
-  { id: 2, label: "Manage Posts", icon: ArticleIcon, link: "/posts" },
-  { id: 3, label: "Manage Users", icon: UsersIcon, link: "/users" },
-  { id: 4, label: "Manage Tutorials", icon: VideosIcon, link: "/tutorials" },
+  { id: 1, label: "Administración", icon: BsPersonFillGear, link: "/administracion" },
+  { id: 2, label: "Docente", icon: FaChalkboardTeacher, link: "/docente" },
+  { id: 3, label: "Casillero", icon: GiLockers, link: "/casillero" },
+  { id: 4, label: "Estudiante", icon: FaBookReader, link: "/estudiante" },
+  { id: 5, label: "Incidente", icon: BsPersonFillExclamation, link: "/incidente" },
+  { id: 6, label: "Informe", icon: BiSolidReport, link: "/informe" },
 ];
 
 const Sidebar = () => {
@@ -31,15 +32,15 @@ const Sidebar = () => {
   );
 
   const wrapperClasses = classNames(
-    "h-screen px-4 pt-8 pb-4 bg-light flex justify-between flex-col shadow-xl",
+    "h-screen px-4 pt-8 pb-4 bg-white flex justify-between flex-col shadow-xl z-10", 
     {
       ["w-60"]: !toggleCollapse,
       ["w-20"]: toggleCollapse,
     }
   );
-
+  
   const collapseIconClasses = classNames(
-    "p-4 rounded bg-light-lighter absolute right-0",
+    "p-2 rounded bg-light-lighter absolute right-0",
     {
       "rotate-180": toggleCollapse,
     }
@@ -47,7 +48,7 @@ const Sidebar = () => {
 
   const getNavItemClasses = (menu) => {
     return classNames(
-      "flex items-center cursor-pointer hover:bg-light-lighter rounded w-full overflow-hidden whitespace-nowrap",
+      "flex items-center cursor-pointer hover:bg-light-lighter rounded w-full overflow-hidden whitespace-nowrap m-1",
       {
         ["bg-light-lighter"]: activeMenu.id === menu.id,
       }
@@ -72,13 +73,13 @@ const Sidebar = () => {
       <div className="flex flex-col">
         <div className="flex items-center justify-between relative">
           <div className="flex items-center pl-1 gap-4">
-            <LogoIcon />
+         <Image src="/logo.png" alt="logo" width={40} height={40} />
             <span
-              className={classNames("mt-2 text-lg font-medium text-text", {
+              className={classNames("mt-2 text-2xl text-azulOscuro font-bold", {
                 hidden: toggleCollapse,
               })}
             >
-              Logo
+              MiLoker
             </span>
           </div>
           {isCollapsible && (
@@ -91,19 +92,19 @@ const Sidebar = () => {
           )}
         </div>
 
-        <div className="flex flex-col items-start mt-24">
+        <div className="flex flex-col items-start mt-10">
           {menuItems.map(({ icon: Icon, ...menu }) => {
             const classes = getNavItemClasses(menu);
             return (
               <div key={menu.id} className={classes}>
                 <Link href={menu.link} className="flex py-4 px-3 items-center w-full h-full">
                   <div style={{ width: "2.5rem" }}>
-                    <Icon />
+                    <Icon className="w-6 h-6 text-gray"/>
                   </div>
                   {!toggleCollapse && (
                     <span
                       className={classNames(
-                        "text-md font-medium text-text-light"
+                        "text-sm font-medium text-gray"
                       )}
                     >
                       {menu.label}
@@ -118,11 +119,11 @@ const Sidebar = () => {
 
       <div className={`${getNavItemClasses({})} px-3 py-4`}>
         <div style={{ width: "2.5rem" }}>
-          <LogoutIcon />
+        <LogoutIcon className="w-6 h-6 text-danger"/>
         </div>
         {!toggleCollapse && (
-          <span className={classNames("text-md font-medium text-text-light")}>
-            Logout
+          <span className={classNames("text-sm font-medium text-danger")}>
+            Cerrar sesión
           </span>
         )}
       </div>
