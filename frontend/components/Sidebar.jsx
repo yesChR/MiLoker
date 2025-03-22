@@ -99,12 +99,12 @@ const Sidebar = () => {
               <div key={menu.id} className={classes}>
                 <Link href={menu.link} className="flex py-4 px-3 items-center w-full h-full">
                   <div style={{ width: "2.5rem" }}>
-                    <Icon className="w-6 h-6 text-gray"/>
+                    <Icon className="w-6 h-6 text-gray-500"/>
                   </div>
                   {!toggleCollapse && (
                     <span
                       className={classNames(
-                        "text-sm font-medium text-gray"
+                        "text-sm font-medium text-gray-700"
                       )}
                     >
                       {menu.label}

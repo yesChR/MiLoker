@@ -1,5 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultConfig');
 const { heroui } = require("@heroui/react");
+const { color } = require('framer-motion');
 
 module.exports = {
   content: [
@@ -9,23 +10,13 @@ module.exports = {
   ],
   important: true,
   theme: {
-    ...defaultTheme,
-    colors: {
-      ...defaultTheme.colors,
-      primary: "#3B81F6",
-      white: '#ffffff',
-      DEFAULT: "#1F2937",
-      light: "#6C7281",
-      azulOscuro: "#0D3858",
-      gray: "#545454",
-      danger: "#f31260",
-
-      light: {
-        DEFAULT: "#FAFBFC",
-        lighter: "#F3F4F6",
+    extend: {
+      colors: {
+        azulOscuro: "#0D3858", // Agregando solo azulOscuro
+        primario: "#0b72eb",
       },
     },
-    extend: {},
   },
+  darkMode: "class",
   plugins: [heroui()],
-}
+};
