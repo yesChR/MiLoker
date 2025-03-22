@@ -41,7 +41,9 @@ const Layout = ({ children }) => {
         <UserButton />
         <div className="bg-white flex-1 p-4 text-white">
           {children}
-          <TablaDinamica columns={columnasPrueba} data={datosPrueba} acciones={accionesPrueba} />
+          <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
+            <TablaDinamica columns={columnasPrueba} data={datosPrueba} acciones={accionesPrueba} />
+          </div>
         </div>
       </div>
     </HeroUIProvider>

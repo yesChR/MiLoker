@@ -81,7 +81,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                     <Input
                         isClearable
                         className="w-full sm:max-w-[44%]"
-                        placeholder="Search by name..."
+                        placeholder="Buscar..."
                         startContent={<SearchIcon />}
                         value={filterValue}
                         onClear={() => setFilterValue("")}
@@ -91,7 +91,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                         <Dropdown>
                             <DropdownTrigger className="hidden sm:flex">
                                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-                                    Columns
+                                    Columnas
                                 </Button>
                             </DropdownTrigger>
                             <DropdownMenu
@@ -110,7 +110,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                             </DropdownMenu>
                         </Dropdown>
                         <Button className="bg-primario text-white" endContent={<PlusIcon />}>
-                            Add New
+                            Agregar
                         </Button>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                     isCompact
                     showControls
                     showShadow
-                    color="danger"
+                    color="primary"
                     page={currentPage}
                     total={Math.max(1, Math.ceil(filteredData.length / numElementos))}
                     onChange={(page) => setCurrentPage(page)}
@@ -138,7 +138,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
     return (
         <Table
             isHeaderSticky
-            className="custom-table"
+            className="text-gray-800"
             isStriped
             topContent={topContent}
             bottomContent={bottomContent}
@@ -146,11 +146,10 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
             classNames={{
                 wrapper: "max-h-[382px]",
                 th: "bg-primario text-white",
-            }} /*  Ajustar luego si da problemas*/
+            }}
             color="danger"
-
         >
-            <TableHeader columns={columns}>
+            <TableHeader columns={columns.filter((col) => visibleColumns.has(col.uid))}>
                 {(column) => (
                     <TableColumn key={column.uid} align="center">
                         {column.name}
@@ -159,13 +158,18 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
             </TableHeader>
             <TableBody>
                 {datosPaginados.map((item, index) => (
-                    <TableRow key={item.id || index} className="hover:bg-gray-200 transition duration-300">
-                        {(columnKey) => <TableCell>{renderCell(item, index, columnKey)}</TableCell>}
+                    <TableRow key={item.id || index} className="hover:bg-gray-200 hover:rounded-full transition duration-300">
+                        {columns
+                            .filter((col) => visibleColumns.has(col.uid))
+                            .map((column) => (
+                                <TableCell key={column.uid}>
+                                    {renderCell(item, index, column.uid)}
+                                </TableCell>
+                            ))}
                     </TableRow>
                 ))}
             </TableBody>
         </Table>
-    );
+    )
 };
-
 export default TablaDinamica;
