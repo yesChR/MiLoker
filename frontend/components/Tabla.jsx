@@ -49,7 +49,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                                 className="bg-transparent"
                             >
                                 <span className="text-lg text-gray-600">
-                                    ⋮ {/* Icono de tres puntos verticales */}
+                                    ⋮ 
                                 </span>
                             </Button>
                         </DropdownTrigger>
@@ -82,7 +82,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Buscar..."
-                        startContent={<SearchIcon />}
+                        startContent={<SearchIcon className="text-gray-500"/>}
                         value={filterValue}
                         onClear={() => setFilterValue("")}
                         onValueChange={(value) => setFilterValue(value)}

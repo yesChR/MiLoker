@@ -84,9 +84,9 @@ const Sidebar = () => {
       menu.subItems?.some((sub) => router.pathname.startsWith(sub.link)) ||
       (!menu.subItems && router.pathname.startsWith(menu.link));
     return classNames(
-      "flex items-center cursor-pointer hover:bg-gray-100 rounded w-full overflow-hidden whitespace-nowrap m-1",
+      "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap m-1",
       {
-        "bg-gray-100 text-primario font-bold": isActive,
+        ["bg-gray-200"]: activeMenu?.id === menu.id,
       }
     );
   };
