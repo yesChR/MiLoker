@@ -1,4 +1,4 @@
-import CabezeraDinamica from "./CabezeraDinamica";
+import CabezeraDinamica from "./CabeceraDinamica";
 import TablaDinamica from "./Tabla";
 import { BiEditAlt } from "react-icons/bi";
 import { DeleteIcon } from "./icons/DeleteIcon";
@@ -37,7 +37,7 @@ const Docentes = () => {
                     breadcrumb="Inicio • Docentes"
                 />
             </div>
-            <div className="w-full max-w-5xl"> {/* Ajustar aquii ancho de la tabla */}
+            <div className="w-full max-w-4xl"> {/* Ajustar aquii ancho de la tabla */}
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
                         columns={columnasPrueba}
