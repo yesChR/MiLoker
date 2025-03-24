@@ -87,6 +87,7 @@ const Docentes = () => {
                         placeholder="Teléfono"
                         variant={"bordered"}
                         type={"tel"}
+                        pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
                         className="focus:border-primario"
                         color="primary"
                     />

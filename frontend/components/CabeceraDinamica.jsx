@@ -3,7 +3,7 @@ import React from "react";
 const CabezeraDinamica = ({ title, breadcrumb }) => {
   return (
     <div
-      className="bg-cabezera p-6 rounded-lg shadow-md flex items-center w-full max-w-5xl mx-auto h-24 relative overflow-hidden"
+      className="bg-cabecera p-6 rounded-lg shadow-md flex items-center w-full max-w-5xl mx-auto h-24 relative overflow-hidden"
     >
       {/* Contenedor exclusivo para la imagen */}
       <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
