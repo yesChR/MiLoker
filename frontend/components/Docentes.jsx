@@ -2,8 +2,14 @@ import CabezeraDinamica from "./CabeceraDinamica";
 import TablaDinamica from "./Tabla";
 import { BiEditAlt } from "react-icons/bi";
 import { DeleteIcon } from "./icons/DeleteIcon";
+import { Drawer, Select } from "@heroui/react";
+import { useDisclosure } from "@heroui/react";
+import DrawerGeneral from "./DrawerGeneral";
+import { Input } from "@heroui/react";
 
 const Docentes = () => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
     const columnasPrueba = [
         { name: "#", uid: "index" },
         { name: "Nombre", uid: "nombre" },
@@ -43,9 +49,56 @@ const Docentes = () => {
                         columns={columnasPrueba}
                         data={datosPrueba}
                         acciones={accionesPrueba}
+                        onOpen={onOpen}
                     />
                 </div>
+                <DrawerGeneral titulo={"Agregar Docentes"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                    <Input
+                        placeholder="Cédula"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Input
+                        placeholder="Nombre"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Input
+                        placeholder="Primer apellido"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Input
+                        placeholder="Segundo apellido"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Input
+                        placeholder="Correo"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Input
+                        placeholder="Teléfono"
+                        variant={"bordered"}
+                        type={"tel"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                    <Select
+                        placeholder="Especialidad"
+                        variant={"bordered"}
+                        className="focus:border-primario"
+                        color="primary"
+                    />
+                </DrawerGeneral>
             </div>
+
         </div>
     );
 }

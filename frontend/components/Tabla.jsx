@@ -4,12 +4,16 @@ import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [] }) => {
+const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 5;
+
+    const abrirDrawer = () => {
+        onOpen();
+    };
 
     const hasSearchFilter = Boolean(filterValue);
 
@@ -109,7 +113,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
-                        <Button className="bg-primario text-white" endContent={<PlusIcon />}>
+                        <Button className="bg-primario text-white" onPress={()=> abrirDrawer()} endContent={<PlusIcon />}>
                             Agregar
                         </Button>
                     </div>
