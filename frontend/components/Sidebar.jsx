@@ -12,17 +12,82 @@ import { BiSolidReport } from "react-icons/bi";
 import { CollapsIcon, LogoutIcon } from "./icons";
 
 const menuItems = [
-  { id: 1, label: "Administración", icon: BsPersonFillGear, link: "/" },
-  { id: 2, label: "Docente", icon: FaChalkboardTeacher, link: "/docente" },
-  { id: 3, label: "Casillero", icon: GiLockers, link: "/casillero" },
-  { id: 4, label: "Estudiante", icon: FaBookReader, link: "/estudiante" },
-  { id: 5, label: "Incidente", icon: BsPersonFillExclamation, link: "/incidente" },
-  { id: 6, label: "Informe", icon: BiSolidReport, link: "/informe" },
+  {
+    id: 1,
+    label: "Administración",
+    icon: BsPersonFillGear,
+    link: "/",
+    subItems: [
+      { label: "Docentes", link: "/administrador/docentes" },
+      { label: "Administradores", link: "/administrador/docentes" },
+    ],
+  },
+  {
+    id: 2,
+    label: "Docente",
+    icon: FaChalkboardTeacher,
+    link: "/docente",
+    subItems: [
+      { label: "Sub Opción A", link: "/docente" },
+      { label: "Sub Opción B", link: "/docente" },
+    ],
+  },
+  {
+    id: 3,
+    label: "Casillero",
+    icon: GiLockers,
+    link: "/casillero",
+    subItems: [
+      { label: "Sub Casillero 1", link: "/casillero" },
+      { label: "Sub Casillero 2", link: "/casillero" },
+    ],
+  },
+  {
+    id: 4,
+    label: "Estudiante",
+    icon: FaBookReader,
+    link: "/estudiante",
+    subItems: [
+      { label: "Sub Estudiante 1", link: "/estudiante" },
+      { label: "Sub Estudiante 2", link: "/estudiante" },
+    ],
+  },
+  {
+    id: 5,
+    label: "Incidente",
+    icon: BsPersonFillExclamation,
+    link: "/incidente",
+    subItems: [
+      { label: "Sub Incidente 1", link: "/incidente" },
+      { label: "Sub Incidente 2", link: "/incidente" },
+    ],
+  },
+  {
+    id: 6,
+    label: "Informe",
+    icon: BiSolidReport,
+    link: "/informe",
+    subItems: [
+      { label: "Sub Informe 1", link: "/informe/sub1" },
+      { label: "Sub Informe 2", link: "/informe/sub2" },
+    ],
+  },
+  {
+    id: 7,
+    label: "Docentes",
+    icon: BsPersonFillGear,
+    link: "/administrador/docentes",
+    subItems: [
+      { label: "Sub Docente 1", link: "/administrador/docentes" },
+      { label: "Sub Docente 2", link: "/administrador/docentes" },
+    ],
+  },
 ];
 
 const Sidebar = () => {
   const [toggleCollapse, setToggleCollapse] = useState(false);
   const [isCollapsible, setIsCollapsible] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null); // Estado para rastrear el menú activo
 
   const router = useRouter();
 
@@ -32,13 +97,13 @@ const Sidebar = () => {
   );
 
   const wrapperClasses = classNames(
-    "h-screen px-4 pt-8 pb-4 bg-white flex justify-between flex-col shadow-xl z-10", 
+    "h-screen px-4 pt-8 pb-4 bg-white flex justify-between flex-col shadow-xl z-10",
     {
       ["w-60"]: !toggleCollapse,
       ["w-20"]: toggleCollapse,
     }
   );
-  
+
   const collapseIconClasses = classNames(
     "p-2 rounded bg-light-lighter absolute right-0",
     {
@@ -50,7 +115,7 @@ const Sidebar = () => {
     return classNames(
       "flex items-center cursor-pointer hover:bg-light-lighter rounded w-full overflow-hidden whitespace-nowrap m-1",
       {
-        ["bg-light-lighter"]: activeMenu.id === menu.id,
+        ["bg-light-lighter"]: activeMenu?.id === menu.id,
       }
     );
   };
@@ -63,6 +128,10 @@ const Sidebar = () => {
     setToggleCollapse(!toggleCollapse);
   };
 
+  const handleMenuClick = (menuId) => {
+    setActiveMenuId(activeMenuId === menuId ? null : menuId); // Alterna el menú activo
+  };
+
   return (
     <div
       className={wrapperClasses}
@@ -73,7 +142,7 @@ const Sidebar = () => {
       <div className="flex flex-col">
         <div className="flex items-center justify-between relative">
           <div className="flex items-center pl-1 gap-4">
-         <Image src="/logo.png" alt="logo" width={40} height={40} />
+            <Image src="/logo.png" alt="logo" width={40} height={40} />
             <span
               className={classNames("mt-2 text-2xl text-azulOscuro font-bold", {
                 hidden: toggleCollapse,
@@ -93,13 +162,19 @@ const Sidebar = () => {
         </div>
 
         <div className="flex flex-col items-start mt-10">
-          {menuItems.map(({ icon: Icon, ...menu }) => {
+          {menuItems.map(({ id, icon: Icon, subItems, ...menu }) => {
             const classes = getNavItemClasses(menu);
             return (
-              <div key={menu.id} className={classes}>
-                <Link href={menu.link} className="flex py-4 px-3 items-center w-full h-full">
+              <div key={id} className="w-full">
+                <div
+                  onClick={() => handleMenuClick(id)}
+                  className={classNames(
+                    classes,
+                    "flex py-4 px-3 items-center cursor-pointer"
+                  )}
+                >
                   <div style={{ width: "2.5rem" }}>
-                    <Icon className="w-6 h-6 text-gray-500"/>
+                    <Icon className="w-6 h-6 text-gray-500" />
                   </div>
                   {!toggleCollapse && (
                     <span
@@ -110,7 +185,16 @@ const Sidebar = () => {
                       {menu.label}
                     </span>
                   )}
-                </Link>
+                </div>
+                {!toggleCollapse && activeMenuId === id && subItems && (
+                  <ul className="ml-8 list-disc text-gray-600">
+                    {subItems.map((subItem, index) => (
+                      <li key={index} className="text-sm">
+                        <Link href={subItem.link}>{subItem.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             );
           })}
@@ -119,7 +203,7 @@ const Sidebar = () => {
 
       <div className={`${getNavItemClasses({})} px-3 py-4`}>
         <div style={{ width: "2.5rem" }}>
-        <LogoutIcon className="w-6 h-6 text-danger"/>
+          <LogoutIcon className="w-6 h-6 text-danger" />
         </div>
         {!toggleCollapse && (
           <span className={classNames("text-sm font-medium text-danger")}>

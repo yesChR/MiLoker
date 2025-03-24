@@ -35,18 +35,15 @@ const Layout = ({ children }) => {
 
 
   return (
-    <HeroUIProvider>
-      <div className="h-screen flex flex-row justify-start">
-        <Sidebar />
-        <UserButton />
-        <div className="bg-white flex-1 p-4 text-white">
+    <div className="h-screen flex flex-row justify-start">
+      <Sidebar />
+      <UserButton />
+      <div className="bg-white flex-1 p-4 text-white">
+        <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
           {children}
-          <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
-            <TablaDinamica columns={columnasPrueba} data={datosPrueba} acciones={accionesPrueba} />
-          </div>
         </div>
       </div>
-    </HeroUIProvider>
+    </div>
   );
 };
 
