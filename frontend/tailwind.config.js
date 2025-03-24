@@ -12,8 +12,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        azulOscuro: "#0D3858", // Agregando solo azulOscuro
+        azulOscuro: "#0D3858",
         primario: "#0b72eb",
+        cabezera: "#d7e8ff",
       },
     },
   },

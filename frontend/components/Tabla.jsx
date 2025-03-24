@@ -49,7 +49,7 @@ const TablaDinamica = ({ columns, data, acciones = [] }) => {
                                 className="bg-transparent"
                             >
                                 <span className="text-lg text-gray-600">
-                                    ⋮ {/* Icono de tres puntos verticales */}
+                                    ⋮ 
                                 </span>
                             </Button>
                         </DropdownTrigger>
