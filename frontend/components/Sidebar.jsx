@@ -86,7 +86,7 @@ const Sidebar = () => {
     return classNames(
       "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap m-1",
       {
-        ["bg-gray-200"]: activeMenu?.id === menu.id,
+        "bg-gray-200": isActive, // Cambiar el fondo si está activo
       }
     );
   };
