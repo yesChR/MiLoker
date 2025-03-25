@@ -3,72 +3,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import React, { useState } from "react";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { GiLockers } from "react-icons/gi";
-import { FaBookReader } from "react-icons/fa";
-import { BsPersonFillExclamation, BsPersonFillGear } from "react-icons/bs";
-import { BiSolidReport } from "react-icons/bi";
-import { CollapsIcon, LogoutIcon } from "./icons";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { Button } from "@heroui/react";
-
-const menuItems = [
-  {
-    id: 1,
-    label: "Administración",
-    icon: BsPersonFillGear,
-    subItems: [
-      { label: "Administradores", link: "/administrador/docentes" },
-      { label: "Docentes", link: "/administrador/administradores" },
-      { label: "Estudiantes", link: "/administrador/docentes" },
-      { label: "Especialidades", link: "/administrador/administradores" },
-      { label: "Tipos de sanciones", link: "/administrador/docentes" },
-      { label: "Periodos de solicitud", link: "/administrador/administradores" },
-    ],
-  },
-  {
-    id: 2,
-    label: "Docente",
-    icon: FaChalkboardTeacher,
-    subItems: [
-      { label: "Sub Opción A", link: "/docente/subA" },
-      { label: "Sub Opción B", link: "/docente/subB" },
-    ],
-  },
-  {
-    id: 3,
-    label: "Casillero",
-    icon: GiLockers,
-    subItems: [
-      { label: "Sub Casillero 1", link: "/casillero/sub1" },
-      { label: "Sub Casillero 2", link: "/casillero/sub2" },
-    ],
-  },
-  {
-    id: 4,
-    label: "Estudiante",
-    icon: FaBookReader,
-    subItems: [
-      { label: "Sub Estudiante 1", link: "/estudiante/sub1" },
-      { label: "Sub Estudiante 2", link: "/estudiante/sub2" },
-    ],
-  },
-  {
-    id: 5,
-    label: "Incidente",
-    icon: BsPersonFillExclamation,
-    subItems: [
-      { label: "Sub Incidente 1", link: "/incidente/sub1" },
-      { label: "Sub Incidente 2", link: "/incidente/sub2" },
-    ],
-  },
-  {
-    id: 6,
-    label: "Informe",
-    icon: BiSolidReport,
-    link: "/informe",
-  },
-];
+import { FiChevronLeft, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { LogoutIcon } from "./icons";
+import { menuItems } from "../data/menuitems";
 
 const Sidebar = () => {
   const [toggleCollapse, setToggleCollapse] = useState(false);
@@ -79,15 +16,85 @@ const Sidebar = () => {
     setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const checkSubItemsActive = (subItems) => {
+    return subItems.some((item) => {
+      if (item.subItems) {
+        return checkSubItemsActive(item.subItems);
+      }
+      return router.pathname.startsWith(item.link);
+    });
+  };
+
   const getNavItemClasses = (menu) => {
     const isActive =
-      menu.subItems?.some((sub) => router.pathname.startsWith(sub.link)) ||
+      (menu.subItems && checkSubItemsActive(menu.subItems)) ||
       (!menu.subItems && router.pathname.startsWith(menu.link));
     return classNames(
       "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap m-1",
       {
-        "bg-gray-200": isActive, // Cambiar el fondo si está activo
+        "bg-gray-200": isActive,
       }
+    );
+  };
+
+  const renderSubItems = (items, level = 1, parentId = "") => {
+    return (
+      <ul className={`ml-8 list-disc ${level === 2 ? "text-gray-700" : "text-gray-600"}`}>
+        {items.map((item, index) => {
+          const itemId = `${parentId}-${index}`;
+          const hasSubItems = item.subItems && item.subItems.length > 0;
+
+          return (
+            <li key={index} className="py-1">
+              {hasSubItems ? (
+                <>
+                  <div
+                    className="flex items-center cursor-pointer justify-between"
+                    onClick={() => handleExpand(itemId)}
+                  >
+                    <span
+                      className={classNames(
+                        "font-medium",
+                        {
+                          "text-sm": level === 1, // Subitems principales
+                          "text-xs": level === 2, // Sub-subitems más pequeños
+                        },
+                        {
+                          "text-primario font-bold": checkSubItemsActive(item.subItems),
+                        }
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                    {expandedItems[itemId] ? (
+                      <FiChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <FiChevronDown className="w-4 h-4 text-gray-500" />
+                    )}
+                  </div>
+                  {expandedItems[itemId] && renderSubItems(item.subItems, level + 1, itemId)}
+                </>
+              ) : (
+                <Link
+                  href={item.link}
+                  className={classNames(
+                    "block font-medium",
+                    {
+                      "text-sm": level === 1, // Subitems principales
+                      "text-xs": level === 2, // Sub-subitems más pequeños
+                    },
+                    {
+                      "text-azulOscuro font-bold font-semibold": router.pathname.startsWith(item.link),
+                    }
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     );
   };
 
@@ -97,7 +104,7 @@ const Sidebar = () => {
         "h-screen px-4 pt-8 pb-4 bg-white flex justify-between flex-col shadow-xl z-10",
         { "w-60": !toggleCollapse, "w-20": toggleCollapse }
       )}
-      style={{ transition: "width 500ms cubic-bezier(0.2, 0, 0, 1) 0s" }}
+      style={{ transition: "width 500ms cubic-bezier(0.2, 0, 1) 0s" }}
     >
       <div className="flex flex-col">
         <div className="flex items-center justify-between relative">
@@ -142,6 +149,8 @@ const Sidebar = () => {
 
         <div className="flex flex-col items-start mt-10">
           {menuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
+            const hasSubItems = subItems && subItems.length > 0;
+
             return (
               <div key={id} className="w-full">
                 <div
@@ -150,7 +159,7 @@ const Sidebar = () => {
                     "flex py-3 px-3 items-center justify-between"
                   )}
                   onClick={() => {
-                    if (!subItems && link) {
+                    if (!hasSubItems && link) {
                       router.push(link);
                     } else {
                       handleExpand(id);
@@ -167,22 +176,16 @@ const Sidebar = () => {
                       </span>
                     )}
                   </div>
+                  {!toggleCollapse && hasSubItems && (
+                    expandedItems[id] ? (
+                      <FiChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <FiChevronDown className="w-4 h-4 text-gray-500" />
+                    )
+                  )}
                 </div>
-                {!toggleCollapse && expandedItems[id] && subItems && (
-                  <ul className="ml-12 list-disc text-gray-600">
-                    {subItems.map((subItem, index) => (
-                      <li
-                        key={index}
-                        className={classNames("text-sm", {
-                          "text-blue-500 font-bold": router.pathname.startsWith(
-                            subItem.link
-                          ),
-                        })}
-                      >
-                        <Link href={subItem.link}>{subItem.label}</Link>
-                      </li>
-                    ))}
-                  </ul>
+                {!toggleCollapse && expandedItems[id] && hasSubItems && (
+                  renderSubItems(subItems, 1, id.toString())
                 )}
               </div>
             );
@@ -195,12 +198,15 @@ const Sidebar = () => {
           "flex items-center px-3 py-4 cursor-pointer hover:bg-gray-100 rounded",
           { "w-60": !toggleCollapse, "w-20": toggleCollapse }
         )}
+        onClick={() => {
+          console.log("Cerrar sesión");
+        }}
       >
         <div style={{ width: "2.5rem" }}>
-          <LogoutIcon className="w-6 h-6 text-danger" />
+          <LogoutIcon className="w-6 h-6 text-red-500" />
         </div>
         {!toggleCollapse && (
-          <span className="text-sm font-medium text-danger">Cerrar sesión</span>
+          <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
         )}
       </div>
     </div>

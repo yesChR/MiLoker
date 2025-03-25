@@ -43,7 +43,7 @@ const Docentes = () => {
                     breadcrumb="Inicio • Docentes"
                 />
             </div>
-            <div className="w-full max-w-4xl"> {/* Ajustar aquii ancho de la tabla */}
+            <div className="w-full max-w-4xl">
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
                         columns={columnasPrueba}
