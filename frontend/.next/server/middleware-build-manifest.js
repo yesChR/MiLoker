@@ -19,10 +19,10 @@ self.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/administrador/docentes": [
+    "/auth/login": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/administrador/docentes.js"
+      "static/chunks/pages/auth/login.js"
     ]
   },
   "ampFirstPages": []
