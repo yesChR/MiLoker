@@ -2,6 +2,7 @@ import { Card, CardBody, Input, Button } from "@heroui/react";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "./icons/EyeSlashFilledIcon";
 import React from "react";
+import Image from "next/image";
 
 const Login = () => {
   const [isVisible, setIsVisible] = React.useState(false);
@@ -12,11 +13,13 @@ const Login = () => {
     <div className="flex justify-center items-center min-h-screen bg-fondoLogin">
       <Card className="flex flex-row w-[750px] h-[470px] shadow-lg" shadow="lg" radius="lg">
         {/* Sección izquierda con fondo e imagen */}
-        <div className="w-[220px] bg-primario flex items-center justify-center">
-          <img
-            src="/path-to-your-image.jpg" // Cambia esta ruta por la de tu imagen
-            alt="Login Illustration"
-            className="w-3/4 h-auto"
+        <div className="w-[250px] bg-primario flex items-center justify-center">
+
+          <Image
+            src="/candadoCerrado.png"
+            alt="Logo"
+            width={200}
+            height={200}
           />
         </div>
 
