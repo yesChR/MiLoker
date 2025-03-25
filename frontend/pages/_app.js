@@ -1,13 +1,23 @@
 import "@/styles/globals.css";
 import { HeroUIProvider } from "@heroui/react";
 import Layout from "@/components/Layout";
+import { useRouter } from "next/router";
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+
+  // Rutas sin Layout
+  const noLayoutPages = ["/auth/login"];
+
   return (
     <HeroUIProvider>
-      <Layout>
+      {noLayoutPages.includes(router.pathname) ? (
         <Component {...pageProps} />
-      </Layout>
+      ) : (
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      )}
     </HeroUIProvider>
-  )
+  );
 }
