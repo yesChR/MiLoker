@@ -2,9 +2,9 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import { HeroUIProvider } from "@heroui/react";
 import { UserButton } from "./UserButton";
-import TablaDinamica from "./Tabla";
+import TablaDinamica from "../Tabla"
 import { BiEditAlt } from "react-icons/bi";
-import { DeleteIcon } from "./icons/DeleteIcon";
+import { DeleteIcon } from "../icons/DeleteIcon";
 
 const Layout = ({ children }) => {
   const columnasPrueba = [

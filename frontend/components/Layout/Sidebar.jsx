@@ -4,16 +4,18 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import React, { useState } from "react";
 import { FiChevronLeft, FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { LogoutIcon } from "./icons";
-import { menuItems } from "../data/menuitems";
+import { LogoutIcon } from "../icons";
+import { menuItems } from "../../data/menuitems";
 
 const Sidebar = () => {
   const [toggleCollapse, setToggleCollapse] = useState(false);
-  const [expandedItems, setExpandedItems] = useState({});
+  const [expandedItems, setExpandedItems] = useState([]); // Almacena los IDs de los elementos expandidos
   const router = useRouter();
 
   const handleExpand = (id) => {
-    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedItems((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    ); // Agrega o elimina el ID del estado
   };
 
   const checkSubItemsActive = (subItems) => {
@@ -66,13 +68,13 @@ const Sidebar = () => {
                     >
                       {item.label}
                     </span>
-                    {expandedItems[itemId] ? (
+                    {expandedItems.includes(itemId) ? (
                       <FiChevronUp className="w-4 h-4 text-gray-500" />
                     ) : (
                       <FiChevronDown className="w-4 h-4 text-gray-500" />
                     )}
                   </div>
-                  {expandedItems[itemId] && renderSubItems(item.subItems, level + 1, itemId)}
+                  {expandedItems.includes(itemId) && renderSubItems(item.subItems, level + 1, itemId)}
                 </>
               ) : (
                 <Link
@@ -101,12 +103,13 @@ const Sidebar = () => {
   return (
     <div
       className={classNames(
-        "h-screen px-4 pt-8 pb-4 bg-white flex justify-between flex-col shadow-xl z-10",
+        "h-screen px-4 pt-8 pb-4 bg-white flex flex-col justify-between shadow-xl z-10",
         { "w-60": !toggleCollapse, "w-20": toggleCollapse }
       )}
       style={{ transition: "width 500ms cubic-bezier(0.2, 0, 1) 0s" }}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
+        {/* Encabezado del Sidebar */}
         <div className="flex items-center justify-between relative">
           <div className="flex items-center pl-1 gap-4">
             {toggleCollapse ? (
@@ -147,6 +150,7 @@ const Sidebar = () => {
           )}
         </div>
 
+        {/* Contenido del Sidebar */}
         <div className="flex flex-col items-start mt-10">
           {menuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
             const hasSubItems = subItems && subItems.length > 0;
@@ -177,14 +181,14 @@ const Sidebar = () => {
                     )}
                   </div>
                   {!toggleCollapse && hasSubItems && (
-                    expandedItems[id] ? (
+                    expandedItems.includes(id) ? (
                       <FiChevronUp className="w-4 h-4 text-gray-500" />
                     ) : (
                       <FiChevronDown className="w-4 h-4 text-gray-500" />
                     )
                   )}
                 </div>
-                {!toggleCollapse && expandedItems[id] && hasSubItems && (
+                {!toggleCollapse && expandedItems.includes(id) && hasSubItems && (
                   renderSubItems(subItems, 1, id.toString())
                 )}
               </div>
@@ -193,6 +197,7 @@ const Sidebar = () => {
         </div>
       </div>
 
+      {/* Pie del Sidebar */}
       <div
         className={classNames(
           "flex items-center px-3 py-4 cursor-pointer hover:bg-gray-100 rounded",

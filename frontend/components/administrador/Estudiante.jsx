@@ -1,13 +1,13 @@
-import CabezeraDinamica from "./CabeceraDinamica";
-import TablaDinamica from "./Tabla";
+import CabezeraDinamica from "../Layout/CabeceraDinamica";
+import TablaDinamica from "../Tabla";
 import { BiEditAlt } from "react-icons/bi";
-import { DeleteIcon } from "./icons/DeleteIcon";
+import { DeleteIcon } from "../icons/DeleteIcon";
 import { Drawer, Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
-import DrawerGeneral from "./DrawerGeneral";
+import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
 
-const Docentes = () => {
+const Estudiante = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
     const columnasPrueba = [
@@ -39,8 +39,8 @@ const Docentes = () => {
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
             <div className="w-full">
                 <CabezeraDinamica
-                    title="Docentes"
-                    breadcrumb="Inicio • Docentes"
+                    title="Estudiantes"
+                    breadcrumb="Inicio • Estudiantes"
                 />
             </div>
             <div className="w-full max-w-4xl">
@@ -52,7 +52,7 @@ const Docentes = () => {
                         onOpen={onOpen}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Docentes"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                <DrawerGeneral titulo={"Agregar Estudiantes"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
                     <Input
                         placeholder="Cédula"
                         variant={"bordered"}
@@ -104,4 +104,4 @@ const Docentes = () => {
     );
 }
 
-export default Docentes;
+export default Estudiante;

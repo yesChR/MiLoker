@@ -1,4 +1,4 @@
-import Docentes from "@/components/Docentes";
+import Docentes from "@/components/administrador/Docentes";
 
 const DocentesPage = () => {
     return (
