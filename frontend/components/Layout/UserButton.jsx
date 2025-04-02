@@ -20,7 +20,7 @@ export function UserButton() {
                                 <p className="font-semibold">Hola, @usuario</p>
                             </DropdownItem>
                             <DropdownItem key="settings">Cambiar contraseña</DropdownItem>
-                            <DropdownItem key="logout" color="danger">
+                            <DropdownItem key="logout" color="danger" className="text-danger">
                                 Cerrar sesión
                             </DropdownItem>
                         </DropdownMenu>

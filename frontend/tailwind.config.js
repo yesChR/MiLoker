@@ -15,7 +15,8 @@ module.exports = {
         azulOscuro: "#0D3858",
         primario: "#0b72eb",
         cabecera: "#d7e8ff",
-        fondoLogin: "#fcfbfb"
+        fondoLogin: "#fcfbfb",
+        celeste: "#38b6ff",
       },
     },
   },

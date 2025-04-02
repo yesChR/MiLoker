@@ -10,17 +10,49 @@ import { Input } from "@heroui/react";
 const Docentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+
     const columnasPrueba = [
-        { name: "#", uid: "index" },
+        { name: "Cédula", uid: "cedula" },
         { name: "Nombre", uid: "nombre" },
-        { name: "Categoría", uid: "categoria" },
+        { name: "Primer Apellido", uid: "primerApellido" },
+        { name: "Segundo Apellido", uid: "segundoApellido" },
+        { name: "Correo", uid: "correo" },
+        { name: "Teléfono", uid: "telefono" },
+        { name: "Estado", uid: "estado" },
         { name: "Acciones", uid: "acciones" },
     ];
 
     const datosPrueba = [
-        { id: 1, nombre: "Electrónica", categoria: "Tecnología" },
-        { id: 2, nombre: "Ropa", categoria: "Moda" },
-        { id: 3, nombre: "Hogar", categoria: "Decoración" },
+        {
+            id: 1,
+            cedula: "123456789",
+            nombre: "Juan",
+            primerApellido: "Pérez",
+            segundoApellido: "Gómez",
+            correo: "juan.perez@example.com",
+            telefono: "88888888",
+            estado: "Activo",
+        },
+        {
+            id: 2,
+            cedula: "987654321",
+            nombre: "María",
+            primerApellido: "Rodríguez",
+            segundoApellido: "López",
+            correo: "maria.rodriguez@example.com",
+            telefono: "77777777",
+            estado: "Inactivo",
+        },
+        {
+            id: 3,
+            cedula: "456789123",
+            nombre: "Carlos",
+            primerApellido: "Jiménez",
+            segundoApellido: "Martínez",
+            correo: "carlos.jimenez@example.com",
+            telefono: "66666666",
+            estado: "Activo",
+        },
     ];
 
     const accionesPrueba = [
@@ -30,11 +62,12 @@ const Docentes = () => {
             handler: (item) => console.log("Editar", item),
         },
         {
-            tooltip: "Eliminar",
-            icon: <DeleteIcon />,
+            tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
+            icon: <DeleteIcon className="text-danger" />,
             handler: (item) => console.log("Eliminar", item),
         },
     ];
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
             <div className="w-full">
@@ -99,9 +132,8 @@ const Docentes = () => {
                     />
                 </DrawerGeneral>
             </div>
-
         </div>
     );
-}
+};
 
 export default Docentes;
