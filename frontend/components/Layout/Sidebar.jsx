@@ -21,9 +21,18 @@ const Sidebar = () => {
   const checkSubItemsActive = (subItems) => {
     return subItems.some((item) => {
       if (item.subItems) {
+        // Recursivamente verifica los sub-subitems
         return checkSubItemsActive(item.subItems);
       }
-      return router.pathname.startsWith(item.link);
+
+      // Manejar rutas dinámicas
+      if (item.link.includes("[estado]")) {
+        const dynamicLink = item.link.replace("[estado]", router.query.estado || "");
+        return router.asPath === dynamicLink;
+      }
+
+      // Verificar si la ruta actual coincide con el enlace del menú
+      return router.asPath === item.link;
     });
   };
 
@@ -41,7 +50,15 @@ const Sidebar = () => {
 
   const renderSubItems = (items, level = 1, parentId = "") => {
     return (
-      <ul className={`ml-8 list-disc ${level === 2 ? "text-gray-700" : "text-gray-600"}`}>
+      <ul
+        className={classNames(
+          "ml-8 list-disc", // Agregar "list-disc" para mostrar los bullets
+          {
+            "text-gray-700": level === 2, // Sub-subitems
+            "text-gray-600": level === 1, // Subitems principales
+          }
+        )}
+      >
         {items.map((item, index) => {
           const itemId = `${parentId}-${index}`;
           const hasSubItems = item.subItems && item.subItems.length > 0;
@@ -62,7 +79,8 @@ const Sidebar = () => {
                           "text-xs": level === 2, // Sub-subitems más pequeños
                         },
                         {
-                          "text-primario font-bold": checkSubItemsActive(item.subItems),
+                          "text-primario font-bold": level === 1 && checkSubItemsActive(item.subItems), // Subitems seleccionados
+                          "text-azulOscuro font-bold": level === 2 && checkSubItemsActive(item.subItems), // Sub-subitems seleccionados
                         }
                       )}
                     >
@@ -86,7 +104,8 @@ const Sidebar = () => {
                       "text-xs": level === 2, // Sub-subitems más pequeños
                     },
                     {
-                      "text-azulOscuro font-bold font-semibold": router.pathname.startsWith(item.link),
+                      "text-primario font-bold": level === 1 && router.asPath === item.link, // Subitems seleccionados
+                      "text-azulOscuro font-bold": level === 2 && router.asPath === item.link, // Sub-subitems seleccionados
                     }
                   )}
                 >

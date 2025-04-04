@@ -25,9 +25,9 @@ export const menuItems = [
       {
         label: "Solicitudes de casilleros",
         subItems: [
-          { label: "En espera", link: "/administrador/docentes" },
-          { label: "Aprobadas", link: "/docente/solicitud/aprobadas" },
-          { label: "Rechazadas", link: "/docente/solicitud/rechazadas" },
+          { label: "En espera", link: "/docente/solicitudes/1" },
+          { label: "Aprobadas", link: "/docente/solicitudes/2" },
+          { label: "Rechazadas", link: "/docente/solicitudes/3" },
         ],
       },
       { label: "Alertas de incidencias", link: "/docente/alertas" },
