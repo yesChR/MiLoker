@@ -25,7 +25,9 @@ const Armario = () => {
             </div>
             <div className="flex flex-row items-center justify-between rounded-lg w-full max-w-xl mx-auto mt-6">
                 <Select className="w-[200px] rounded-md" placeholder="Especialidad" />
-                <Button className="bg-primario text-white flex items-center" onPress={() => abrirDrawer()} endContent={<PlusIcon />}>
+                <Button className="bg-primario text-white flex items-center"
+                    onPress={() => abrirDrawer()}
+                    endContent={<PlusIcon />}>
                     Agregar
                 </Button>
             </div>
@@ -33,13 +35,13 @@ const Armario = () => {
                 <div className="bg-primary text-white p-4 text-lg rounded-md text-center font-bold">Armario #</div>
                 <div className="grid grid-cols-3 gap-5 mt-5">
                     {Array.from({ length: 12 }, (_, index) => (
-                        <button
+                        <Button
                             key={index}
                             className="bg-celeste text-white w-full h-[65px] flex items-center justify-center text-lg rounded-md shadow-md transition-transform duration-200 hover:bg-celesteOscuro hover:scale-105"
-                            onClick={() => console.log(`Seleccionaste el número ${index + 1}`)}
+                            onPress={() => abrirDrawer()}
                         >
                             {index + 1}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
