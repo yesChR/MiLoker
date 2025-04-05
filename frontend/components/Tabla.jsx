@@ -4,30 +4,40 @@ import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) => {
+const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, filterOptions = [] }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
+    const [selectedFilters, setSelectedFilters] = useState({}); // Almacena los valores seleccionados para cada filtro
     const numElementos = 5;
 
     const abrirDrawer = () => {
         onOpen();
     };
 
-    const hasSearchFilter = Boolean(filterValue);
-
+    // Lógica de filtrado
     const filteredData = useMemo(() => {
-        if (!filterValue) return data;
-
-        return data.filter((item) =>
-            columns.some((column) =>
+        return data.filter((item) => {
+            // Filtrar por búsqueda general
+            const searchMatch = columns.some((column) =>
                 String(item[column.uid] || "")
                     .toLowerCase()
                     .includes(filterValue.toLowerCase())
-            )
-        );
-    }, [filterValue, data, columns]);
+            );
+
+
+            console.log("selectedFilters", selectedFilters);
+            // Filtrar por los valores seleccionados en los filtros dinámicos
+            const filtersMatch = Object.entries(selectedFilters).every(([field, values]) => {
+                if (!values || values.length === 0) return true; // Si no hay valores seleccionados, no filtrar
+                return values.some((value) => 
+                    String(item[field] || "").toLowerCase() === String(value).toLowerCase()
+                );
+            });
+
+            return searchMatch && filtersMatch;
+        });
+    }, [filterValue, selectedFilters, data, columns]);
 
     // Paginación de los datos
     const datosPaginados = useMemo(() => {
@@ -86,12 +96,40 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Buscar..."
-                        startContent={<SearchIcon className="text-gray-500"/>}
+                        startContent={<SearchIcon className="text-gray-500" />}
                         value={filterValue}
                         onClear={() => setFilterValue("")}
                         onValueChange={(value) => setFilterValue(value)}
                     />
                     <div className="flex gap-3">
+                        {/* Generar dinámicamente los Dropdowns para los filtros */}
+                        {filterOptions.map(({ field, label, values }) => (
+                            <Dropdown key={field}>
+                                <DropdownTrigger>
+                                    <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                                        {label}
+                                    </Button>
+                                </DropdownTrigger>
+                                <DropdownMenu
+                                    aria-label={`Filtrar por ${label}`}
+                                    closeOnSelect={false}
+                                    selectionMode="multiple"
+                                    selectedKeys={selectedFilters[field] || []}
+                                    onSelectionChange={(keys) =>
+                                        setSelectedFilters((prev) => ({
+                                            ...prev,
+                                            [field]: [...keys],
+                                        }))
+                                    }
+                                >
+                                    {values.map((value) => (
+                                        <DropdownItem key={value} className="capitalize">
+                                            {value}
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+                        ))}
                         <Dropdown>
                             <DropdownTrigger className="hidden sm:flex">
                                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -113,14 +151,14 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
-                        <Button className="bg-primario text-white" onPress={()=> abrirDrawer()} endContent={<PlusIcon />}>
+                        <Button className="bg-primario text-white" onPress={() => abrirDrawer()} endContent={<PlusIcon />}>
                             Agregar
                         </Button>
                     </div>
                 </div>
             </div>
         );
-    }, [filterValue, visibleColumns, columns]);
+    }, [filterValue, visibleColumns, columns, filterOptions, selectedFilters]);
 
     const bottomContent = useMemo(() => {
         return (
@@ -174,6 +212,6 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                 ))}
             </TableBody>
         </Table>
-    )
+    );
 };
 export default TablaDinamica;
