@@ -1,6 +1,5 @@
-const defaultTheme = require('tailwindcss/defaultConfig');
+/** @type {import('tailwindcss').Config} */
 const { heroui } = require("@heroui/react");
-const { color } = require('framer-motion');
 
 module.exports = {
   content: [
@@ -20,6 +19,6 @@ module.exports = {
       },
     },
   },
-  darkMode: "class",
+  ligthMode: "class",
   plugins: [heroui()],  
 };
