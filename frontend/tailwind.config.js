@@ -19,6 +19,6 @@ module.exports = {
       },
     },
   },
-  ligthMode: "class",
+  darkMode: 'media',
   plugins: [heroui()],  
 };

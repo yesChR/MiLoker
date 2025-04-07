@@ -1,4 +1,3 @@
-import Swal from "sweetalert2";
 import { BiCalendar } from "react-icons/bi";
 import { FiRefreshCw } from "react-icons/fi";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
@@ -34,42 +33,11 @@ const PeriodoSolicitud = () => {
     ];
 
     const handleRestablecer = () => {
-        Swal.fire({
-            position: "top-end",
-            icon: "warning",
-            title: "¿Estás seguro?",
-            text: "Se eliminará la asignación de casilleros.",
-            showCancelButton: true,
-            confirmButtonText: "Aceptar",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "Casilleros restablecidos",
-                    showConfirmButton: false,
-                    timer: 1500,
-                });
-                console.log("Restablecer confirmado");
-            } else {
-                console.log("Restablecer cancelado");
-            }
-        });
+
     };
 
     const handleActualizar = (e) => {
         e.preventDefault();
-        Swal.fire({
-            position: "top-end",
-            icon: "success",
-            title: "Fechas actualizadas",
-            text: `Solicitud: ${inicioSolicitud} - ${finSolicitud}\nAsignación: ${inicioAsignacion} - ${finAsignacion}`,
-            showConfirmButton: false,
-            timer: 1500,
-        });
     };
 
     return (
