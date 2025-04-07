@@ -1,14 +1,9 @@
 import CabezeraDinamica from "../Layout/CabeceraDinamica"
-import TablaDinamica from "../Tabla"
-import { BiEditAlt } from "react-icons/bi"
-import { DeleteIcon } from "../icons/DeleteIcon"
-import { Select, Input, Button, useDisclosure } from "@heroui/react"
-import DrawerGeneral from "../DrawerGeneral"
+import { Input, Button, useDisclosure, DatePicker } from "@heroui/react"
 import { SearchIcon } from "../icons/SearchIcon"
-import { useState } from "react"
-import { FaAsterisk } from "react-icons/fa";
 import { Divider } from "@heroui/react";
-import { FaRegCalendarAlt } from "react-icons/fa";
+import { LuSendHorizontal } from "react-icons/lu";
+
 
 const CrearUsuarios = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -39,7 +34,7 @@ const CrearUsuarios = () => {
                                     placeholder="Cédula"
                                     variant="bordered"
                                     color="primary"
-                                    className="pr-2" // deja espacio para el botón
+                                    className="pr-2"
                                 />
                                 <button
                                     type="button"
@@ -47,12 +42,12 @@ const CrearUsuarios = () => {
                                         const cedulaInput = document.querySelector('input[name="cedula"]')
                                         if (cedulaInput && cedulaInput.value.trim() !== '') {
                                             console.log('Buscando cédula:', cedulaInput.value)
-                                            // Aquí podrías hacer una llamada a la API, cargar datos, etc.
+
                                         }
                                     }}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-transform duration-200 hover:bg-primario hover:scale-105 w-[52px] h-[39.5px] bg-primario rounded-lg flex items-center justify-center"
                                 >
-                                    <SearchIcon/>
+                                    <SearchIcon />
                                 </button>
                             </div>
                             <Input placeholder="Nombre" variant="bordered" color="primary" />
@@ -60,7 +55,7 @@ const CrearUsuarios = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-2">
                             <Input placeholder="Segundo Apellido" variant="bordered" color="primary" />
-                            <Input placeholder="Fecha nacimiento" variant="bordered" color="primary"/>
+                            <DatePicker placeholder="Fecha nacimiento" variant="bordered" color="primary" />
                             <Input placeholder="Teléfono" variant="bordered" color="primary" />
                         </div>
                         <div className="grid grid-cols-3 gap-2 mt-2">
@@ -98,7 +93,7 @@ const CrearUsuarios = () => {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit" className="px-6 bg-primario text-white mt-2">Enviar</Button>
+                        <Button type="submit" className="px-6 bg-primario text-white mt-2" endContent={<LuSendHorizontal /> }>Enviar</Button>
                     </div>
                 </form>
             </div>

@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
   const [toggleCollapse, setToggleCollapse] = useState(false);
 
   return (
-    <div className="h-screen flex w-full bg-gray-100 overflow-hidden">
+    <div className="h-screen flex w-full overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         toggleCollapse={toggleCollapse}
@@ -26,7 +26,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Contenido principal */}
-      <div className="flex-1 flex flex-col bg-gray-100 overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 p-4 mt-16 overflow-auto">
           {children}
         </div>
