@@ -99,7 +99,6 @@ const Solicitudes = ({ estado }) => {
                             className="focus:border-primario mb-4"
                             color="primary"
                         />
-                        {/* Contenedor para el botón al final */}
                         <div className="flex justify-end">
                             <Button color="primary" flex endContent={<LuSendHorizontal />}>
                                 Enviar
@@ -109,7 +108,7 @@ const Solicitudes = ({ estado }) => {
                     </div>
                     <div className="flex flex-col mb-4">
                         <label className="text-azulOscuro font-bold text-xl">Historial</label>
-                        {/* Sección de Casilleros Anteriores */}
+
                         {casillerosAnteriores.length > 0 && (
                             <div className="mt-4">
                                 <h2 className="text-gray-700 font-bold text-sm mb-2">Casilleros anteriores:</h2>
@@ -122,7 +121,6 @@ const Solicitudes = ({ estado }) => {
                                 </ul>
                             </div>
                         )}
-                        {/* Sección de Incidentes Relacionados */}
                         {incidentesRelacionados.length > 0 && (
                             <div className="mt-4">
                                 <h2 className="text-gray-700 font-bold text-sm mb-2">Incidentes relacionados:</h2>

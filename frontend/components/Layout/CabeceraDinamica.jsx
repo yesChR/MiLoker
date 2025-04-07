@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 const CabezeraDinamica = ({ title, breadcrumb }) => {
   return (
@@ -7,7 +8,9 @@ const CabezeraDinamica = ({ title, breadcrumb }) => {
     >
       {/* Contenedor exclusivo para la imagen */}
       <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-        <img
+        <Image
+          width={80}
+          height={80}
           src="/imgCabecera.png"
           alt="Imagen de cabecera"
           className="w-20 h-auto"
@@ -16,7 +19,7 @@ const CabezeraDinamica = ({ title, breadcrumb }) => {
 
       {/* Contenido */}
       <div className="relative z-10">
-        <h2 className="text-2xl font-semibold text-azulOscuro">{title}</h2>
+        <h2 className="md:text-2xl text-xl font-semibold text-azulOscuro">{title}</h2>
         <p className="text-sm text-gray-500">{breadcrumb}</p>
       </div>
     </div>
