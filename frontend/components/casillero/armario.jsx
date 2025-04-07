@@ -25,41 +25,47 @@ const Armario = () => {
     };
 
     return (
-        <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-6">
             <div className="w-full">
                 <CabezeraDinamica
                     title="Casilleros"
                     breadcrumb="Inicio • Casilleros"
                 />
             </div>
-            <div className="flex flex-row items-center justify-between rounded-lg w-full max-w-xl mx-auto mt-6">
-                <Select className="w-[200px] rounded-md" placeholder="Especialidad" />
-                <Button
-                    className="bg-primario text-white flex items-center"
-                    onPress={() => abrirDrawer()} // Para agregar un nuevo armario
-                    endContent={<PlusIcon />}
-                >
-                    Agregar
-                </Button>
-            </div>
-            <div className="border border-gray-300 p-2 rounded-lg w-full max-w-xl mx-auto h-[420px] mt-6">
-                <div className="bg-primary text-white p-4 text-lg rounded-md text-center font-bold">Armario #</div>
-                <div className="grid grid-cols-3 gap-5 mt-5">
-                    {Array.from({ length: 12 }, (_, index) => (
-                        <Button
-                            key={index}
-                            className="bg-celeste text-white w-full h-[65px] flex items-center justify-center text-lg rounded-md shadow-md transition-transform duration-200 hover:bg-celesteOscuro hover:scale-105"
-                            onPress={() => abrirDrawer(index + 1)} // Seleccionamos el armario y abrimos el drawer
-                        >
-                            {index + 1}
-                        </Button>
-                    ))}
+            <div className="rounded-lg w-full max-w-3xl mx-auto p-4 bg-white space-y-0">
+                <div className="flex flex-row items-center justify-between rounded-lg w-full max-w-2xl mx-auto bg-white mb-4">
+                    <Select className="w-[300px] rounded-md" placeholder="Especialidad" />
+                    <Button
+                        className="bg-primario text-white flex items-center"
+                        onPress={() => abrirDrawer()} // Para agregar un nuevo armario
+                        endContent={<PlusIcon />}
+                    >
+                        Agregar
+                    </Button>
+                </div>
+                <div className="border border-gray-300 p-6 rounded-lg w-full max-w-2xl mx-auto h-full max-h-[1200px] shadow-lg ">
+                    <div className="bg-primary text-white p-4 text-xl rounded-md text-center font-bold shadow-lg w-md">Armario #</div>
+                    <div className="grid grid-cols-3 gap-5 mt-5">
+                        {Array.from({ length: 4 }).map((_, rowIndex) => (
+                            Array.from({ length: 3 }).map((_, colIndex) => {
+                                const casilleroNumber = rowIndex * 3 + colIndex + 1; // Calcula el número del casillero
+                                return (
+                                    <Button
+                                        key={casilleroNumber}
+                                        className="bg-celeste text-white w-md h-[80px] flex items-center justify-center text-xl rounded-md shadow-md transition-transform duration-200 hover:bg-celesteOscuro hover:scale-105"
+                                        onPress={() => abrirDrawer(casilleroNumber)} // Seleccionamos el armario y abrimos el drawer
+                                    >
+                                        {casilleroNumber}
+                                    </Button>
+                                );
+                            })
+                        ))}
+                    </div>
                 </div>
             </div>
-
             {/* Drawer para agregar o editar armarios */}
             <DrawerGeneral
-                titulo={isEditing ? "Editar Armario" : "Agregar Armario"} 
+                titulo={isEditing ? "Editar Armario" : "Agregar Armario"}
                 size={"xs"}
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
@@ -92,7 +98,7 @@ const Armario = () => {
                             className="border-2 rounded-2xl p-2 w-full h-32 resize-none placeholder:text-sm text-gray-900"
                             color="black"
                         />
-                       
+
                     </>
                 ) : (
                     <>
