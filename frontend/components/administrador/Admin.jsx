@@ -54,6 +54,11 @@ const Admin = () => {
         },
     ];
 
+    const filterOptions= [
+        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+        { field: "role", label: "Rol", values: ["Admin", "Usuario"] },
+      ]
+
     const accionesPrueba = [
         {
             tooltip: "Editar",
@@ -81,6 +86,7 @@ const Admin = () => {
                         columns={columnasPrueba}
                         data={datosPrueba}
                         acciones={accionesPrueba}
+                        filterOptions={filterOptions}
                         onOpen={onOpen}
                     />
                 </div>

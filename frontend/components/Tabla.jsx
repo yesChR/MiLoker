@@ -4,27 +4,41 @@ import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true }) => {
+const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
+    const [selectedFilters, setSelectedFilters] = useState({}); // Almacena los valores seleccionados para cada filtro
     const numElementos = 5;
 
     const abrirDrawer = () => {
         onOpen();
     };
 
-    const filteredData = useMemo(() => {
-        if (!filterValue) return data;
+    const hasSearchFilter = Boolean(filterValue);
 
-        return data.filter((item) =>
-            columns.some((column) =>
+    const filteredData = useMemo(() => {
+        return data.filter((item) => {
+            // Filtrar por búsqueda general
+            const searchMatch = columns.some((column) =>
                 String(item[column.uid] || "")
                     .toLowerCase()
                     .includes(filterValue.toLowerCase())
-            )
-        );
-    }, [filterValue, data, columns]);
+            );
+
+
+            console.log("selectedFilters", selectedFilters);
+            // Filtrar por los valores seleccionados en los filtros dinámicos
+            const filtersMatch = Object.entries(selectedFilters).every(([field, values]) => {
+                if (!values || values.length === 0) return true; // Si no hay valores seleccionados, no filtrar
+                return values.some((value) => 
+                    String(item[field] || "").toLowerCase() === String(value).toLowerCase()
+                );
+            });
+
+            return searchMatch && filtersMatch;
+        });
+    }, [filterValue, selectedFilters, data, columns]);
 
     const datosPaginados = useMemo(() => {
         const start = (currentPage - 1) * numElementos;
@@ -93,6 +107,34 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
                         onValueChange={(value) => setFilterValue(value)}
                     />
                     <div className="flex gap-3">
+                        {/* Generar dinámicamente los Dropdowns para los filtros */}
+                        {filterOptions.map(({ field, label, values }) => (
+                            <Dropdown key={field}>
+                                <DropdownTrigger>
+                                    <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                                        {label}
+                                    </Button>
+                                </DropdownTrigger>
+                                <DropdownMenu
+                                    aria-label={`Filtrar por ${label}`}
+                                    closeOnSelect={false}
+                                    selectionMode="multiple"
+                                    selectedKeys={selectedFilters[field] || []}
+                                    onSelectionChange={(keys) =>
+                                        setSelectedFilters((prev) => ({
+                                            ...prev,
+                                            [field]: [...keys],
+                                        }))
+                                    }
+                                >
+                                    {values.map((value) => (
+                                        <DropdownItem key={value} className="capitalize">
+                                            {value}
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+                        ))}
                         <Dropdown>
                             <DropdownTrigger className="hidden sm:flex">
                                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -114,16 +156,14 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
-                        {!ocultarAgregar && (
-                            <Button className="bg-primario text-white" onPress={abrirDrawer} endContent={<PlusIcon />}>
-                                Agregar
-                            </Button>
-                        )}
+                        <Button className="bg-primario text-white" onPress={()=> abrirDrawer()} endContent={<PlusIcon />}>
+                            Agregar
+                        </Button>
                     </div>
                 </div>
             </div>
         );
-    }, [filterValue, visibleColumns, columns, ocultarAgregar]);
+    }, [filterValue, visibleColumns, columns]);
 
     const bottomContent = useMemo(() => {
         return (
