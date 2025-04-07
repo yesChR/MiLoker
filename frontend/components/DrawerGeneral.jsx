@@ -11,7 +11,7 @@ import {
     Link,
 } from "@heroui/react";
 
-const DrawerGeneral = ({ children, titulo, isOpen, onOpen, onOpenChange, size }) => {
+const DrawerGeneral = ({ children, titulo, isOpen, onOpen, onOpenChange, size, mostrarBotones = true }) => {
 
     return (
         <>
@@ -23,14 +23,16 @@ const DrawerGeneral = ({ children, titulo, isOpen, onOpen, onOpenChange, size })
                             <DrawerBody>
                                 {children}
                             </DrawerBody>
-                            <DrawerFooter>
-                                <Button color="danger" variant="flat" onPress={onClose}>
-                                    Cerrar
-                                </Button>
-                                <Button color="primary" onPress={onClose}>
-                                    Crear
-                                </Button>
-                            </DrawerFooter>
+                            {mostrarBotones && ( // Mostrar los botones solo si mostrarBotones es true
+                                <DrawerFooter>
+                                    <Button color="danger" variant="flat" onPress={onClose}>
+                                        Cerrar
+                                    </Button>
+                                    <Button color="primary" onPress={onClose}>
+                                        Crear
+                                    </Button>
+                                </DrawerFooter>
+                            )}
                         </>
                     )}
                 </DrawerContent>

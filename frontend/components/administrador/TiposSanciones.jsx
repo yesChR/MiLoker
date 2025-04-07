@@ -78,6 +78,7 @@ const TiposSanciones = () => {
                     <textarea
                         placeholder="Escribe el detalle aquí..."
                         className="border-2 border-gray-300 rounded-2xl p-2 w-full h-32 resize-none focus:border-blue-500 hover:border-gray-400 placeholder:text-sm text-gray-900"
+                        color="primary"
                     />
 
                 </DrawerGeneral>

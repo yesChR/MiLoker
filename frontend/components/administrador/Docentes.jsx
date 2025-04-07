@@ -2,7 +2,7 @@ import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import { BiEditAlt } from "react-icons/bi";
 import { DeleteIcon } from "../icons/DeleteIcon";
-import { Drawer, Select } from "@heroui/react";
+import { Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";

@@ -1,32 +1,54 @@
+import React, { useState } from "react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
-import { BiEditAlt } from "react-icons/bi";
-import { DeleteIcon } from "../icons/DeleteIcon";
-import { Drawer, Select } from "@heroui/react";
+import { PiNotePencilFill } from "react-icons/pi";
+import { Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
-import { Input } from "@heroui/react";
+import { Divider } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { LuSendHorizontal } from "react-icons/lu";
 
-const Solicitudes = ({estado}) => {
+const Solicitudes = ({ estado }) => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null); // Estado para almacenar el elemento seleccionado
 
     const estados = {
         1: "En espera",
         2: "Aprobadas",
         3: "Rechazadas",
-    }
+    };
 
     const columnasPrueba = [
-        { name: "#", uid: "index" },
+        { name: "Id", uid: "id" },
+        { name: "Cédula", uid: "cedula" },
         { name: "Nombre", uid: "nombre" },
-        { name: "Categoría", uid: "categoria" },
-        { name: "Acciones", uid: "acciones" },
+        { name: "Sección", uid: "seccion" },
+        { name: "Opción 1", uid: "opcion1" },
+        { name: "Opción 2", uid: "opcion2" },
+        { name: "Fecha solicitud", uid: "fechaSolicitud" },
+        { name: "Revisión", uid: "acciones" },
     ];
 
+
     const datosPrueba = [
-        { id: 1, nombre: "Electrónica", categoria: "Tecnología", estado: 1 },
-        { id: 2, nombre: "Ropa", categoria: "Moda", estado: 2 },
-        { id: 3, nombre: "Hogar", categoria: "Decoración", estado: 1 },
+        { id: 1, cedula: "123456789", nombre: "Juan Pérez", seccion: "A", opcion1: "Matemáticas", opcion2: "Física", fechaSolicitud: "2023-10-01", estado: 1 },
+        { id: 2, cedula: "987654321", nombre: "María Gómez", seccion: "B", opcion1: "Química", opcion2: "Biología", fechaSolicitud: "2023-10-02", estado: 2 },
+        { id: 3, cedula: "456789123", nombre: "Carlos López", seccion: "C", opcion1: "Historia", opcion2: "Geografía", fechaSolicitud: "2023-10-03", estado: 3 },
+        { id: 4, cedula: "321654987", nombre: "Ana Torres", seccion: "D", opcion1: "Literatura", opcion2: "Arte", fechaSolicitud: "2023-10-04", estado: 1 },
+    ];
+
+    const casillerosAnteriores = [
+        { casillero: "A - 1" },
+        { casillero: "A - 2" },
+        { casillero: "A - 3" },
+        { casillero: "A - 4" },
+        { casillero: "A - 5" },
+        { casillero: "A - 6" },
+    ];
+
+    const incidentesRelacionados = [
+        { incidente: " El casillero presentaba daños severos" },
     ];
 
     // Filtrar los datos según el parámetro "estado"
@@ -34,14 +56,12 @@ const Solicitudes = ({estado}) => {
 
     const accionesPrueba = [
         {
-            tooltip: "Editar",
-            icon: <BiEditAlt />,
-            handler: (item) => console.log("Editar", item),
-        },
-        {
-            tooltip: "Eliminar",
-            icon: <DeleteIcon />,
-            handler: (item) => console.log("Eliminar", item),
+            tooltip: "Revisar",
+            icon: <PiNotePencilFill  size={18} />,
+            handler: (item) => {
+                setSelectedItem(item); // Guarda el elemento seleccionado
+                onOpen(); // Abre el Drawer
+            }, 
         },
     ];
 
@@ -60,58 +80,66 @@ const Solicitudes = ({estado}) => {
                         data={datosFiltrados}
                         acciones={accionesPrueba}
                         onOpen={onOpen}
+                        ocultarAgregar={true}
+                        mostrarAcciones={false}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Administradores"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
-                    <Input
-                        placeholder="Cédula"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Nombre"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Primer apellido"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Segundo apellido"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Correo"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Teléfono"
-                        variant={"bordered"}
-                        type={"tel"}
-                        pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Select
-                        placeholder="Especialidad"
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
+                <DrawerGeneral
+                    titulo={`Revisión - ${selectedItem?.nombre || ""}`}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpen={onOpen}
+                    onOpenChange={onOpenChange}
+                    mostrarBotones={false}
+                >
+                    <div className="flex flex-col mb-4">
+                        <Select
+                            placeholder="Elegir opción"
+                            variant={"bordered"}
+                            className="focus:border-primario mb-4"
+                            color="primary"
+                        />
+                        {/* Contenedor para el botón al final */}
+                        <div className="flex justify-end">
+                            <Button color="primary" flex endContent={<LuSendHorizontal />}>
+                                Enviar
+                            </Button>
+                        </div>
+                        <Divider className="mt-4" />
+                    </div>
+                    <div className="flex flex-col mb-4">
+                        <label className="text-azulOscuro font-bold text-xl">Historial</label>
+                        {/* Sección de Casilleros Anteriores */}
+                        {casillerosAnteriores.length > 0 && (
+                            <div className="mt-4">
+                                <h2 className="text-gray-700 font-bold text-sm mb-2">Casilleros anteriores:</h2>
+                                <ul className="list-disc list-inside">
+                                    {casillerosAnteriores.map((casillero, index) => (
+                                        <li key={index} className="text-gray-600 text-sm">
+                                            {casillero.casillero}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {/* Sección de Incidentes Relacionados */}
+                        {incidentesRelacionados.length > 0 && (
+                            <div className="mt-4">
+                                <h2 className="text-gray-700 font-bold text-sm mb-2">Incidentes relacionados:</h2>
+                                <ul className="list-disc list-inside">
+                                    {incidentesRelacionados.map((incidente, index) => (
+                                        <li key={index} className="text-gray-600 text-sm">
+                                            {incidente.incidente}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 </DrawerGeneral>
             </div>
-
         </div>
     );
-}
+};
 
 export default Solicitudes;

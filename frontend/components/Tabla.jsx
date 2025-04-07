@@ -4,18 +4,15 @@ import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) => {
+const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 5;
 
     const abrirDrawer = () => {
         onOpen();
     };
-
-    const hasSearchFilter = Boolean(filterValue);
 
     const filteredData = useMemo(() => {
         if (!filterValue) return data;
@@ -29,7 +26,6 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
         );
     }, [filterValue, data, columns]);
 
-    // Paginación de los datos
     const datosPaginados = useMemo(() => {
         const start = (currentPage - 1) * numElementos;
         const end = start + numElementos;
@@ -38,45 +34,50 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
 
     const renderCell = useCallback((item, index, columnKey) => {
         const cellValue = item[columnKey];
-        const globalIndex = (currentPage - 1) * numElementos + index + 1;
 
-        if (columnKey === "index") {
-            return <h1>{globalIndex}</h1>;
-        } else if (columnKey === "acciones") {
-            return (
-                <div className="flex items-center justify-center">
-                    <Dropdown>
-                        <DropdownTrigger>
-                            <Button
-                                isIconOnly
-                                variant="flat"
-                                className="bg-transparent"
-                            >
-                                <span className="text-lg text-gray-600">
-                                    ⋮ 
-                                </span>
-                            </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu aria-label="Acciones">
-                            {acciones.map((accion, i) => (
-                                <DropdownItem
-                                    key={i}
-                                    onPress={() => accion.handler(item)}
-                                    className="capitalize"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        {accion.icon}
-                                        <span>{accion.tooltip}</span>
-                                    </div>
-                                </DropdownItem>
-                            ))}
-                        </DropdownMenu>
-                    </Dropdown>
-                </div>
-            );
+        if (columnKey === "acciones") {
+            if (mostrarAcciones) {
+                // Mostrar los tres puntos con el menú desplegable
+                return (
+                    <div className="flex items-center justify-center">
+                        <Dropdown>
+                            <DropdownTrigger>
+                                <Button isIconOnly variant="flat" className="bg-transparent">
+                                    <span className="text-lg text-gray-600">⋮</span>
+                                </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="Acciones">
+                                {acciones.map((accion, i) => (
+                                    <DropdownItem
+                                        key={i}
+                                        onPress={() => accion.handler(item)}
+                                        className="capitalize"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {accion.icon}
+                                            <span>{accion.tooltip}</span>
+                                        </div>
+                                    </DropdownItem>
+                                ))}
+                            </DropdownMenu>
+                        </Dropdown>
+                    </div>
+                );
+            } else {
+                // Mostrar solo el ícono pasado desde otro componente
+                const accion = acciones[0]; // Usar la primera acción como predeterminada
+                return (
+                    <button
+                        onClick={() => accion.handler(item)}
+                        className="text-blue-500 hover:text-blue-700"
+                    >
+                        {accion.icon}
+                    </button>
+                );
+            }
         }
         return cellValue;
-    }, [currentPage, numElementos, acciones]);
+    }, [acciones, mostrarAcciones]);
 
     const topContent = useMemo(() => {
         return (
@@ -86,7 +87,7 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Buscar..."
-                        startContent={<SearchIcon className="text-gray-500"/>}
+                        startContent={<SearchIcon className="text-gray-500" />}
                         value={filterValue}
                         onClear={() => setFilterValue("")}
                         onValueChange={(value) => setFilterValue(value)}
@@ -113,14 +114,16 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                                 ))}
                             </DropdownMenu>
                         </Dropdown>
-                        <Button className="bg-primario text-white" onPress={()=> abrirDrawer()} endContent={<PlusIcon />}>
-                            Agregar
-                        </Button>
+                        {!ocultarAgregar && (
+                            <Button className="bg-primario text-white" onPress={abrirDrawer} endContent={<PlusIcon />}>
+                                Agregar
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
         );
-    }, [filterValue, visibleColumns, columns]);
+    }, [filterValue, visibleColumns, columns, ocultarAgregar]);
 
     const bottomContent = useMemo(() => {
         return (
@@ -174,6 +177,7 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange}) =>
                 ))}
             </TableBody>
         </Table>
-    )
+    );
 };
+
 export default TablaDinamica;

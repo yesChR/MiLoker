@@ -119,22 +119,22 @@ const PeriodoSolicitud = () => {
                     <div className="flex space-x-4">
                         <div className="w-1/2">
                             <label className="block text-gray-700">Inicio:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" value={inicioSolicitud} onChange={(e) => setInicioSolicitud(e.target.value)} />
+                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={inicioSolicitud} onChange={(e) => setInicioSolicitud(e.target.value)} />
                         </div>
                         <div className="w-1/2">
                             <label className="block text-gray-700">Fin:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" value={finSolicitud} onChange={(e) => setFinSolicitud(e.target.value)} />
+                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={finSolicitud} onChange={(e) => setFinSolicitud(e.target.value)} />
                         </div>
                     </div>
                     <label className="block font-bold text-gray-700 mt-3 mb-2">Período de asignación:</label>
                     <div className="flex space-x-4">
                         <div className="w-1/2">
                             <label className="block text-gray-700">Inicio:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" value={inicioAsignacion} onChange={(e) => setInicioAsignacion(e.target.value)} />
+                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={inicioAsignacion} onChange={(e) => setInicioAsignacion(e.target.value)} />
                         </div>
                         <div className="w-1/2">
                             <label className="block text-gray-700">Fin:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" value={finAsignacion} onChange={(e) => setFinAsignacion(e.target.value)} />
+                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={finAsignacion} onChange={(e) => setFinAsignacion(e.target.value)} />
                         </div>
                     </div>
                     <div className="flex justify-end mt-4">
