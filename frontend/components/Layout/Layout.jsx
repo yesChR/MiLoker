@@ -1,45 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "./Sidebar";
-import { HeroUIProvider } from "@heroui/react";
-import { UserButton } from "./UserButton";
-import TablaDinamica from "../Tabla"
-import { BiEditAlt } from "react-icons/bi";
-import { DeleteIcon } from "../icons/DeleteIcon";
+import Header from "./Header";
+import { UserButton } from "./UserButton"; // Importa el UserButton
 
 const Layout = ({ children }) => {
-  const columnasPrueba = [
-    { name: "#", uid: "index" },
-    { name: "Nombre", uid: "nombre" },
-    { name: "Categoría", uid: "categoria" },
-    { name: "Acciones", uid: "acciones" },
-  ];
-
-  const datosPrueba = [
-    { id: 1, nombre: "Electrónica", categoria: "Tecnología" },
-    { id: 2, nombre: "Ropa", categoria: "Moda" },
-    { id: 3, nombre: "Hogar", categoria: "Decoración" },
-  ];
-
-  const accionesPrueba = [
-    {
-      tooltip: "Editar",
-      icon: <BiEditAlt />,
-      handler: (item) => console.log("Editar", item),
-    },
-    {
-      tooltip: "Eliminar",
-      icon: <DeleteIcon />,
-      handler: (item) => console.log("Eliminar", item),
-    },
-  ];
-
+  const [toggleCollapse, setToggleCollapse] = useState(false);
 
   return (
-    <div className="h-screen flex flex-row justify-start">
-      <Sidebar />
-      <UserButton />
-      <div className="bg-white flex-1 p-4 text-white">
-        <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
+    <div className="h-screen flex w-full bg-gray-100 overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar
+        toggleCollapse={toggleCollapse}
+        setToggleCollapse={setToggleCollapse}
+      />
+
+      {/* Header (solo visible en móviles) */}
+      <Header
+        toggleCollapse={toggleCollapse}
+        setToggleCollapse={setToggleCollapse}
+      />
+
+      {/* Botón de usuario (visible en todas las pantallas) */}
+      <div className="absolute top-0 right-0 z-50 hidden md:block">
+        <UserButton />
+      </div>
+
+      {/* Contenido principal */}
+      <div className="flex-1 flex flex-col bg-gray-100 overflow-hidden">
+        <div className="flex-1 p-4 mt-16 overflow-auto">
           {children}
         </div>
       </div>

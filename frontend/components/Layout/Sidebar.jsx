@@ -7,31 +7,27 @@ import { FiChevronLeft, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
 
-const Sidebar = () => {
-  const [toggleCollapse, setToggleCollapse] = useState(false);
-  const [expandedItems, setExpandedItems] = useState([]); // Almacena los IDs de los elementos expandidos
+const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
+  const [expandedItems, setExpandedItems] = useState([]);
   const router = useRouter();
 
   const handleExpand = (id) => {
     setExpandedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    ); // Agrega o elimina el ID del estado
+    );
   };
 
   const checkSubItemsActive = (subItems) => {
     return subItems.some((item) => {
       if (item.subItems) {
-        // Recursivamente verifica los sub-subitems
         return checkSubItemsActive(item.subItems);
       }
 
-      // Manejar rutas dinámicas
       if (item.link.includes("[estado]")) {
         const dynamicLink = item.link.replace("[estado]", router.query.estado || "");
         return router.asPath === dynamicLink;
       }
 
-      // Verificar si la ruta actual coincide con el enlace del menú
       return router.asPath === item.link;
     });
   };
@@ -52,10 +48,10 @@ const Sidebar = () => {
     return (
       <ul
         className={classNames(
-          "ml-8 list-disc", // Agregar "list-disc" para mostrar los bullets
+          "ml-8 list-disc",
           {
-            "text-gray-700": level === 2, // Sub-subitems
-            "text-gray-600": level === 1, // Subitems principales
+            "text-gray-700": level === 2,
+            "text-gray-600": level === 1,
           }
         )}
       >
@@ -75,12 +71,12 @@ const Sidebar = () => {
                       className={classNames(
                         "font-medium",
                         {
-                          "text-sm": level === 1, // Subitems principales
-                          "text-xs": level === 2, // Sub-subitems más pequeños
+                          "text-sm": level === 1,
+                          "text-xs": level === 2,
                         },
                         {
-                          "text-primario font-bold": level === 1 && checkSubItemsActive(item.subItems), // Subitems seleccionados
-                          "text-azulOscuro font-bold": level === 2 && checkSubItemsActive(item.subItems), // Sub-subitems seleccionados
+                          "text-primario font-bold": level === 1 && checkSubItemsActive(item.subItems),
+                          "text-azulOscuro font-bold": level === 2 && checkSubItemsActive(item.subItems),
                         }
                       )}
                     >
@@ -100,12 +96,12 @@ const Sidebar = () => {
                   className={classNames(
                     "block font-medium",
                     {
-                      "text-sm": level === 1, // Subitems principales
-                      "text-xs": level === 2, // Sub-subitems más pequeños
+                      "text-sm": level === 1,
+                      "text-xs": level === 2,
                     },
                     {
-                      "text-primario font-bold": level === 1 && router.asPath === item.link, // Subitems seleccionados
-                      "text-azulOscuro font-bold": level === 2 && router.asPath === item.link, // Sub-subitems seleccionados
+                      "text-primario font-bold": level === 1 && router.asPath === item.link,
+                      "text-azulOscuro font-bold": level === 2 && router.asPath === item.link,
                     }
                   )}
                 >
@@ -122,14 +118,19 @@ const Sidebar = () => {
   return (
     <div
       className={classNames(
-        "h-screen px-4 pt-8 pb-4 bg-white flex flex-col justify-between shadow-xl z-10",
-        { "w-60": !toggleCollapse, "w-20": toggleCollapse }
+        "h-screen px-4 pt-8 pb-4 bg-white flex flex-col justify-between shadow-xl z-50 transform transition-transform duration-300", // Animación para móviles
+        {
+          "w-60": !toggleCollapse, // Ancho completo cuando está expandido
+          "w-20 md:w-20": toggleCollapse, // Colapsado en pantallas grandes
+          "-translate-x-full md:translate-x-0": toggleCollapse && !window.matchMedia("(min-width: 768px)").matches, // Oculto en móviles cuando está colapsado
+          "fixed md:relative": true, // Drawer en móviles, relativo en pantallas grandes
+        }
       )}
       style={{ transition: "width 500ms cubic-bezier(0.2, 0, 1) 0s" }}
     >
       <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
         {/* Encabezado del Sidebar */}
-        <div className="flex items-center justify-between relative">
+        <div className="flex items-center justify-between relative hidden md:flex">
           <div className="flex items-center pl-1 gap-4">
             {toggleCollapse ? (
               <div
@@ -226,7 +227,7 @@ const Sidebar = () => {
           console.log("Cerrar sesión");
         }}
       >
-        <div style={{ width: "2.5rem" }}>
+        <div style={{ width: "2rem" }}>
           <LogoutIcon className="w-6 h-6 text-red-500" />
         </div>
         {!toggleCollapse && (
