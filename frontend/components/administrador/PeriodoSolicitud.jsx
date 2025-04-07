@@ -1,13 +1,15 @@
+import { Button, DatePicker } from "@heroui/react"; // Usa DatePicker de HeroUI
 import { BiCalendar } from "react-icons/bi";
 import { FiRefreshCw } from "react-icons/fi";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import { useState } from "react";
+import { parseAbsoluteToLocal } from "@internationalized/date";
 
 const PeriodoSolicitud = () => {
-    const [inicioSolicitud, setInicioSolicitud] = useState("2025-02-20");
-    const [finSolicitud, setFinSolicitud] = useState("2025-03-01");
-    const [inicioAsignacion, setInicioAsignacion] = useState("2025-02-20");
-    const [finAsignacion, setFinAsignacion] = useState("2025-03-01");
+    const [inicioSolicitud, setInicioSolicitud] = useState(parseAbsoluteToLocal(new Date().toISOString()));
+    const [finSolicitud, setFinSolicitud] = useState(parseAbsoluteToLocal(new Date().toISOString()));
+    const [inicioAsignacion, setInicioAsignacion] = useState(parseAbsoluteToLocal(new Date().toISOString()));
+    const [finAsignacion, setFinAsignacion] = useState(parseAbsoluteToLocal(new Date().toISOString()));
 
     const tarjetas = [
         {
@@ -33,11 +35,15 @@ const PeriodoSolicitud = () => {
     ];
 
     const handleRestablecer = () => {
-
+        // Lógica para restablecer
     };
 
     const handleActualizar = (e) => {
         e.preventDefault();
+        console.log("Inicio Solicitud:", inicioSolicitud);
+        console.log("Fin Solicitud:", finSolicitud);
+        console.log("Inicio Asignación:", inicioAsignacion);
+        console.log("Fin Asignación:", finAsignacion);
     };
 
     return (
@@ -48,11 +54,11 @@ const PeriodoSolicitud = () => {
                     breadcrumb="Home • Períodos de solicitud"
                 />
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-wrap justify-between gap-4">
                 {tarjetas.map((tarjeta, index) => (
                     <div
                         key={index}
-                        className={`flex flex-col items-center justify-center p-4 rounded-lg shadow-md ${tarjeta.color} w-[325px] h-[100px] ${tarjeta.titulo === "Restablecer"
+                        className={`flex flex-col items-center justify-center p-4 rounded-lg shadow-md ${tarjeta.color} w-full sm:w-[325px] h-[100px] ${tarjeta.titulo === "Restablecer"
                             ? "cursor-pointer hover:shadow-lg hover:bg-red-300"
                             : ""
                             }`}
@@ -80,33 +86,59 @@ const PeriodoSolicitud = () => {
                     </div>
                 ))}
             </div>
-            <form onSubmit={handleActualizar} className="border-2 border-gray-200 rounded-lg p-6 bg-white w-[600px] text-center">
+            <form onSubmit={handleActualizar} className="border-2 border-gray-200 rounded-lg p-6 bg-white w-full max-w-[600px] text-center">
                 <div className="bg-blue-600 text-white p-2 rounded-md font-bold">Fechas de períodos activos</div>
                 <div className="mt-4 flex flex-col text-left">
                     <label className="block font-bold text-gray-700 mb-2">Período de solicitud:</label>
-                    <div className="flex space-x-4">
-                        <div className="w-1/2">
+                    <div className="flex flex-wrap gap-4 sm:flex-nowrap">
+                        <div className="w-full sm:w-1/2">
                             <label className="block text-gray-700">Inicio:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={inicioSolicitud} onChange={(e) => setInicioSolicitud(e.target.value)} />
+                            <DatePicker
+                                value={inicioSolicitud}
+                                onChange={setInicioSolicitud}
+                                granularity="day"
+                                className="w-full"
+                                placeholder="Selecciona una fecha"
+                            />
                         </div>
-                        <div className="w-1/2">
+                        <div className="w-full sm:w-1/2">
                             <label className="block text-gray-700">Fin:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={finSolicitud} onChange={(e) => setFinSolicitud(e.target.value)} />
+                            <DatePicker
+                                value={finSolicitud}
+                                onChange={setFinSolicitud}
+                                granularity="day"
+                                className="w-full"
+                                placeholder="Selecciona una fecha"
+                            />
                         </div>
                     </div>
                     <label className="block font-bold text-gray-700 mt-3 mb-2">Período de asignación:</label>
-                    <div className="flex space-x-4">
-                        <div className="w-1/2">
+                    <div className="flex flex-wrap gap-4 sm:flex-nowrap">
+                        <div className="w-full sm:w-1/2">
                             <label className="block text-gray-700">Inicio:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={inicioAsignacion} onChange={(e) => setInicioAsignacion(e.target.value)} />
+                            <DatePicker
+                                value={inicioAsignacion}
+                                onChange={setInicioAsignacion}
+                                granularity="day"
+                                className="w-full"
+                                placeholder="Selecciona una fecha"
+                            />
                         </div>
-                        <div className="w-1/2">
+                        <div className="w-full sm:w-1/2">
                             <label className="block text-gray-700">Fin:</label>
-                            <input type="date" className="border p-2 w-full rounded-md text-gray-500" color="primary" value={finAsignacion} onChange={(e) => setFinAsignacion(e.target.value)} />
+                            <DatePicker
+                                value={finAsignacion}
+                                onChange={setFinAsignacion}
+                                granularity="day"
+                                className="w-full"
+                                placeholder="Selecciona una fecha"
+                            />
                         </div>
                     </div>
                     <div className="flex justify-end mt-4">
-                        <button type="submit" className="bg-blue-600 text-white w-[160px] p-2 rounded-md">Actualizar</button>
+                        <Button type="submit" className="bg-blue-600 text-white w-[160px]">
+                            Actualizar
+                        </Button>
                     </div>
                 </div>
             </form>

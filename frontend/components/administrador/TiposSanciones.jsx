@@ -1,8 +1,7 @@
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
-import { BiEditAlt, BiUnderline } from "react-icons/bi";
+import { BiEditAlt} from "react-icons/bi";
 import { DeleteIcon } from "../icons/DeleteIcon";
-import { Drawer, Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
@@ -80,7 +79,6 @@ const TiposSanciones = () => {
                         className="border-2 border-gray-300 rounded-2xl p-2 w-full h-32 resize-none focus:border-blue-500 hover:border-gray-400 placeholder:text-sm text-gray-900"
                         color="primary"
                     />
-
                 </DrawerGeneral>
             </div>
         </div>
