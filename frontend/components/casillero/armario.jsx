@@ -4,6 +4,7 @@ import { Button, Input, Select } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { PlusIcon } from "../icons/PlusIcon";
 import { useDisclosure } from "@heroui/react";
+
 const Armario = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedCasillero, setSelectedCasillero] = useState(null); // Para almacenar el armario seleccionado
@@ -58,7 +59,7 @@ const Armario = () => {
 
             {/* Drawer para agregar o editar armarios */}
             <DrawerGeneral
-                titulo={isEditing ? "Editar Armario" : "Agregar Armario"} // Título cambia según si estamos editando o creando
+                titulo={isEditing ? "Editar Armario" : "Agregar Armario"} 
                 size={"xs"}
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
@@ -67,42 +68,56 @@ const Armario = () => {
                 {isEditing ? (
                     <>
                         <Input
-                            label="ID"
+                            label="Num. Casillero"
+                            labelPlacement="outside"
                             value={selectedCasillero} // El ID del armario seleccionado
                             disabled
                             variant={"bordered"}
                             className="focus:border-primario"
-                            color="primary"
+                            color="Black"
+
                         />
                         <Select
-                            placeholder="Filas"
+                            label="Estado"
+                            labelPlacement="outside"
+                            placeholder="Seleccione..."
                             variant={"bordered"}
                             className="focus:border-primario"
-                            color="primary"
+                            color="Black"
                         >
-                         
                         </Select>
-                        <Select
-                            placeholder="Columnas"
-                            variant={"bordered"}
-                            className="focus:border-primario"
-                            color="primary"
-                        >
-                           
-                        </Select>
-                        {/* Agrega más campos de edición si es necesario */}
+                        <label className="text-gray-500 text-sm mb-0 mt-0">Descripción</label>
+                        <textarea
+                            placeholder="Escriba aquí..."
+                            className="border-2 rounded-2xl p-2 w-full h-32 resize-none placeholder:text-sm text-gray-900"
+                            color="black"
+                        />
+                       
                     </>
                 ) : (
                     <>
                         {/* Formulario para crear un nuevo armario */}
                         <Input
-                            label="ID otro"
-                            placeholder="Nuevo ID"
+                            placeholder="ID"
                             variant={"bordered"}
                             className="focus:border-primario"
                             color="primary"
                         />
-                    
+                        <Input
+                            type="number"
+                            placeholder="Filas"
+                            variant={"bordered"}
+                            className="focus:border-primario"
+                            color="primary"
+                        />
+                        <Input
+                            type="number"
+                            placeholder="Columnas"
+                            variant={"bordered"}
+                            className="focus:border-primario"
+                            color="primary"
+                        />
+
                     </>
                 )}
             </DrawerGeneral>
