@@ -105,7 +105,7 @@ const Armario = () => {
                 </div>
 
                 {/* CONTENIDO PRINCIPAL */}
-                <div className="flex flex-col flex-grow space-y-4">
+                <div className="flex flex-col flex-grow space-y-4 w-3/4 md:w-full lg:w-full xl:w-full">
                     <div className="flex justify-between mb-2">
                         <Select className="w-[300px] rounded-md" placeholder="Especialidad" />
                         <Button
