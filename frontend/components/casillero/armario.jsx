@@ -7,6 +7,8 @@ import { useDisclosure } from "@heroui/react";
 import { ChevronIcon } from "../icons/ChevronIcon";
 import { usePagination, PaginationItemType } from "@heroui/react";
 import cn from "classnames";
+import PeriodoSolicitud from "../administrador/PeriodoSolicitud";
+
 const Armario = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedCasillero, setSelectedCasillero] = useState(null);
