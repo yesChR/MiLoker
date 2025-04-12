@@ -37,7 +37,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
       (menu.subItems && checkSubItemsActive(menu.subItems)) ||
       (!menu.subItems && router.pathname.startsWith(menu.link));
     return classNames(
-      "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap m-1",
+      "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap mb-1",
       {
         "bg-gray-200": isActive,
       }
