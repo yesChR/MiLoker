@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import React, { useState } from "react";
-import { FiChevronLeft, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiChevronLeft, FiChevronDown, FiChevronUp, FiChevronRight } from "react-icons/fi";
 import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
 
@@ -137,13 +137,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
                 onClick={() => setToggleCollapse(false)}
                 className="flex-shrink-0 cursor-pointer flex items-center justify-center w-12 h-12 hover:bg-gray-100 rounded"
               >
-                <Image
-                  src="/logo.png"
-                  alt="logo"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
+               <FiChevronRight className="w-6 h-6 text-gray-500" />
               </div>
             ) : (
               <div className="flex-shrink-0">
