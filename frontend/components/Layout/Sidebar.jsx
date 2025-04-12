@@ -215,24 +215,23 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
             );
           })}
         </div>
-      </div>
-
-      {/* Pie del Sidebar */}
-      <div
-        className={classNames(
-          "flex items-center px-3 py-4 cursor-pointer hover:bg-gray-100 rounded",
-          { "w-60": !toggleCollapse, "w-20": toggleCollapse }
-        )}
-        onClick={() => {
-          console.log("Cerrar sesión");
-        }}
-      >
-        <div style={{ width: "2rem" }}>
-          <LogoutIcon className="w-6 h-6 text-red-500" />
+        {/* boton cerrar sesion */}
+        <div
+          className={classNames(
+            "flex items-center justify-center px-3 py-3 cursor-pointer hover:bg-gray-300 rounded mt-auto",
+            { "w-20": !toggleCollapse, "w-20": toggleCollapse }
+          )}
+          onClick={() => {
+            console.log("Cerrar sesión");
+          }}
+        >
+          <div style={{ width: "2rem" }}>
+            <LogoutIcon className="w-6 h-6 text-red-500" />
+          </div>
+          {!toggleCollapse && (
+            <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
+          )}
         </div>
-        {!toggleCollapse && (
-          <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
-        )}
       </div>
     </div>
   );
