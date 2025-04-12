@@ -10,12 +10,12 @@ export const menuItems = [
     label: "Administración",
     icon: BsPersonFillGear,
     subItems: [
-      { label: "Administradores", link: "/administrador/administrador" },
+      { label: "Administradores", link: "/administrador/admin" },
       { label: "Docentes", link: "/administrador/docentes" },
       { label: "Estudiantes", link: "/administrador/estudiantes" },
       { label: "Especialidades", link: "/administrador/especialidades" },
-      { label: "Tipos de sanciones", link: "/administrador/tipo-sanciones" },
-      { label: "Periodos de solicitud", link: "/administrador/perido-solicitud" },
+      { label: "Tipos de sanciones", link: "/administrador/tiposSanciones" },
+      { label: "Periodos de solicitud", link: "/administrador/periodoSolicitud" },
     ],
   },
   {
@@ -31,15 +31,15 @@ export const menuItems = [
           { label: "Rechazadas", link: "/docente/solicitudes/3" },
         ],
       },
-      { label: "Alertas de incidencias", link: "/docente/alertas" },
-      { label: "Crear usuarios", link: "/docente/usuarios" },
+      { label: "Alertas de incidencias", link: "/docente/alertaIncidentes" },
+      { label: "Crear usuarios", link: "/docente/crearUsuarios" },
     ],
   },
   {
     id: 6,
     label: "Casillero",
     icon: GiLockers,
-    link: "/casillero",
+    link: "/casillero/armario",
   },
   {
     id: 4,
@@ -62,6 +62,6 @@ export const menuItems = [
     id: 6,
     label: "Informe",
     icon: BiSolidReport,
-    link: "/informe",
+    link: "/informe/informes",
   },
 ];

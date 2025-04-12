@@ -123,7 +123,7 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
                 </div>
             </div>
         );
-    }, [filterValue, visibleColumns, columns, ocultarAgregar]);
+    }, [filterValue, visibleColumns, columns, ocultarAgregar, abrirDrawer]);
 
     const bottomContent = useMemo(() => {
         return (

@@ -8,7 +8,7 @@ const SolicitudesPage = () => {
     // Verifica si el parámetro es numérico
     const estadoNumerico = parseInt(estado, 10);
     if (isNaN(estadoNumerico)) {
-        return <p>El parámetro "estado" debe ser un número válido.</p>;
+        return <p>{`El parámetro "estado" debe ser un número válido.`}</p>;
     }
 
     return (

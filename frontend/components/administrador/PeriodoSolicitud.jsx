@@ -4,12 +4,14 @@ import { FiRefreshCw } from "react-icons/fi";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import { useState } from "react";
 import { parseAbsoluteToLocal } from "@internationalized/date";
+import CustomAlert from "../CustomAlert"; // Importa el componente de alerta personalizada
 
 const PeriodoSolicitud = () => {
     const [inicioSolicitud, setInicioSolicitud] = useState(parseAbsoluteToLocal(new Date().toISOString()));
     const [finSolicitud, setFinSolicitud] = useState(parseAbsoluteToLocal(new Date().toISOString()));
     const [inicioAsignacion, setInicioAsignacion] = useState(parseAbsoluteToLocal(new Date().toISOString()));
     const [finAsignacion, setFinAsignacion] = useState(parseAbsoluteToLocal(new Date().toISOString()));
+    const [showAlert, setShowAlert] = useState(false); // Estado para mostrar la alerta
 
     const tarjetas = [
         {
@@ -35,7 +37,18 @@ const PeriodoSolicitud = () => {
     ];
 
     const handleRestablecer = () => {
-        // Lógica para restablecer
+        setShowAlert(true); // Muestra la alerta
+    };
+
+    const handleConfirmRestablecer = () => {
+        setShowAlert(false); // Oculta la alerta
+        console.log("Período restablecido");
+        // Lógica para restablecer el período
+    };
+
+    const handleCancelRestablecer = () => {
+        setShowAlert(false); // Oculta la alerta
+        console.log("Acción cancelada");
     };
 
     const handleActualizar = (e) => {
@@ -142,6 +155,37 @@ const PeriodoSolicitud = () => {
                     </div>
                 </div>
             </form>
+
+            {showAlert && (
+                <div className="fixed top-10 right-4 z-50">
+                    <CustomAlert
+                        color="danger"
+                        variant="bordered"
+                        aria-labelledby="alert-title"
+                        size="sm"
+                        className="max-w-md"
+                        title="Precaución"
+                        description="¿Estás seguro de que deseas restablecer el período de solicitud? Esta acción no se puede deshacer."
+                    >
+                        <div className="flex items-center gap-2 mt-3">
+                            <Button
+                                className="bg-transparent text-danger"
+                                size="sm"
+                                onPress={handleConfirmRestablecer}
+                            >
+                                Confirmar
+                            </Button>
+                            <Button
+                                className="bg-transparent text-black"
+                                size="sm"
+                                onPress={handleCancelRestablecer}
+                            >
+                                Cancelar
+                            </Button>
+                        </div>
+                    </CustomAlert>
+                </div>
+            )}
         </div>
     );
 };
