@@ -2,6 +2,7 @@ import { FaChalkboardTeacher, FaBookReader } from "react-icons/fa";
 import { GiLockers } from "react-icons/gi";
 import { BsPersonFillExclamation, BsPersonFillGear } from "react-icons/bs";
 import { BiSolidReport } from "react-icons/bi";
+import { link } from "@heroui/react";
 
 export const menuItems = [
   {
@@ -45,11 +46,9 @@ export const menuItems = [
     label: "Estudiante",
     icon: FaBookReader,
     subItems: [
-      {
-        label: "Solicitudes de casilleros",
-        subItems: [{ label: "Estado solicitud", link: "/estudiantes/solicitud" }],
-      },
-      { label: "MiLocker", link: "/estudiante/miloker" },
+      {label: "Estado solicitud", link: "/estudiante/estadoSolicitud",},
+      { label: "Mi Locker", link: "/estudiante/miLoker" },
+      { label: "Renuncia", link: "/estudiante/renunciarCasillero" },
     ],
   },
   {
