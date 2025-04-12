@@ -219,7 +219,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
         <div
           className={classNames(
             "flex items-center justify-left px-3 py-3 cursor-pointer hover:bg-gray-300 rounded mt-auto",
-            { "w-20": !toggleCollapse, "w-20": toggleCollapse }
+            { "w-20": !toggleCollapse, "w-15": toggleCollapse }
           )}
           onClick={() => {
             console.log("Cerrar sesión");
