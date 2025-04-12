@@ -207,6 +207,8 @@ const AlertaIncidentes = () => {
                                     showDots={true}
                                     swipeable={true}
                                     customDot={<CustomDot />}
+                                    dotListClass="custom-dot-list-style"
+                                    containerClass="pb-8" 
                                 >
                                     {selectedItem.evidencia.map((src, index) => (
                                         <div key={index} className="p-2">
