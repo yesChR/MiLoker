@@ -46,10 +46,9 @@ export const menuItems = [
     label: "Estudiante",
     icon: FaBookReader,
     subItems: [
-      {
-        label: "Estado solicitud", link: "/estudiante/estadoSolicitud",
-      },
-      { label: "Mi Locker", link: "/estudiante/miloker" },
+      {label: "Estado solicitud", link: "/estudiante/estadoSolicitud",},
+      { label: "Mi Locker", link: "/estudiante/miLoker" },
+      { label: "Renuncia", link: "/estudiante/renunciarCasillero" },
     ],
   },
   {

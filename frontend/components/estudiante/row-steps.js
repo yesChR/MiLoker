@@ -100,7 +100,7 @@ const RowSteps = React.forwardRef(
     }, [color, className]);
 
     return (
-      <nav aria-label="Progress" className="-my-4 max-w-fit overflow-x-auto py-4">
+      <nav aria-label="Progress" className="-my-4 max-w-fit overflow-x-auto py-4 ml-12">
         <ol className={cn("flex flex-row flex-nowrap gap-x-3", colors, className)}>
           {steps?.map((step, stepIdx) => {
             let status =
@@ -124,7 +124,7 @@ const RowSteps = React.forwardRef(
                       <m.div animate={status} className="relative">
                         <m.div
                           className={cn(
-                            "relative flex h-[34px] w-[34px] items-center justify-center rounded-full border-medium text-large font-semibold text-default-foreground",
+                            "relative flex h-[44px] w-[44px] items-center justify-center rounded-full border-medium text-large font-semibold text-default-foreground",
                             {
                               "shadow-lg": status === "complete",
                             },
