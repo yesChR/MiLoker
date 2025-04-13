@@ -55,7 +55,7 @@ export const menuItems = [
     id: 5,
     label: "Incidente",
     icon: BsPersonFillExclamation,
-    subItems: [{ label: "Lista de incidentes", link: "/incidente/lista" }],
+    subItems: [{ label: "Lista de incidentes", link: "/incidente/listaIncidentes" }],
   },
   {
     id: 6,
