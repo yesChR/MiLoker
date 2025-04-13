@@ -3,14 +3,18 @@ import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import DrawerGeneral from "../DrawerGeneral";
 import { useDisclosure, Input } from "@heroui/react";
-
+import { Select } from "@heroui/react";
 import { PiNotePencilFill } from "react-icons/pi";
 import "react-multi-carousel/lib/styles.css";
+import FormularioRevision from "./FormularioRevision";
+import FormularioCreacion from "./FormularioCreacion";
 
 const ListaIncidentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState(null);
     const [accion, setAccion] = useState(""); // Estado para determinar si es "Revisar" o "Crear"
+    const [loading, setLoading] = useState(false);
+    const [detalleEditable, setDetalleEditable] = useState(""); // Estado para el textarea
 
     const columnasPrueba = [
         { name: "Id", uid: "id" },
@@ -29,8 +33,39 @@ const ListaIncidentes = () => {
 
     const handleRevisar = (item) => {
         setAccion(1);
-        setSelectedItem(item);
+        setLoading(true);
+        setSelectedItem(null);
         onOpen();
+
+        setTimeout(() => {
+            const data = {
+                casillero: "A-1",
+                demandante: {
+                    nombre: item.demandante,
+                    seccion: "8-2",
+                    telefono: "8888-8888",
+                    correo: "martaR@gmail.com",
+                },
+                responsable: {
+                    nombre: item.responsable,
+                    seccion: "8-2",
+                    telefono: "8888-3333",
+                    correo: "alfredoF@gmail.com",
+                },
+                encargados: [
+                    { parentesco: "Padre", nombre: "Alfredo Flores", telefono: "8888-3333" },
+                    { parentesco: "Madre", nombre: "Flor Jimenez", telefono: "8888-3333" },
+                ],
+                detalle: "Se guindaron de la puerta de un casillero.",
+                evidencia: [
+                    "/casillero_dañado.jpg",
+                    "/casillero_dañado.jpg",
+                    "/casillero_dañado.jpg",
+                ],
+            };
+            setSelectedItem(data);
+            setLoading(false);
+        }, 500);
     };
 
     const accionesPrueba = [
@@ -53,43 +88,32 @@ const ListaIncidentes = () => {
                 <TablaDinamica
                     columns={columnasPrueba}
                     data={datosPrueba}
-                    acciones={accionesPrueba}           
+                    acciones={accionesPrueba}
                     mostrarAcciones={false}
                     onOpen={onOpen}
                     setAccion={setAccion}
                 />
                 <DrawerGeneral
-                    titulo={accion === 1 ? "Revisión de Incidente" : "Crear Incidente"}
-                    size={"xs"}
+                    titulo={accion === 1 ? "Revisión de Incidente" : "Registrar Incidente"}
+                    size={accion === 1 ? "3xl" : "sm"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
                 >
                     {accion === 1 ? (
                         selectedItem ? (
-                            <div>
-                                <h2 className="text-gray-700 font-bold text-sm mb-2">Detalles del incidente</h2>
-                                <p>Casillero: {selectedItem.casillero}</p>
-                                <p>Demandante: {selectedItem.demandante}</p>
-                                <p>Responsable: {selectedItem.responsable}</p>
-                                <p>Detalle: {selectedItem.detalle}</p>
-                                <p>Fecha Reporte: {selectedItem.fechaReporte}</p>
-                            </div>
+                            <FormularioRevision
+                                loading={loading}
+                                selectedItem={selectedItem}
+                                detalleEditable={detalleEditable}
+                                setDetalleEditable={setDetalleEditable}
+                            />
+
                         ) : (
                             <p>No hay datos seleccionados.</p>
                         )
                     ) : (
                         <div>
-                            <h2 className="text-gray-700 font-bold text-sm mb-2">Crear Incidente</h2>
-                            <Input
-                                placeholder="Número de Armario"
-                                variant={"bordered"}
-                                className="mb-4"
-                            />
-                            <Input
-                                placeholder="Número de Casillero"
-                                variant={"bordered"}
-                                className="mb-4"
-                            />
+                            <FormularioCreacion />
                         </div>
                     )}
                 </DrawerGeneral>

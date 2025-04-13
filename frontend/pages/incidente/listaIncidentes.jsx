@@ -1,4 +1,4 @@
-import ListaIncidentes from "@/components/incidente/listaIncidentes";
+import ListaIncidentes from "@/components/incidente/ListaIncidentes";
 
 const ListaIncidentesPage = () => {
     return (

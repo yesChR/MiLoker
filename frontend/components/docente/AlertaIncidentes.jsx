@@ -121,7 +121,6 @@ const AlertaIncidentes = () => {
                     onOpenChange={onOpenChange}
                     mostrarBotones={true}
                 >
-
                     <FormularioAlertaIncidente
                         loading={loading}
                         selectedItem={selectedItem}
