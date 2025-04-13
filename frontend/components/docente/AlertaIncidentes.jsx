@@ -130,7 +130,6 @@ const AlertaIncidentes = () => {
                         detalleEditable={detalleEditable}
                         setDetalleEditable={setDetalleEditable}
                     />
-
                 </DrawerGeneral>
             </div>
         </div>
