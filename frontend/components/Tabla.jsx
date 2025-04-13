@@ -1,12 +1,13 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip, Button, Pagination, Input, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu } from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip, Button, Pagination, Input, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu, Chip } from "@heroui/react";
 import React, { useState, useCallback, useMemo } from "react";
 import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true }) => {
+const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [] }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
+    const [selectedFilters, setSelectedFilters] = useState({});
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 5;
 
@@ -14,17 +15,30 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
         onOpen();
     };
 
-    const filteredData = useMemo(() => {
-        if (!filterValue) return data;
+    const estadosColors = {
+        "Activo": "success",
+        "Inactivo": "danger"
+    };
 
-        return data.filter((item) =>
-            columns.some((column) =>
+    const filteredData = useMemo(() => {
+
+        return data.filter((item) => {
+            const searchMatch = columns.some((column) =>
                 String(item[column.uid] || "")
                     .toLowerCase()
                     .includes(filterValue.toLowerCase())
-            )
-        );
-    }, [filterValue, data, columns]);
+            );
+
+            const filtersMatch = Object.entries(selectedFilters).every(([field, values]) => {
+                if (!values || values.length === 0) return true;
+                return values.some((value) =>
+                    String(item[field] || "").toLowerCase() === String(value).toLowerCase()
+                );
+            });
+
+            return searchMatch && filtersMatch;
+        });
+    }, [filterValue, selectedFilters, data, columns]);
 
     const datosPaginados = useMemo(() => {
         const start = (currentPage - 1) * numElementos;
@@ -35,49 +49,68 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
     const renderCell = useCallback((item, index, columnKey) => {
         const cellValue = item[columnKey];
 
-        if (columnKey === "acciones") {
-            if (mostrarAcciones) {
-                // Mostrar los tres puntos con el menú desplegable
+        switch (columnKey) {
+            case "acciones":
+                if (mostrarAcciones) {
+                    return (
+                        <div className="flex items-center justify-center">
+                            <Dropdown>
+                                <DropdownTrigger>
+                                    <Button isIconOnly variant="flat" className="bg-transparent">
+                                        <span className="text-lg text-gray-600">⋮</span>
+                                    </Button>
+                                </DropdownTrigger>
+                                <DropdownMenu aria-label="Acciones">
+                                    {acciones.map((accion, i) => (
+                                        <DropdownItem
+                                            key={i}
+                                            onPress={() => accion.handler(item)}
+                                            className="capitalize"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {accion.icon}
+                                                <span>{accion.tooltip}</span>
+                                            </div>
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+                        </div>
+                    );
+                } else {
+                    const accion = acciones[0];
+                    return (
+                        <button
+                            onClick={() => accion.handler(item)}
+                            className="text-blue-500 hover:text-blue-700"
+                        >
+                            {accion.icon}
+                        </button>
+                    );
+                }
+
+            case "estado":
                 return (
-                    <div className="flex items-center justify-center">
-                        <Dropdown>
-                            <DropdownTrigger>
-                                <Button isIconOnly variant="flat" className="bg-transparent">
-                                    <span className="text-lg text-gray-600">⋮</span>
-                                </Button>
-                            </DropdownTrigger>
-                            <DropdownMenu aria-label="Acciones">
-                                {acciones.map((accion, i) => (
-                                    <DropdownItem
-                                        key={i}
-                                        onPress={() => accion.handler(item)}
-                                        className="capitalize"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            {accion.icon}
-                                            <span>{accion.tooltip}</span>
-                                        </div>
-                                    </DropdownItem>
-                                ))}
-                            </DropdownMenu>
-                        </Dropdown>
-                    </div>
-                );
-            } else {
-                // Mostrar solo el ícono pasado desde otro componente
-                const accion = acciones[0]; // Usar la primera acción como predeterminada
-                return (
-                    <button
-                        onClick={() => accion.handler(item)}
-                        className="text-blue-500 hover:text-blue-700"
+                    <Tooltip
+                        color={estadosColors[item.estado]}
+                        content={`${item.estado}`}
                     >
-                        {accion.icon}
-                    </button>
+                        <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                            <Chip
+                                className="capitalize border-none gap-1 text-default-600"
+                                color={estadosColors[item.estado]}
+                                size="sm"
+                                variant="dot"
+                            >
+                            </Chip>
+                        </span>
+                    </Tooltip>
                 );
-            }
+
+            default:
+                return cellValue;
         }
-        return cellValue;
-    }, [acciones, mostrarAcciones]);
+    }, [acciones, mostrarAcciones, estadosColors]);
 
     const topContent = useMemo(() => {
         return (
@@ -93,6 +126,35 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
                         onValueChange={(value) => setFilterValue(value)}
                     />
                     <div className="flex gap-3">
+
+                        {filterOptions.map(({ field, label, values }) => (
+                            <Dropdown key={field}>
+                                <DropdownTrigger>
+                                    <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                                        {label}
+                                    </Button>
+                                </DropdownTrigger>
+                                <DropdownMenu
+                                    aria-label={`Filtrar por ${label}`}
+                                    closeOnSelect={false}
+                                    selectionMode="multiple"
+                                    selectedKeys={selectedFilters[field] || []}
+                                    onSelectionChange={(keys) =>
+                                        setSelectedFilters((prev) => ({
+                                            ...prev,
+                                            [field]: [...keys],
+                                        }))
+                                    }
+                                >
+                                    {values.map((value) => (
+                                        <DropdownItem key={value} className="capitalize">
+                                            {value}
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+                        ))}
+
                         <Dropdown>
                             <DropdownTrigger className="hidden sm:flex">
                                 <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
