@@ -1,17 +1,17 @@
 "use client";
 
 import React from "react";
-import {useControlledState} from "@react-stately/utils";
-import {m, LazyMotion, domAnimation} from "framer-motion";
-import {cn} from "@heroui/react";
+import { useControlledState } from "@react-stately/utils";
+import { m, LazyMotion, domAnimation } from "framer-motion";
+import { cn } from "@heroui/react";
 
 function CheckIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <m.path
-        animate={{pathLength: 1}}
+        animate={{ pathLength: 1 }}
         d="M5 13l4 4L19 7"
-        initial={{pathLength: 0}}
+        initial={{ pathLength: 0 }}
         strokeLinecap="round"
         strokeLinejoin="round"
         transition={{
@@ -113,10 +113,9 @@ const RowSteps = React.forwardRef(
                   ref={ref}
                   aria-current={status === "active" ? "step" : undefined}
                   className={cn(
-                    "group flex w-full cursor-pointer flex-row items-center justify-center gap-x-3 rounded-large py-2.5",
+                    "group flex w-full cursor-default flex-row items-center justify-center gap-x-3 rounded-large py-2.5",
                     stepClassName,
                   )}
-                  onClick={() => setCurrentStep(stepIdx)}
                   {...props}
                 >
                   <div className="h-ful relative flex items-center">
@@ -124,13 +123,13 @@ const RowSteps = React.forwardRef(
                       <m.div animate={status} className="relative">
                         <m.div
                           className={cn(
-                            "relative flex h-[44px] w-[44px] items-center justify-center rounded-full border-medium text-large font-semibold text-default-foreground",
+                            "relative flex h-[44px] w-[44px] items-center justify-center rounded-full text-large font-semibold text-default-foreground",
                             {
                               "shadow-lg": status === "complete",
                             },
                           )}
                           initial={false}
-                          transition={{duration: 0.25}}
+                          transition={{ duration: 0.25 }}
                           variants={{
                             inactive: {
                               backgroundColor: "transparent",
@@ -150,9 +149,9 @@ const RowSteps = React.forwardRef(
                         >
                           <div className="flex items-center justify-center">
                             {status === "complete" ? (
-                              <CheckIcon className="h-6 w-6 text-[var(--active-fg-color)]" />
+                              step.icon || <CheckIcon className="h-6 w-6 text-[var(--active-fg-color)]" />
                             ) : (
-                              <span>{stepIdx + 1}</span>
+                              step.icon || <span>{stepIdx + 1}</span> 
                             )}
                           </div>
                         </m.div>
@@ -167,6 +166,11 @@ const RowSteps = React.forwardRef(
                           "text-default-500": status === "inactive",
                         },
                       )}
+                      style={{
+                        whiteSpace: "nowrap", 
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
                     >
                       {step.title}
                     </div>
