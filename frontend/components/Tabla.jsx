@@ -4,14 +4,19 @@ import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [] }) => {
+const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [] }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
     const [selectedFilters, setSelectedFilters] = useState({});
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 5;
 
-    const abrirDrawer = () => {
+    const abrirDrawer = (accion = 0) => {
+        if (setAccion !== null) {
+            if (accion !== 0) {
+                setAccion(accion);
+            }
+        }
         onOpen();
     };
 
@@ -177,7 +182,7 @@ const TablaDinamica = ({ columns, data, acciones = [], onOpen, onOpenChange, ocu
                             </DropdownMenu>
                         </Dropdown>
                         {!ocultarAgregar && (
-                            <Button className="bg-primario text-white" onPress={abrirDrawer} endContent={<PlusIcon />}>
+                            <Button className="bg-primario text-white" onPress={() => { abrirDrawer(2) }} endContent={<PlusIcon />}>
                                 Agregar
                             </Button>
                         )}
