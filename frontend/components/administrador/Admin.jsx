@@ -54,10 +54,10 @@ const Admin = () => {
         },
     ];
 
-    const filterOptions= [
+    const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
         { field: "role", label: "Rol", values: ["Admin", "Usuario"] },
-      ]
+    ]
 
     const accionesPrueba = [
         {
