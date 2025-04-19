@@ -13,8 +13,6 @@ const Admin = () => {
     const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
     const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
 
-
-
     const columnasPrueba = [
         { name: "Cédula", uid: "cedula" },
         { name: "Nombre", uid: "nombre" },
@@ -76,7 +74,7 @@ const Admin = () => {
             };
             setSelectedItem(data);
         }
-        , 500);
+            , 500);
     };
 
     const filterOptions = [
@@ -91,7 +89,7 @@ const Admin = () => {
             handler: handleEditar,
         },
         {
-            tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
+            tooltip: <span className="text-danger">Eliminar</span>,
             icon: <DeleteIcon className="text-danger" />,
             handler: (item) => console.log("Eliminar", item),
         },
@@ -120,11 +118,17 @@ const Admin = () => {
                     titulo={accion === 1 ? "Editar Administrador" : "Agregar Administrador"}
                     size={"xs"}
                     isOpen={isOpen}
-                    onOpenChange={onOpenChange}>
-
+                    onOpenChange={onOpenChange}
+                >
                     <Input
                         placeholder="Cédula"
                         value={accion === 1 && selectedItem ? selectedItem.cedula : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                cedula: e.target.value, // Actualiza el campo "cedula"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
@@ -132,6 +136,12 @@ const Admin = () => {
                     <Input
                         placeholder="Nombre"
                         value={accion === 1 && selectedItem ? selectedItem.nombre : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                nombre: e.target.value, // Actualiza el campo "nombre"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
@@ -139,6 +149,12 @@ const Admin = () => {
                     <Input
                         placeholder="Primer apellido"
                         value={accion === 1 && selectedItem ? selectedItem.primerApellido : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                primerApellido: e.target.value, // Actualiza el campo "primerApellido"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
@@ -146,6 +162,12 @@ const Admin = () => {
                     <Input
                         placeholder="Segundo apellido"
                         value={accion === 1 && selectedItem ? selectedItem.segundoApellido : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                segundoApellido: e.target.value, // Actualiza el campo "segundoApellido"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
@@ -153,6 +175,12 @@ const Admin = () => {
                     <Input
                         placeholder="Correo"
                         value={accion === 1 && selectedItem ? selectedItem.correo : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                correo: e.target.value, // Actualiza el campo "correo"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
@@ -160,6 +188,12 @@ const Admin = () => {
                     <Input
                         placeholder="Teléfono"
                         value={accion === 1 && selectedItem ? selectedItem.telefono : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                telefono: e.target.value, // Actualiza el campo "telefono"
+                            }))
+                        }
                         variant={"bordered"}
                         type={"tel"}
                         pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
@@ -168,6 +202,13 @@ const Admin = () => {
                     />
                     <Select
                         placeholder="Especialidad"
+                        value={accion === 1 && selectedItem ? selectedItem.especialidad : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                especialidad: e.target.value, // Actualiza el campo "especialidad"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"

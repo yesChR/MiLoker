@@ -6,9 +6,12 @@ import { Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
+import React, { useState, useEffect } from "react";
 
 const Docentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
+    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
 
 
     const columnasPrueba = [
@@ -55,11 +58,35 @@ const Docentes = () => {
         },
     ];
 
+    const handleEditar = (item) => {
+        setAccion(1);
+        setSelectedItem(null);
+        onOpen();
+
+        setTimeout(() => {
+            const data = {
+                cedula: item.cedula,
+                nombre: item.nombre,
+                primerApellido: item.primerApellido,
+                segundoApellido: item.segundoApellido,
+                correo: item.correo,
+                telefono: item.telefono,
+                estado: item.estado,
+            };
+            setSelectedItem(data);
+        }
+            , 500);
+    };
+
+    const filterOptions = [
+        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+    ]
+
     const accionesPrueba = [
         {
             tooltip: "Editar",
             icon: <BiEditAlt />,
-            handler: (item) => console.log("Editar", item),
+            handler: handleEditar,
         },
         {
             tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
@@ -82,42 +109,91 @@ const Docentes = () => {
                         columns={columnasPrueba}
                         data={datosPrueba}
                         acciones={accionesPrueba}
+                        filterOptions={filterOptions}
                         onOpen={onOpen}
+                        setAccion={setAccion}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Docentes"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                <DrawerGeneral
+                    titulo={accion === 1 ? "Editar Docente" : "Agregar Docentes"}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpenChange={onOpenChange}
+                >
                     <Input
                         placeholder="Cédula"
+                        value={accion === 1 && selectedItem ? selectedItem.cedula : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                cedula: e.target.value, // Actualiza el campo "cedula"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Nombre"
+                        value={accion === 1 && selectedItem ? selectedItem.nombre : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                nombre: e.target.value, // Actualiza el campo "nombre"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Primer apellido"
+                        value={accion === 1 && selectedItem ? selectedItem.primerApellido : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                primerApellido: e.target.value, // Actualiza el campo "primerApellido"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Segundo apellido"
+                        value={accion === 1 && selectedItem ? selectedItem.segundoApellido : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                segundoApellido: e.target.value, // Actualiza el campo "segundoApellido"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Correo"
+                        value={accion === 1 && selectedItem ? selectedItem.correo : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                correo: e.target.value, // Actualiza el campo "correo"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Teléfono"
+                        value={accion === 1 && selectedItem ? selectedItem.telefono : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                telefono: e.target.value, // Actualiza el campo "telefono"
+                            }))
+                        }
                         variant={"bordered"}
                         type={"tel"}
                         pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
@@ -126,6 +202,13 @@ const Docentes = () => {
                     />
                     <Select
                         placeholder="Especialidad"
+                        value={accion === 1 && selectedItem ? selectedItem.especialidad : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                especialidad: e.target.value, // Actualiza el campo "especialidad"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
