@@ -6,9 +6,14 @@ import { Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
+import React, { useState, useEffect } from "react";
 
 const Admin = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
+    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
+
+
 
     const columnasPrueba = [
         { name: "Cédula", uid: "cedula" },
@@ -54,6 +59,26 @@ const Admin = () => {
         },
     ];
 
+    const handleEditar = (item) => {
+        setAccion(1);
+        setSelectedItem(null);
+        onOpen();
+
+        setTimeout(() => {
+            const data = {
+                cedula: item.cedula,
+                nombre: item.nombre,
+                primerApellido: item.primerApellido,
+                segundoApellido: item.segundoApellido,
+                correo: item.correo,
+                telefono: item.telefono,
+                estado: item.estado,
+            };
+            setSelectedItem(data);
+        }
+        , 500);
+    };
+
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
         { field: "role", label: "Rol", values: ["Admin", "Usuario"] },
@@ -63,7 +88,7 @@ const Admin = () => {
         {
             tooltip: "Editar",
             icon: <BiEditAlt />,
-            handler: (item) => console.log("Editar", item),
+            handler: handleEditar,
         },
         {
             tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
@@ -88,41 +113,53 @@ const Admin = () => {
                         acciones={accionesPrueba}
                         filterOptions={filterOptions}
                         onOpen={onOpen}
+                        setAccion={setAccion}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Administradores"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                <DrawerGeneral
+                    titulo={accion === 1 ? "Editar Administrador" : "Agregar Administrador"}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpenChange={onOpenChange}>
+
                     <Input
                         placeholder="Cédula"
+                        value={accion === 1 && selectedItem ? selectedItem.cedula : ""}
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Nombre"
+                        value={accion === 1 && selectedItem ? selectedItem.nombre : ""}
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Primer apellido"
+                        value={accion === 1 && selectedItem ? selectedItem.primerApellido : ""}
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Segundo apellido"
+                        value={accion === 1 && selectedItem ? selectedItem.segundoApellido : ""}
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Correo"
+                        value={accion === 1 && selectedItem ? selectedItem.correo : ""}
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Input
                         placeholder="Teléfono"
+                        value={accion === 1 && selectedItem ? selectedItem.telefono : ""}
                         variant={"bordered"}
                         type={"tel"}
                         pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"

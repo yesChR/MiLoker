@@ -144,7 +144,7 @@ const Armario = () => {
             {/* Drawer */}
             <DrawerGeneral
                 titulo={isEditing ? "Editar Armario" : "Agregar Armario"}
-                size={"xs"}
+                size={"xs"} 
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
             >

@@ -11,6 +11,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 5;
 
+    
     const abrirDrawer = (accion = 0) => {
         if (setAccion !== null) {
             if (accion !== 0) {

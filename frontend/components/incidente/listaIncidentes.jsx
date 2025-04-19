@@ -13,7 +13,7 @@ const ListaIncidentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState(null);
     const [accion, setAccion] = useState(""); // Estado para determinar si es "Revisar" o "Crear"
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false); //
     const [detalleEditable, setDetalleEditable] = useState(""); // Estado para el textarea
 
     const columnasPrueba = [
