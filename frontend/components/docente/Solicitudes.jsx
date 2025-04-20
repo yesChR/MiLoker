@@ -97,34 +97,54 @@ const Solicitudes = ({ estado }) => {
                     onOpen={onOpen}
                     onOpenChange={onOpenChange}
                     mostrarBotones={false}
-                >
+                > {estado === 1 && (
                     <div className="flex flex-col mb-4">
-                        <Select
-                            placeholder="Elegir opción"
-                            
-                            onChange={(e) =>
-                                setSelectedItem((prev) => ({
-                                    ...prev,
-                                    opcion: e.target.value,
-                                }))
-                            }
-                            variant={"bordered"}
-                            className="focus:border-primario mb-4"
-                            color="primary"
-                        >
-                            {opciones.map((opciones) => (
-                                <SelectItem key={opciones.id} value={opciones.id}>
-                                    {opciones.nombre}
-                                </SelectItem>
-                            ))}
-                        </Select>
-                        <div className="flex justify-end">
-                            <Button color="primary" flex endContent={<LuSendHorizontal />}>
-                                Enviar
-                            </Button>
-                        </div>
-                        <Divider className="mt-4" />
+
+                        <>
+                            <Select
+                                placeholder="Elegir opción"
+                                onSelectionChange={(value) => {
+                                    console.log("Selected value:", value.currentKey);
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        opcion: Number(value.currentKey),
+                                    }));
+                                }}
+                                variant={"bordered"}
+                                className="focus:border-primario mb-4"
+                                color="primary"
+                            >
+                                {opciones.map((opcion) => (
+                                    <SelectItem key={opcion.id} value={opcion.id}>
+                                        {opcion.nombre}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                            {selectedItem?.opcion === 3 && (
+                                <textarea
+                                    className="w-full border rounded-lg p-2 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-4"
+                                    rows="4"
+                                    placeholder="Escribe la razón del rechazo..."
+                                    onChange={(e) =>
+                                        setSelectedItem((prev) => ({
+                                            ...prev,
+                                            razonRechazo: e.target.value,
+                                        }))
+                                    }
+                                ></textarea>
+                            )}
+
+                            <div className="flex justify-end">
+                                <Button color="primary" flex endContent={<LuSendHorizontal />}>
+                                    Enviar
+                                </Button>
+                            </div>
+                            <Divider className="mt-4" />
+                        </>
+
                     </div>
+
+                )}
                     <div className="flex flex-col mb-4">
                         <label className="text-azulOscuro font-bold text-xl">Historial</label>
 
