@@ -7,7 +7,7 @@ const EstadoSolicitud = () => {
 
     // Simulación de datos obtenidos de un fetch
     const datosFetch = {
-        estado: 1, // Estado numérico: 0 = "aceptada", 1 = "rechazada", 2 = "espera"
+        estado: 0, // Estado numérico: 0 = "aceptada", 1 = "rechazada", 2 = "espera"
         estudiante: {
             nombre: "Juan Pérez",
             numeroCasillero: 3,
@@ -93,7 +93,7 @@ const EstadoSolicitud = () => {
                     <div>
                         <h2 className="text-lg font-bold text-rose-500">Importante</h2>
                         <p className="mt-4">
-                            Hola <strong>{estudiante.nombre}</strong>,
+                            Hola <strong>{estudiante.nombre}😓💔</strong>,
                         </p>
                         <p className="mt-2">
                             Lamentamos informarte que tu solicitud ha sido rechazada. Por favor,
