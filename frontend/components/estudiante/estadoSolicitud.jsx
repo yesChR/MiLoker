@@ -1,6 +1,6 @@
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import React from "react";
-import RowSteps from "./row-steps";
+import RowSteps from "./RowSteps";
 import { FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa"; // Importar íconos de react-icons
 
 const EstadoSolicitud = () => {

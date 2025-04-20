@@ -2,7 +2,7 @@ import MiLoker from "@/components/estudiante/miLoker";
 
 const MiLokerPage = () => {
     return (
-        <MiLoker />
+        <MiLoker/>
     );
 }
 export default MiLokerPage;
