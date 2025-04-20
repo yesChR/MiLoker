@@ -7,6 +7,7 @@ import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
 import React, { useState } from "react";
+import { MdOutlinePassword } from "react-icons/md";
 
 const Estudiante = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -93,6 +94,11 @@ const Estudiante = () => {
             handler: handleEditar,
         },
         {
+            tooltip: <span className="text-danger">Restablecer contraseña</span>,
+            icon: <MdOutlinePassword className="text-danger" />,
+            handler: (item) => console.log("Eliminar", item),
+        },
+        {
             tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
             icon: <DeleteIcon className="text-danger" />,
             handler: (item) => console.log("Eliminar", item),
@@ -118,12 +124,12 @@ const Estudiante = () => {
                         setAccion={setAccion}
                     />
                 </div>
-                <DrawerGeneral 
-                titulo={accion === 1 ? "Editar Estudiante" : "Agregar Estudiantes"} 
-                size={"xs"} 
-                isOpen={isOpen} 
-                onOpenChange={onOpenChange}
-                textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                <DrawerGeneral
+                    titulo={accion === 1 ? "Editar Estudiante" : "Agregar Estudiantes"}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
                 >
 
                     <Input
