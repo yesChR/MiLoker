@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import { PiNotePencilFill } from "react-icons/pi";
-import { Select } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Divider } from "@heroui/react";
@@ -47,6 +47,12 @@ const Solicitudes = ({ estado }) => {
         { casillero: "A - 6" },
     ];
 
+    const opciones = [
+        { id: 1, nombre: "Opción 1 (A-10)" },
+        { id: 2, nombre: "Opción 2 (A-15)" },
+        { id: 3, nombre: "Ninguna" },
+    ];
+
     const incidentesRelacionados = [
         { incidente: " El casillero presentaba daños severos" },
     ];
@@ -57,11 +63,11 @@ const Solicitudes = ({ estado }) => {
     const accionesPrueba = [
         {
             tooltip: "Revisar",
-            icon: <PiNotePencilFill  size={18} />,
+            icon: <PiNotePencilFill size={18} />,
             handler: (item) => {
                 setSelectedItem(item); // Guarda el elemento seleccionado
                 onOpen(); // Abre el Drawer
-            }, 
+            },
         },
     ];
 
@@ -95,10 +101,23 @@ const Solicitudes = ({ estado }) => {
                     <div className="flex flex-col mb-4">
                         <Select
                             placeholder="Elegir opción"
+                            
+                            onChange={(e) =>
+                                setSelectedItem((prev) => ({
+                                    ...prev,
+                                    opcion: e.target.value,
+                                }))
+                            }
                             variant={"bordered"}
                             className="focus:border-primario mb-4"
                             color="primary"
-                        />
+                        >
+                            {opciones.map((opciones) => (
+                                <SelectItem key={opciones.id} value={opciones.id}>
+                                    {opciones.nombre}
+                                </SelectItem>
+                            ))}
+                        </Select>
                         <div className="flex justify-end">
                             <Button color="primary" flex endContent={<LuSendHorizontal />}>
                                 Enviar
