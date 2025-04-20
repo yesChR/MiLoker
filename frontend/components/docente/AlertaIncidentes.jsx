@@ -120,6 +120,7 @@ const AlertaIncidentes = () => {
                     onOpen={onOpen}
                     onOpenChange={onOpenChange}
                     mostrarBotones={true}
+                    textoBotonPrimario={"Aceptar"}
                 >
                     <FormularioAlertaIncidente
                         loading={loading}

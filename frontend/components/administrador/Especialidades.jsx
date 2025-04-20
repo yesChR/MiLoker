@@ -6,9 +6,12 @@ import { Drawer, Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
+import React, { useState, useEffect } from "react";
 
 const Especialidades = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
+    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
 
     const columnasPrueba = [
         { name: "#", uid: "numero" },
@@ -38,11 +41,31 @@ const Especialidades = () => {
         },
     ];
 
+    const handleEditar = (item) => {
+        setAccion(1);
+        setSelectedItem(null);
+        onOpen();
+
+        setTimeout(() => {
+            const data = {
+                id: item.id,
+                nombre: item.nombre,
+                estado: item.estado,
+            };
+            setSelectedItem(data);
+        }
+            , 500);
+    };
+
+    const filterOptions = [
+        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+    ]
+
     const accionesPrueba = [
         {
             tooltip: "Editar",
             icon: <BiEditAlt />,
-            handler: (item) => console.log("Editar", item),
+            handler: handleEditar,
         },
         {
             tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
@@ -65,18 +88,40 @@ const Especialidades = () => {
                         columns={columnasPrueba}
                         data={datosPrueba}
                         acciones={accionesPrueba}
+                        filterOptions={filterOptions}
                         onOpen={onOpen}
+                        setAccion={setAccion}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Especialidad"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                <DrawerGeneral
+                    titulo={accion === 1 ? "Editar Especialidad" : "Agregar Especialidad"}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                >
                     <Input
                         placeholder="Nombre"
+                        value={accion === 1 && selectedItem ? selectedItem.nombre : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                nombre: e.target.value, // Actualiza el campo "nombre"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <Select
                         placeholder="Estado"
+                        value={accion === 1 && selectedItem ? selectedItem.estado : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                estado: e.target.value, // Actualiza el campo "estado"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"

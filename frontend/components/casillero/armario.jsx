@@ -228,6 +228,7 @@ const Armario = () => {
                 size={"xs"}
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
+                textoBotonPrimario={isEditing ? "Editar" : "Agregar"}
             >
                 {isEditing ? (
                     <>

@@ -1,13 +1,16 @@
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
-import { BiEditAlt} from "react-icons/bi";
+import { BiEditAlt } from "react-icons/bi";
 import { DeleteIcon } from "../icons/DeleteIcon";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
+import React, { useState } from "react";
 
 const TiposSanciones = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
+    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
 
     const columnasPrueba = [
         { name: "#", uid: "numero" },
@@ -37,11 +40,32 @@ const TiposSanciones = () => {
         },
     ];
 
+    const handleEditar = (item) => {
+        setAccion(1);
+        setSelectedItem(null);
+        onOpen();
+
+        setTimeout(() => {
+            const data = {
+                id: item.id,
+                numero: item.numero,
+                gravedad: item.gravedad,
+                detalle: item.detalle,
+            };
+            setSelectedItem(data);
+        }
+            , 500);
+    };
+
+    const filterOptions = [
+        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+    ]
+
     const accionesPrueba = [
         {
             tooltip: "Editar",
             icon: <BiEditAlt />,
-            handler: (item) => console.log("Editar", item),
+            handler: handleEditar,
         },
         {
             tooltip: <span className="text-danger">Eliminar</span>, // Aplica el color al texto del tooltip
@@ -64,18 +88,41 @@ const TiposSanciones = () => {
                         columns={columnasPrueba}
                         data={datosPrueba}
                         acciones={accionesPrueba}
+                        filterOptions={filterOptions}
                         onOpen={onOpen}
+                        setAccion={setAccion}
                     />
                 </div>
-                <DrawerGeneral titulo={"Agregar Sanciones"} size={"xs"} isOpen={isOpen} onOpen={onOpen} onOpenChange={onOpenChange}>
+                <DrawerGeneral
+                    titulo={accion === 1 ? "Editar Sanción" : "Agregar Sanciones"}
+                    size={"xs"}
+                    isOpen={isOpen}
+                    onOpen={onOpen}
+                    onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                    >
                     <Input
                         placeholder="Gravedad"
+                        value={accion === 1 && selectedItem ? selectedItem.gravedad : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                gravedad: e.target.value, // Actualiza el campo "gravedad"
+                            }))
+                        }
                         variant={"bordered"}
                         className="focus:border-primario"
                         color="primary"
                     />
                     <textarea
                         placeholder="Escribe el detalle aquí..."
+                        value={accion === 1 && selectedItem ? selectedItem.detalle : ""}
+                        onChange={(e) =>
+                            setSelectedItem((prev) => ({
+                                ...prev,
+                                detalle: e.target.value, // Actualiza el campo "detalle"
+                            }))
+                        }
                         className="border-2 border-gray-300 rounded-2xl p-2 w-full h-32 resize-none focus:border-blue-500 hover:border-gray-400 placeholder:text-sm text-gray-900"
                         color="primary"
                     />

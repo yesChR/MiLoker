@@ -89,6 +89,7 @@ const Informe = () => {
                     size={"xs"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
+                    textoBotonPrimario="Generar"
                 >
                     {drawerContent === "casillero" && (
                         <>
