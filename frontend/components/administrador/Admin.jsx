@@ -7,6 +7,7 @@ import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
 import React, { useState, useEffect } from "react";
+import { MdOutlinePassword } from "react-icons/md";
 
 const Admin = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -87,6 +88,11 @@ const Admin = () => {
             tooltip: "Editar",
             icon: <BiEditAlt />,
             handler: handleEditar,
+        },
+        {
+            tooltip: <span className="text-danger">Restablecer contraseña</span>,
+            icon: <MdOutlinePassword className="text-danger" />,
+            handler: (item) => console.log("Eliminar", item),
         },
         {
             tooltip: <span className="text-danger">Eliminar</span>,
