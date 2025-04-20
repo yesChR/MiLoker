@@ -1,4 +1,4 @@
-import EstadoSolicitud from "@/components/estudiante/estadoSolicitud";
+import EstadoSolicitud from "@/components/estudiante/EstadoSolicitud";
 
 const EstadoSolicitudPage = () => {
     return (
