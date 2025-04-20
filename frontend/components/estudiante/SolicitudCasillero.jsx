@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
-import { Button, Input, Select, SelectItem } from "@heroui/react";
-import DrawerGeneral from "../DrawerGeneral";
-import { PlusIcon } from "../icons/PlusIcon";
+import { Button } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import { ChevronIcon } from "../icons/ChevronIcon";
 import { usePagination, PaginationItemType } from "@heroui/react";
 import cn from "classnames";
-import CustomAlert from "../CustomAlert"; // Importar el componente CustomAlert
+import CustomAlert from "../CustomAlert";
+import { LuSendHorizontal } from "react-icons/lu";
 
 const SolicitudCasillero = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -217,13 +216,14 @@ const SolicitudCasillero = () => {
             </div>
 
             {/* Botón para enviar solicitud */}
-            <div className="flex justify-center mt-6">
+            <div className="flex w-full max-w-2xl mx-auto justify-end mt-6">
                 <Button
-                    className="bg-primario text-white px-6 py-2 rounded-md"
+                    className="bg-primario text-white rounded-md flex items-center space-x-2"
                     disabled={selectedCasilleros.length !== 2} // Solo habilitado si hay 2 casilleros seleccionados
                     onPress={handleEnviarSolicitud}
                 >
-                    Enviar solicitud 
+                    <span>Enviar solicitud</span>
+                    <LuSendHorizontal className="w-5 h-5" /> {/* Ícono de envío */}
                 </Button>
             </div>
 
