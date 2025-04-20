@@ -92,7 +92,7 @@ const FormularioAlertaIncidente = ({ loading, selectedItem, prioridad, setPriori
                     <h2 className="text-gray-700 font-bold text-sm mb-2">Descripción del suceso:</h2>
                     <div className="text-gray-600 text-sm">
                         <textarea
-                            className="w-full border rounded-lg p-2 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className=""
                             rows="4"
                             value={detalleEditable}
                             onChange={(e) => setDetalleEditable(e.target.value)}

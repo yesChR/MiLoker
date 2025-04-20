@@ -60,7 +60,6 @@ const ListaIncidentes = () => {
                 evidencia: [
                     "/casillero_dañado.jpg",
                     "/casillero_dañado.jpg",
-                    "/casillero_dañado.jpg",
                 ],
             };
             setSelectedItem(data);
