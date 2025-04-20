@@ -119,6 +119,7 @@ const Docentes = () => {
                     size={"xs"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
                 >
                     <Input
                         placeholder="Cédula"

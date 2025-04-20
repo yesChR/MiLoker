@@ -119,7 +119,8 @@ const Admin = () => {
                     size={"xs"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
-                >
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                >   
                     <Input
                         placeholder="Cédula"
                         value={accion === 1 && selectedItem ? selectedItem.cedula : ""}

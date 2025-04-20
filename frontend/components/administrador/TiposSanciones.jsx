@@ -98,7 +98,9 @@ const TiposSanciones = () => {
                     size={"xs"}
                     isOpen={isOpen}
                     onOpen={onOpen}
-                    onOpenChange={onOpenChange}>
+                    onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                    >
                     <Input
                         placeholder="Gravedad"
                         value={accion === 1 && selectedItem ? selectedItem.gravedad : ""}

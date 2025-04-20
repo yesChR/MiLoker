@@ -122,7 +122,9 @@ const Estudiante = () => {
                 titulo={accion === 1 ? "Editar Estudiante" : "Agregar Estudiantes"} 
                 size={"xs"} 
                 isOpen={isOpen} 
-                onOpenChange={onOpenChange}>
+                onOpenChange={onOpenChange}
+                textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                >
 
                     <Input
                         placeholder="Cédula"

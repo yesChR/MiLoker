@@ -98,6 +98,7 @@ const ListaIncidentes = () => {
                     size={accion === 1 ? "3xl" : "sm"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
+                    textoBotonPrimario={accion === 1 ? "Actualizar" : "Enviar"}
                 >
                     {accion === 1 ? (
                         selectedItem ? (
