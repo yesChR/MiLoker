@@ -37,15 +37,15 @@ const EstadoSolicitud = () => {
                 estado === "aceptada"
                     ? "Aceptada"
                     : estado === "rechazada"
-                    ? "Rechazada"
-                    : "En espera",
+                        ? "Rechazada"
+                        : "En espera",
             icon:
                 estado === "aceptada" ? (
-                    <FaCheckCircle className="h-10 w-10 text-green-500" />
+                    <FaCheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-500" />
                 ) : estado === "rechazada" ? (
-                    <FaTimesCircle className="h-10 w-10 text-red-500" />
+                    <FaTimesCircle className="h-8 w-8 sm:h-10 sm:w-10 text-red-500" />
                 ) : (
-                    <FaClock className="h-10 w-10 text-yellow-500" />
+                    <FaClock className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-500" />
                 ),
         },
     ];
@@ -59,11 +59,13 @@ const EstadoSolicitud = () => {
                 />
             </div>
 
-            <RowSteps
-                className="w-full max-w-3xl flex justify-center items-center mt-6 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
-                defaultStep={2}
-                steps={steps}
-            />
+            <div className="w-full items-center flex justify-center">
+                <RowSteps
+                    className="flex justify-center items-center mt-6 ml-24"
+                    defaultStep={2}
+                    steps={steps}
+                />
+            </div>
 
             <div className="w-full max-w-3xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
                 {estado === "aceptada" && (

@@ -100,7 +100,7 @@ const RowSteps = React.forwardRef(
     }, [color, className]);
 
     return (
-      <nav aria-label="Progress" className="-my-4 max-w-fit overflow-x-auto py-4 ml-12">
+      <nav aria-label="Progress" className="-my-4 max-w-fit overflow-x-auto py-4 px-4">
         <ol className={cn("flex flex-row flex-nowrap gap-x-3", colors, className)}>
           {steps?.map((step, stepIdx) => {
             let status =
@@ -118,12 +118,12 @@ const RowSteps = React.forwardRef(
                   )}
                   {...props}
                 >
-                  <div className="h-ful relative flex items-center">
+                  <div className="h-full relative flex items-center">
                     <LazyMotion features={domAnimation}>
                       <m.div animate={status} className="relative">
                         <m.div
                           className={cn(
-                            "relative flex h-[44px] w-[44px] items-center justify-center rounded-full text-large font-semibold text-default-foreground",
+                            "relative flex h-[34px] w-[34px] sm:h-[42px] sm:w-[42px] items-center justify-center rounded-full text-large font-semibold text-default-foreground",
                             {
                               "shadow-lg": status === "complete",
                             },
@@ -149,9 +149,9 @@ const RowSteps = React.forwardRef(
                         >
                           <div className="flex items-center justify-center">
                             {status === "complete" ? (
-                              step.icon || <CheckIcon className="h-6 w-6 text-[var(--active-fg-color)]" />
+                              step.icon || <CheckIcon className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--active-fg-color)]" />
                             ) : (
-                              step.icon || <span>{stepIdx + 1}</span> 
+                              step.icon || <span>{stepIdx + 1}</span>
                             )}
                           </div>
                         </m.div>
@@ -161,13 +161,13 @@ const RowSteps = React.forwardRef(
                   <div className="max-w-full flex-1 text-start">
                     <div
                       className={cn(
-                        "text-small font-medium text-default-foreground transition-[color,opacity] duration-300 group-active:opacity-80 lg:text-medium",
+                        "text-xs sm:text-sm text-default-foreground transition-[color,opacity] duration-300 group-active:opacity-80",
                         {
                           "text-default-500": status === "inactive",
                         },
                       )}
                       style={{
-                        whiteSpace: "nowrap", 
+                        whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                       }}
@@ -178,7 +178,7 @@ const RowSteps = React.forwardRef(
                   {stepIdx < steps.length - 1 && !hideProgressBars && (
                     <div
                       aria-hidden="true"
-                      className="pointer-events-none absolute right-0 w-10 flex-none items-center"
+                      className="pointer-events-none absolute right-0 w-6 sm:w-10 flex-none items-center"
                       style={{
                         // @ts-ignore
                         "--idx": stepIdx,
