@@ -1,9 +1,11 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion";
+import { Usuario } from "./usuario.model.js";
+import { Especialidad } from "./especialidad.model.js";
 
 export const Estudiante = sequelize.define("estudiante", {
   cedula: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false
@@ -43,4 +45,23 @@ export const Estudiante = sequelize.define("estudiante", {
 }, {
   tableName: 'estudiante',
   timestamps: false
+});
+
+Estudiante.belongsTo(Usuario, {
+  foreignKey: 'cedula',
+  as: 'usuario'
+});
+Usuario.hasOne(Estudiante, {
+  foreignKey: 'cedula',
+  as: 'estudiante'
+});
+
+Estudiante.belongsTo(Especialidad, {
+  foreignKey: 'idEspecialidad',
+  as: 'especialidad'
+});
+
+Especialidad.hasMany(Estudiante, {
+  foreignKey: 'idEspecialidad',
+  as: 'estudiantes'
 });

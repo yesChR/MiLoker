@@ -2,9 +2,9 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
 
 export const Usuario = sequelize.define("usuario", {
-  idUsuario: {
+  cedula: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
+    autoIncrement: false,
     primaryKey: true,
     allowNull: false
   },

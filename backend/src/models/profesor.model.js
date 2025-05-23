@@ -1,9 +1,10 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion";
+import { Usuario } from "./usuario.model.js";
 
 export const Profesor = sequelize.define("profesor", {
   cedula: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false
@@ -35,4 +36,13 @@ export const Profesor = sequelize.define("profesor", {
 }, {
   tableName: 'profesor',
   timestamps: false
+});
+
+Profesor.belongsTo(Usuario, {
+  foreignKey: 'cedula',
+  as: 'usuario'
+});
+Usuario.hasOne(Profesor, {
+  foreignKey: 'cedula',
+  as: 'profesor'
 });
