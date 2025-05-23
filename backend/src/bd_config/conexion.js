@@ -5,6 +5,6 @@ export const sequelize = new Sequelize(config.database, config.username, config.
     host: config.dbhost,
     port: config.dbport,
     dialect: 'mysql',
-    define:{timestamps: false}
+    define:{timestamps: false},
 });
 

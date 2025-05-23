@@ -1,25 +1,26 @@
 import app from './app.js'
-import { sequelize } from './bd_config/conexion.js';
+import { sequelize } from './bd_config/conexion.js'
+
+import './models/usuario.model.js'
+import './models/profesor.model.js'
+import './models/casillero.model.js'
+import './models/estudiante.model.js'
+import './models/estudianteXcasillero.model.js'
+import './models/administrador.model.js'
 
 const main = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Se realizó con exito la conexion a la bd');
-    // Automatically create all tables
-    await sequelize.sync();
-    //Aqui se habilita servidor web de node.js nada más
+    console.log('Conexión a la base de datos exitosa');
+
+    // Crear o actualizar las tablas sin borrar datos
+    await sequelize.sync({ force: true });
+
     app.listen(app.get('port'));
-    console.log(`Corriendo en el puerto ${app.get('port')}`);
+    console.log(`Servidor corriendo en el puerto ${app.get('port')}`);
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error('Error conectando a la base de datos:', error);
   }
 }
 
-
-
 main();
-
-
-
-
-
