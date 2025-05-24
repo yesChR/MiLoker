@@ -9,7 +9,7 @@ export const Periodo = sequelize.define("periodo", {
     allowNull: false
   },
   tipo: {
-    type: DataTypes.NUMBER,
+    type: DataTypes.INTEGER,
     allowNull: false,
     validate: {
       isIn: [[1, 2]]
@@ -25,7 +25,7 @@ export const Periodo = sequelize.define("periodo", {
     allowNull: false
   },
   estado: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   }
 }, {

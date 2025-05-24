@@ -1,5 +1,8 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
+import { Evidencia } from "./evidencia.model.js";
+import { Estudiante } from "./estudiante.model.js";
+import { Casillero } from "./casillero.model.js";
 
 export const Incidente = sequelize.define("incidente", {
     idIncidente: {
@@ -41,20 +44,20 @@ Evidencia.belongsTo(Incidente, {
 
 //Un estudiante puede tener muchos incidentes, pero cada incidente pertenece a un solo estudiante:
 Estudiante.hasMany(Incidente, {
-  foreignKey: 'cedula',
-  as: 'incidentes'
+    foreignKey: 'cedula',
+    as: 'incidentes'
 });
 Incidente.belongsTo(Estudiante, {
-  foreignKey: 'cedula',
-  as: 'estudiante'
+    foreignKey: 'cedula',
+    as: 'estudiante'
 });
 
 //Un casillero puede tener muchos incidentes, pero cada incidente pertenece a un solo casillero
 Casillero.hasMany(Incidente, {
-  foreignKey: 'idCasillero',
-  as: 'incidentes'
+    foreignKey: 'idCasillero',
+    as: 'incidentes'
 });
 Incidente.belongsTo(Casillero, {
-  foreignKey: 'idCasillero',
-  as: 'casillero'
+    foreignKey: 'idCasillero',
+    as: 'casillero'
 });

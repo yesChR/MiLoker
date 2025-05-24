@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
+import { Incidente } from "./incidente.model.js";
 
 export const EstadoIncidente = sequelize.define("estadoIncidente", {
   idEstadoIncidente: {

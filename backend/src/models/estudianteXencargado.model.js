@@ -1,4 +1,8 @@
-// Tabla intermedia para la relación N:M
+import { DataTypes } from "sequelize";
+import { sequelize } from "../bd_config/conexion.js";
+import { Estudiante } from "./estudiante.model.js";
+import { Encargado } from "./encargado.model.js";
+
 export const EstudianteXEncargado = sequelize.define("estudianteXencargado", {
   id: {
     type: DataTypes.INTEGER,

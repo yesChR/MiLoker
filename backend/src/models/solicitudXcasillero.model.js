@@ -1,4 +1,8 @@
-// Modelo intermedio
+import { DataTypes } from "sequelize";
+import { sequelize } from "../bd_config/conexion.js";
+import { Solicitud } from "./solicitud.model.js";
+import { Casillero } from "./casillero.model.js";
+
 export const SolicitudXCasillero = sequelize.define("solicitudXcasillero", {
   id: {
     type: DataTypes.INTEGER,
