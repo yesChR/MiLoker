@@ -23,7 +23,7 @@ export const Estudiante = sequelize.define("estudiante", {
     allowNull: false
   },
   estado: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   telefono: {

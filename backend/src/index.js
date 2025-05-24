@@ -28,7 +28,7 @@ const main = async () => {
     console.log('Conexión a la base de datos exitosa');
 
     // Crear o actualizar las tablas sin borrar datos
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ force: true });
 
     app.listen(app.get('port'));
     console.log(`Servidor corriendo en el puerto ${app.get('port')}`);

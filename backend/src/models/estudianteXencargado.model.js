@@ -18,13 +18,13 @@ export const EstudianteXEncargado = sequelize.define("estudianteXencargado", {
 Estudiante.belongsToMany(Encargado, {
   through: EstudianteXEncargado,
   foreignKey: 'cedula',
-  otherKey: 'idEncargado',
+  otherKey: 'cedula',
   as: 'encargados'
 });
 
 Encargado.belongsToMany(Estudiante, {
   through: EstudianteXEncargado,
-  foreignKey: 'idEncargado',
+  foreignKey: 'cedula',
   otherKey: 'cedula',
   as: 'estudiantes'
 });

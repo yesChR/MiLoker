@@ -22,7 +22,7 @@ export const Administrador = sequelize.define("administrador", {
     allowNull: false
   },
   estado: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   telefono: {
@@ -43,6 +43,7 @@ Administrador.belongsTo(Usuario, {
   foreignKey: 'cedula',
   as: 'usuario'
 });
+
 Usuario.hasOne(Administrador, {
   foreignKey: 'cedula',
   as: 'administrador'

@@ -1,13 +1,11 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
-import { Estudiante } from "./estudiante.model.js";
 
-// Modelo Encargado
 export const Encargado = sequelize.define("encargado", {
-  idEncargado: {
+  cedula: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: false
   },
   nombre: {
     type: DataTypes.STRING,
