@@ -18,7 +18,6 @@ export const EstadoIncidente = sequelize.define("estadoIncidente", {
   timestamps: false
 });
 
-
 // Incidente pertenece a un EstadoIncidente
 EstadoIncidente.hasMany(Incidente, {
     foreignKey: 'idEstadoIncidente',

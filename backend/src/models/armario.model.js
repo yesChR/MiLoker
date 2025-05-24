@@ -3,13 +3,13 @@ import { sequelize } from "../bd_config/conexion.js";
 import { Especialidad } from "./especialidad.model.js";
 
 export const Armario = sequelize.define("armario", {
-  idArmario: {
+  id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     allowNull: false
   },
-  nombre: {
+  idArmario: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -27,5 +27,11 @@ export const Armario = sequelize.define("armario", {
 });
 
 // Relación: Una especialidad contiene muchos armarios
-Especialidad.hasMany(Armario, { foreignKey: 'idEspecialidad', as: 'armarios' });
-Armario.belongsTo(Especialidad, { foreignKey: 'idEspecialidad', as: 'especialidad' });
+Especialidad.hasMany(Armario, {
+  foreignKey: 'idEspecialidad',
+  as: 'armarios'
+});
+Armario.belongsTo(Especialidad, {
+  foreignKey: 'idEspecialidad',
+  as: 'especialidad'
+});

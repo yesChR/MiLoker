@@ -14,8 +14,8 @@ export const SolicitudXCasillero = sequelize.define("solicitudXcasillero", {
     allowNull: true
   },
   estado: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   }
 }, {
   tableName: 'solicitudXcasillero',

@@ -1,5 +1,5 @@
-import { sequelize } from './index.js'; // O la ruta donde inicializas sequelize
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
+import { sequelize } from "../bd_config/conexion.js";
 import { Estudiante } from './estudiante.model.js';
 import { Encargado } from './encargado.model.js';
 
@@ -9,11 +9,11 @@ export const EstudianteXEncargado = sequelize.define("estudianteXencargado", {
     primaryKey: true,
     autoIncrement: true
   },
-  cedula_estudiante: {
+  cedulaEstudiante: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  cedula_encargado: {
+  cedulaEncargado: {
     type: DataTypes.INTEGER,
     allowNull: false
   }
@@ -25,14 +25,14 @@ export const EstudianteXEncargado = sequelize.define("estudianteXencargado", {
 // Relación muchos a muchos
 Estudiante.belongsToMany(Encargado, {
   through: EstudianteXEncargado,
-  foreignKey: 'cedula_estudiante',
-  otherKey: 'cedula_encargado',
+  foreignKey: 'cedulaEstudiante',
+  otherKey: 'cedulaEncargado',
   as: 'encargados'
 });
 
 Encargado.belongsToMany(Estudiante, {
   through: EstudianteXEncargado,
-  foreignKey: 'cedula_encargado',
-  otherKey: 'cedula_estudiante',
+  foreignKey: 'cedulaEncargado',
+  otherKey: 'cedulaEstudiante',
   as: 'estudiantes'
 });

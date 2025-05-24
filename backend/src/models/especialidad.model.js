@@ -13,7 +13,7 @@ export const Especialidad = sequelize.define("especialidad", {
     allowNull: false
   },
   estado: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   }
 }, {

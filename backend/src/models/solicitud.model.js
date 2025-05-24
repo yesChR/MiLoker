@@ -10,6 +10,10 @@ export const Solicitud = sequelize.define("solicitud", {
         autoIncrement: true,
         allowNull: false
     },
+    cedulaEstudiante: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     fechaSolicitud: {
         type: DataTypes.DATE,
         allowNull: false
@@ -19,7 +23,7 @@ export const Solicitud = sequelize.define("solicitud", {
         allowNull: true
     },
     estado: {
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         allowNull: false
     }
 }, {

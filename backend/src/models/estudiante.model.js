@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion";
 import { Usuario } from "./usuario.model.js";
 import { Especialidad } from "./especialidad.model.js";
+import { Solicitud } from "./solicitud.model.js";
 
 export const Estudiante = sequelize.define("estudiante", {
   cedula: {
@@ -64,4 +65,16 @@ Estudiante.belongsTo(Especialidad, {
 Especialidad.hasMany(Estudiante, {
   foreignKey: 'idEspecialidad',
   as: 'estudiantes'
+});
+
+
+Estudiante.hasMany(Solicitud, {
+  foreignKey: 'cedulaEstudiante',
+  as: 'solicitudes'
+});
+
+Solicitud.belongsTo(Estudiante, {
+  foreignKey: 'cedulaEstudiante',
+  targetKey: 'cedula',
+  as: 'estudiante'
 });

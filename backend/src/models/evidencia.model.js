@@ -13,7 +13,7 @@ export const Evidencia = sequelize.define("evidencia", {
     allowNull: false
   },
   tipo: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   }
 }, {

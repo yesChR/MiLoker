@@ -9,7 +9,7 @@ export const EstudianteXCasillero = sequelize.define("estudianteXcasillero", {
     primaryKey: true,
     autoIncrement: true
   },
-  cedula: {
+  cedulaEstudiante: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -25,7 +25,7 @@ export const EstudianteXCasillero = sequelize.define("estudianteXcasillero", {
 // Asociaciones muchos a muchos
 Estudiante.belongsToMany(Casillero, {
   through: EstudianteXCasillero,
-  foreignKey: 'cedula',
+  foreignKey: 'cedulaEstudiante',
   otherKey: 'idCasillero',
   as: 'casilleros'
 });
@@ -33,6 +33,6 @@ Estudiante.belongsToMany(Casillero, {
 Casillero.belongsToMany(Estudiante, {
   through: EstudianteXCasillero,
   foreignKey: 'idCasillero',
-  otherKey: 'cedula',
+  otherKey: 'cedulaEstudiante',
   as: 'estudiantes'
 });

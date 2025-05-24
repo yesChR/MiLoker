@@ -15,7 +15,7 @@ export const Sancion = sequelize.define("sancion", {
   },
   detalle: {
     type: DataTypes.STRING,
-    allowNull: true
+    allowNull: false
   }
 }, {
   tableName: 'sancion',
