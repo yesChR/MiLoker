@@ -10,7 +10,7 @@ const Login = () => {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
 return (
-  <div className="flex justify-center items-center min-h-screen bg-fondoLogin px-2">
+  <div className="flex justify-center items-center min-h-screen bg-fondoLogin px-4 md:px-2">
     <Card className="flex flex-col md:flex-row w-full max-w-md md:max-w-3xl h-auto md:min-h-[500px] shadow-lg pb-8 md:pb-0" shadow="lg" radius="lg">
       {/* Sección izquierda con fondo e imagen */}
       <div className="w-full md:w-[320px] bg-primario flex items-center justify-center py-6 md:py-0">
@@ -25,7 +25,7 @@ return (
 
       {/* Sección derecha con el formulario */}
       <CardBody className="w-full md:w-1/2 flex flex-col justify-center p-6 md:p-14 pb-8 md:pb-14">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-azulOscuro text-center">Inicio de Sesión</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-azulOscuro text-center">Inicio de sesión</h2>
         <div className="flex flex-col items-center gap-4 md:gap-6">
           <div className="w-full md:w-3/4">
             <Input
