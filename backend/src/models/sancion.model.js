@@ -16,6 +16,11 @@ export const Sancion = sequelize.define("sancion", {
   detalle: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  estado: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1
   }
 }, {
   tableName: 'sancion',
