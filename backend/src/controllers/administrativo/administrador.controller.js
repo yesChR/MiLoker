@@ -47,45 +47,16 @@ export const crearAdministrador = async (req, res) => {
     }
 };
 
-export const visualizarAdministradores = async (req, res) => {
+export const visualizar = async (req, res) => {
     try {
-        const administradores = await Administrador.findAll();
-        if (administradores.length === 0) {
-            return res.status(404).json({ error: "No hay administradores registrados" });
-        }
+        const administradores = await Administrador.findAll({
+            include: {
+                model: Usuario,
+                as: "usuario",
+                attributes: ["cedula", "nombreUsuario", "rol"]
+            }
+        });
         res.status(200).json(administradores);
-    } catch (error) {
-        res.status(500).json({ error: "Error interno del servidor" });
-    }
-};
-
-export const filtrarPorNombre = async (req, res) => {
-    const { nombre } = req.params;
-    try {
-        const administradores = await Administrador.findAll({
-            where: { nombre }
-        });
-        if (administradores.length > 0) {
-            res.status(200).json(administradores);
-        } else {
-            res.status(404).json({ error: "Ese nombre no se encuentra" });
-        }
-    } catch (error) {
-        res.status(500).json({ error: "Error interno del servidor" });
-    }
-};
-
-export const filtrarPorEstado = async (req, res) => {
-    const { estado } = req.params;
-    try {
-        const administradores = await Administrador.findAll({
-            where: { estado }
-        });
-        if (administradores.length > 0) {
-            res.status(200).json(administradores);
-        } else {
-            res.status(404).json({ error: "Ese estado no se encuentra" });
-        }
     } catch (error) {
         res.status(500).json({ error: "Error interno del servidor" });
     }
@@ -144,17 +115,3 @@ export const editarAdministrador = async (req, res) => {
     }
 };
 
-export const visualizarTodo = async (req, res) => {
-    try {
-        const administradores = await Administrador.findAll({
-            include: {
-                model: Usuario,
-                as: "usuario",
-                attributes: ["cedula", "nombreUsuario", "token", "contraseña", "rol"]
-            }
-        });
-        res.status(200).json(administradores);
-    } catch (error) {
-        res.status(500).json({ error: "Error interno del servidor" });
-    }
-};

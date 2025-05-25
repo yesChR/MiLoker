@@ -4,7 +4,6 @@ import config from './config/config';
 
 const nodemailer = require("./routes/nodemailer.routes");
 const administrador= require("./routes/Administrativo/administrador.routes");
-import casillero from "./routes/casillero/casillero.routes.js";
 
 const app = express();
 const cors = require("cors");
@@ -19,6 +18,5 @@ app.use(express.json());
 // Rutas (Agregar todas las rutas que existan en Routes)
 app.use("/nodemailer", nodemailer);
 app.use("/administrador", administrador);
-app.use("/casillero", casillero);
 
 export default app;
