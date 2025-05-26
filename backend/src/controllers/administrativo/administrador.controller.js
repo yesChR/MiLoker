@@ -1,14 +1,15 @@
 import { Administrador } from "../../models/administrador.model.js";
-import { Usuario } from "../../models/usuario.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
+import { Usuario } from "../../models/usuario.model.js";
+import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
+import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
+import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 
 export const crearAdministrador = async (req, res) => {
     const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol } = req.body;
-    const nombreUsuario = correo.split('@')[0];
-    const token = "token_estatico";
-    const contraseña = "123456";
+
     const t = await sequelize.transaction();
-    
+
     try {
         // Verifica si ya existe el usuario o administrador
         const existeUsuario = await Usuario.findOne({ where: { cedula }, transaction: t });
@@ -19,14 +20,13 @@ export const crearAdministrador = async (req, res) => {
             return res.status(409).json({ error: "El usuario o administrador ya existe" });
         }
 
-        // Crea el usuario
-        await Usuario.create({
+        // Crea el usuario usando la función del nuevo controller
+        const { usuario, contraseñaGenerada } = await crearUsuario({
             cedula,
-            nombreUsuario,
-            token,
-            contraseña,
-            rol
-        }, { transaction: t });
+            correo,
+            rol,
+            transaction: t
+        });
 
         // Crea el administrador
         await Administrador.create({
@@ -39,11 +39,27 @@ export const crearAdministrador = async (req, res) => {
             correo
         }, { transaction: t });
 
+        // Enviar correo de bienvenida al administrador
+        await enviarCorreo({
+            to: correo,
+            subject: "Tu cuenta ha sido creada",
+            text: `Hola ${nombre} ${apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
+            html: plantillaNuevaCuenta({
+                titulo: "Bienvenido a MiLoker",
+                mensaje: `Hola ${nombre} ${apellidoUno}, tu cuenta ha sido creada exitosamente. Aquí tienes tus credenciales de acceso:`,
+                datos: [
+                    { label: "Usuario", valor: usuario.nombreUsuario },
+                    { label: "Contraseña", valor: contraseñaGenerada }
+                ]
+            })
+        });
+
         await t.commit();
+
         res.status(201).json({ message: "Administrador y usuario creados exitosamente" });
     } catch (error) {
         await t.rollback();
-        res.status(500).json({ error: "Error interno en el servidor" });
+        res.status(500).json({ error: "Error interno en el servidor", details: error.message });
     }
 };
 

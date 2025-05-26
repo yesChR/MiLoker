@@ -12,12 +12,13 @@ export const Usuario = sequelize.define("usuario", {
     type: DataTypes.STRING,
     allowNull: false
   },
-  token: { 
-    type: DataTypes.STRING, 
-    allowNull: false
+  token: {
+    type: DataTypes.STRING,
+    allowNull: true, 
+    defaultValue: DataTypes.NULL,
   },
-  contraseña: { 
-    type: DataTypes.STRING, 
+  contraseña: {
+    type: DataTypes.STRING,
     allowNull: false
   },
   rol: {
