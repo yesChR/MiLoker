@@ -6,7 +6,7 @@ import { Estudiante } from "../../models/estudiante.model.js"; // Asegúrate de 
 export const visualizar = async (req, res) => {
     try {
         const solicitudes = await Solicitud.findAll({
-            include: [
+            include: [ 
                 {
                     model: Estudiante,
                     as: "estudiante",
