@@ -3,6 +3,10 @@ import { Estudiante } from "../../models/estudiante.model.js";
 import { Usuario } from '../../models/usuario.model.js';
 import { Encargado } from '../../models/encargado.model.js';
 import { EstudianteXEncargado } from '../../models/estudianteXEncargado.model.js';
+import { crearUsuario } from "../usuario/usuario.controller.js";
+import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
+
+const ROL_ESTUDIANTE = 3;
 
 export const registrarUsuario = async (req, res) => {
     const cedula = req.params.cedula;
@@ -16,9 +20,7 @@ export const registrarUsuario = async (req, res) => {
         return res.status(400).json({ error: "Debe incluir al menos un encargado" });
     }
 
-    const rol = 3;
-    const token = "token_estatico";
-    const contraseña = "123456";
+    const rol = ROL_ESTUDIANTE;
 
     const t = await sequelize.transaction();
 
@@ -44,10 +46,14 @@ export const registrarUsuario = async (req, res) => {
 
         // 3️⃣ Usar el correo del estudiante para generar el nombre de usuario
         const correo = estudiante.correo;
-        const nombreUsuario = correo.split('@')[0];
 
         // 4️⃣ Crear usuario
-        await Usuario.create({ cedula, nombreUsuario, token, contraseña, rol }, { transaction: t });
+        const { usuario, contraseñaGenerada } = await crearUsuario({
+            cedula,
+            correo,
+            rol,
+            transaction: t
+        });
 
         // 5️⃣ Procesar encargados
         for (const encargado of encargados) {
@@ -84,6 +90,21 @@ export const registrarUsuario = async (req, res) => {
                 }, { transaction: t });
             }
         }
+
+        // 6️⃣ Enviar correo de bienvenida al usuario
+        await enviarCorreo({
+            to: correo,
+            subject: "Tu cuenta ha sido creada",
+            text: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
+            html: plantillaNuevaCuenta({
+                titulo: "Bienvenido a MiLoker",
+                mensaje: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu cuenta ha sido creada exitosamente. Aquí tienes tus credenciales de acceso:`,
+                datos: [
+                    { label: "Usuario", valor: usuario.nombreUsuario },
+                    { label: "Contraseña", valor: contraseñaGenerada }
+                ]
+            })
+        });
 
         await t.commit();
         res.status(201).json({ message: "Usuario registrado y encargados asociados correctamente" });
