@@ -2,12 +2,13 @@ import { Profesor } from "../../models/profesor.model.js";
 import { Usuario } from "../../models/usuario.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { Especialidad } from "../../models/especialidad.model.js";
+import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
+import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
+import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 
 export const crearProfesor = async (req, res) => {
     const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol, idEspecialidad } = req.body;
-    const nombreUsuario = correo.split('@')[0];
-    const token = "token_estatico";
-    const contraseña = "123456";
+
     const t = await sequelize.transaction();
 
     try {
@@ -19,14 +20,13 @@ export const crearProfesor = async (req, res) => {
             return res.status(409).json({ error: "El usuario o profesor ya existe" });
         }
 
-        // Crea el usuario
-        await Usuario.create({
+        // Crea el usuario usando la función del nuevo controller
+        const { usuario, contraseñaGenerada } = await crearUsuario({
             cedula,
-            nombreUsuario,
-            token,
-            contraseña,
-            rol
-        }, { transaction: t });
+            correo,
+            rol,
+            transaction: t
+        });
 
         // Crea el profesor
         await Profesor.create({
@@ -40,11 +40,25 @@ export const crearProfesor = async (req, res) => {
             idEspecialidad
         }, { transaction: t });
 
+        // Enviar correo de bienvenida al administrador
+        await enviarCorreo({
+            to: correo,
+            subject: "Tu cuenta ha sido creada",
+            text: `Hola ${nombre} ${apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
+            html: plantillaNuevaCuenta({
+                titulo: "Bienvenido a MiLoker",
+                mensaje: `Hola ${nombre} ${apellidoUno}, tu cuenta ha sido creada exitosamente. Aquí tienes tus credenciales de acceso:`,
+                datos: [
+                    { label: "Usuario", valor: usuario.nombreUsuario },
+                    { label: "Contraseña", valor: contraseñaGenerada }
+                ]
+            })
+        });
+
         await t.commit();
         res.status(201).json({ message: "Profesor y usuario creados exitosamente" });
     } catch (error) {
         await t.rollback();
-        console.error(error); // <-- Agrega esto
         res.status(500).json({ error: "Error interno en el servidor" });
     }
 };
