@@ -22,17 +22,9 @@ export const SolicitudXCasillero = sequelize.define("solicitudXcasillero", {
   timestamps: false
 });
 
-// Relaciones muchos a muchos
-Solicitud.belongsToMany(Casillero, {
-  through: SolicitudXCasillero,
-  foreignKey: 'idSolicitud',
-  otherKey: 'idCasillero',
-  as: 'casilleros'
-});
 
-Casillero.belongsToMany(Solicitud, {
-  through: SolicitudXCasillero,
-  foreignKey: 'idCasillero',
-  otherKey: 'idSolicitud',
-  as: 'solicitudes'
-});
+Solicitud.hasMany(SolicitudXCasillero, { foreignKey: 'idSolicitud', as: 'solicitudXcasilleros' });
+SolicitudXCasillero.belongsTo(Solicitud, { foreignKey: 'idSolicitud', as: 'solicitud' });
+
+SolicitudXCasillero.belongsTo(Casillero, { foreignKey: 'idCasillero', as: 'casillero' });
+Casillero.hasMany(SolicitudXCasillero, { foreignKey: 'idCasillero', as: 'solicitudXcasilleros' });
