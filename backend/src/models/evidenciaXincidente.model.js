@@ -22,17 +22,10 @@ export const EvidenciaXIncidente = sequelize.define("evidenciaXincidente", {
   timestamps: false
 });
 
-// Relación muchos a muchos
-Evidencia.belongsToMany(Incidente, {
-  through: EvidenciaXIncidente,
-  foreignKey: 'idEvidencia',
-  otherKey: 'idIncidente',
-  as: 'incidentesEvidencias'
-});
+// Relación: Una evidencia puede estar en muchos registros de EvidenciaXIncidente
+Evidencia.hasMany(EvidenciaXIncidente, { foreignKey: 'idEvidencia', as: 'evidenciaXincidentes' });
+EvidenciaXIncidente.belongsTo(Evidencia, { foreignKey: 'idEvidencia', as: 'evidencia' });
 
-Incidente.belongsToMany(Evidencia, {
-  through: EvidenciaXIncidente,
-  foreignKey: 'idIncidente',
-  otherKey: 'idEvidencia',
-  as: 'evidenciasIncidentes'
-});
+// Relación: Un incidente puede tener muchas evidencias asociadas en EvidenciaXIncidente
+Incidente.hasMany(EvidenciaXIncidente, { foreignKey: 'idIncidente', as: 'incidentesXevidencia' });
+EvidenciaXIncidente.belongsTo(Incidente, { foreignKey: 'idIncidente', as: 'incidente' });
