@@ -28,3 +28,13 @@ export async function crearUsuario({ cedula, correo, rol, longitudPassword = 10,
     console.log("Usuario creado:", usuario);
     return { usuario, contraseñaGenerada };
 }
+
+export async function actualizarEstadoUsuario({ cedula, estado, transaction }) {
+    const usuario = await Usuario.findOne({ where: { cedula }, transaction });
+    if (!usuario) {
+        throw new Error("Usuario no encontrado");
+    }
+    usuario.estado = estado;
+    await usuario.save({ transaction });
+    return usuario;
+}

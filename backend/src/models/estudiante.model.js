@@ -48,11 +48,11 @@ export const Estudiante = sequelize.define("estudiante", {
   timestamps: false
 });
 
-Usuario.belongsTo(Estudiante, {
+Estudiante.belongsTo(Usuario, {
   foreignKey: 'cedula',
   as: 'estudiante'
 });
-Estudiante.hasOne(Usuario, {
+Usuario.hasOne(Estudiante, {
   foreignKey: 'cedula',
   as: 'usuario'
 });
