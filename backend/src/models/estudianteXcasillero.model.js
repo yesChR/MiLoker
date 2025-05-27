@@ -10,7 +10,7 @@ export const EstudianteXCasillero = sequelize.define("estudianteXcasillero", {
     autoIncrement: true
   },
   cedulaEstudiante: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   idCasillero: {
@@ -22,17 +22,11 @@ export const EstudianteXCasillero = sequelize.define("estudianteXcasillero", {
   timestamps: false
 });
 
-// Asociaciones muchos a muchos
-Estudiante.belongsToMany(Casillero, {
-  through: EstudianteXCasillero,
-  foreignKey: 'cedulaEstudiante',
-  otherKey: 'idCasillero',
-  as: 'casilleros'
-});
 
-Casillero.belongsToMany(Estudiante, {
-  through: EstudianteXCasillero,
-  foreignKey: 'idCasillero',
-  otherKey: 'cedulaEstudiante',
-  as: 'estudiantes'
-});
+// Relación: Un estudiante tiene muchos registros en EstudianteXCasillero
+Estudiante.hasMany(EstudianteXCasillero, { foreignKey: 'cedulaEstudiante', as: 'estudianteXcasilleros' });
+EstudianteXCasillero.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante', as: 'estudiante' });
+
+// Relación: Un casillero tiene muchos registros en EstudianteXCasillero
+Casillero.hasMany(EstudianteXCasillero, { foreignKey: 'idCasillero', as: 'casillerosXestudiantes' });
+EstudianteXCasillero.belongsTo(Casillero, { foreignKey: 'idCasillero', as: 'casillero' });

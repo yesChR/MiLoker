@@ -12,6 +12,8 @@ import casillero from "./routes/casillero/casillero.routes.js";
 import periodo from "./routes/administrativo/periodo.routes.js";
 const solicitud = require("./routes/solicitud/solicitud.routes.js");
 const usuarios = require("./routes/profesor/usuarios.routes.js");
+const alertas = require("./routes/profesor/alertas.routes.js");
+
 const app = express();
 const cors = require("cors");
 
@@ -33,5 +35,6 @@ app.use("/casillero", casillero);
 app.use("/periodo", periodo);
 app.use("/solicitud", solicitud);
 app.use("/usuarios", usuarios);
+app.use("/alertas", alertas);
 
 export default app;

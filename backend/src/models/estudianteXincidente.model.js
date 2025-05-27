@@ -17,26 +17,17 @@ export const EstudianteXIncidente = sequelize.define("estudianteXincidente", {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  seccion : {
+  seccion: {
     type: DataTypes.STRING,
     allowNull: false
-  },
+  }
 }, {
   tableName: 'estudianteXincidente',
   timestamps: false
 });
 
-// Relación muchos a muchos
-Estudiante.belongsToMany(Incidente, {
-  through: EstudianteXIncidente,
-  foreignKey: 'cedulaEstudiante',
-  otherKey: 'idIncidente',
-  as: 'incidentesEstudiantes'
-});
+Estudiante.hasMany(EstudianteXIncidente, { foreignKey: 'cedulaEstudiante'});
+EstudianteXIncidente.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante' });
 
-Incidente.belongsToMany(Estudiante, {
-  through: EstudianteXIncidente,
-  foreignKey: 'idIncidente',
-  otherKey: 'cedulaEstudiante',
-  as: 'estudiantesIncidentes'
-});
+Incidente.hasMany(EstudianteXIncidente, { foreignKey: 'idIncidente' }); 
+EstudianteXIncidente.belongsTo(Incidente, { foreignKey: 'idIncidente' });

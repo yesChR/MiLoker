@@ -3,8 +3,9 @@ import { Estudiante } from "../../models/estudiante.model.js";
 import { Usuario } from '../../models/usuario.model.js';
 import { Encargado } from '../../models/encargado.model.js';
 import { EstudianteXEncargado } from '../../models/estudianteXEncargado.model.js';
-import { actualizarEstadoUsuario } from "../usuario/usuario.controller.js";
+import { crearUsuario } from "../usuario/usuario.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
+import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 
 const ROL_ESTUDIANTE = 3;
 const ESTADO_ACTIVO = 2;
@@ -27,6 +28,7 @@ export const habilitarUsuario = async (req, res) => {
         // 1️⃣ Buscar primero si el estudiante existe
         const estudiante = await Estudiante.findOne({
             where: { cedula },
+            attributes: ['correo'],
             transaction: t
         });
 
