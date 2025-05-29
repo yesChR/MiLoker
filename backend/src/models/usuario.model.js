@@ -28,7 +28,13 @@ export const Usuario = sequelize.define("usuario", {
       isIn: [[1, 2, 3]]
     },
     comment: '1 = Administrador, 2 = Profesor, 3 = Estudiante'
-  }
+  },
+  estado: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1, // 1 = Inactivo 2 = Activo
+  },
+  
 }, {
   tableName: 'usuario',
   timestamps: false
