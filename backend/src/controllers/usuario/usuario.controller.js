@@ -14,19 +14,32 @@ function generarContraseña(longitud = 10) {
 };
 
 export async function crearUsuario({ cedula, correo, rol, longitudPassword = 10, transaction }) {
-    const contraseñaGenerada = generarContraseña(longitudPassword);
-    const contraseña = await bcrypt.hash(contraseñaGenerada, 10);
     const nombreUsuario = correo.split('@')[0];
 
-    const usuario = await Usuario.create({
-        cedula,
-        nombreUsuario,
-        contraseña,
-        rol
-    }, { transaction });
+    let usuario;
+    let contraseñaGenerada = null;
 
-    console.log("Usuario creado:", usuario);
-    return { usuario, contraseñaGenerada };
+    if (rol === 3) { // 3 = Estudiante
+        usuario = await Usuario.create({
+            cedula,
+            nombreUsuario,
+            contraseña: null, // Estudiantes no tienen contraseña por defecto
+            rol
+        }, { transaction });
+        return { usuario };
+    } else {
+        contraseñaGenerada = generarContraseña(longitudPassword);
+        const contraseña = await bcrypt.hash(contraseñaGenerada, 10);
+
+        usuario = await Usuario.create({
+            cedula,
+            nombreUsuario,
+            contraseña,
+            rol
+        }, { transaction });
+
+        return { usuario, contraseñaGenerada };
+    }
 }
 
 export async function actualizarEstadoUsuario({ cedula, estado, transaction }) {
