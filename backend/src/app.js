@@ -11,8 +11,8 @@ const sancion = require("./routes/administrativo/sancion.routes");
 import casillero from "./routes/casillero/casillero.routes.js";
 import periodo from "./routes/administrativo/periodo.routes.js";
 const solicitud = require("./routes/solicitud/solicitud.routes.js");
-const usuarios = require("./routes/profesor/usuarios.routes.js");
-const alertas = require("./routes/profesor/alertas.routes.js");
+const usuarios = require("./routes/docente/usuarios.routes.js");
+const alertas = require("./routes/docente/alertas.routes.js");
 
 const app = express();
 const cors = require("cors");

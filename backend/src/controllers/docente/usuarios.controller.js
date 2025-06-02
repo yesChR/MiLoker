@@ -5,11 +5,11 @@ import { Encargado } from '../../models/encargado.model.js';
 import { EstudianteXEncargado } from '../../models/estudianteXEncargado.model.js';
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
-import { crearUsuario, actualizarEstadoUsuario } from "../../controllers/usuario/usuario.controller.js";
+import { crearUsuario, actualizarEstadoUsuarioEstudiante } from "../../controllers/usuario/usuario.controller.js";
 import { ROLES } from "../../common/roles.js";
 import { ESTADOS } from "../../common/estados.js";
 
-export const habilitarUsuario = async (req, res) => {
+export const habilitarUsuarioEstudiante = async (req, res) => {
     const cedula = req.params.cedula;
     const encargados = req.body.encargados;
 
@@ -44,7 +44,7 @@ export const habilitarUsuario = async (req, res) => {
         }
 
         // 3️⃣ Cambiar el estado del usuario a activo
-        await actualizarEstadoUsuario({ cedula, estado: ESTADOS.ACTIVO, transaction: t });
+        const { contraseñaGenerada } = await actualizarEstadoUsuarioEstudiante({ cedula, estado: ESTADOS.ACTIVO, transaction: t });
 
         // 4️⃣ Procesar encargados
         for (const encargado of encargados) {
@@ -84,7 +84,7 @@ export const habilitarUsuario = async (req, res) => {
 
         // 5️⃣ Enviar correo de bienvenida al usuario
         await enviarCorreo({
-            to: correo,
+            to: estudiante.correo,
             subject: "Tu cuenta ha sido creada",
             text: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
             html: plantillaNuevaCuenta({
@@ -110,8 +110,8 @@ export const habilitarUsuario = async (req, res) => {
 const procesarEstudiante = async (data, transaction) => {
     const { cedula, correo, seccion } = data;
 
-    let estudiante = await Estudiante.findOne({ where: { cedula }, transaction });
     let usuario = await Usuario.findOne({ where: { cedula }, transaction });
+    let estudiante = await Estudiante.findOne({ where: { cedula }, transaction });
 
     if (estudiante) {
         estudiante.seccion = seccion;
@@ -125,25 +125,23 @@ const procesarEstudiante = async (data, transaction) => {
         };
     }
 
-    // Crear estudiante
-    estudiante = await Estudiante.create({ ...data }, { transaction });
-
     // Crear usuario si no existe
+    let usuarioCreado = usuario;
     let contraseñaGenerada = null;
-    let usuarioCreado = null;
 
     if (!usuario) {
-
-        if (!usuario) {
-            const resultadoUsuario = await crearUsuario({
-                cedula,
-                correo,
-                rol: ROLES.ESTUDIANTE,
-                transaction: t
-            });
-            usuarioCreado = resultadoUsuario.usuario;
-        }
+        const resultadoUsuario = await crearUsuario({
+            cedula,
+            correo,
+            rol: ROLES.ESTUDIANTE,
+            transaction
+        });
+        usuarioCreado = resultadoUsuario.usuario;
+        contraseñaGenerada = resultadoUsuario.contraseñaGenerada;
     }
+
+    // Crear estudiante (después de crear usuario)
+    estudiante = await Estudiante.create({ ...data }, { transaction });
 
     return {
         cedula,
@@ -155,12 +153,39 @@ const procesarEstudiante = async (data, transaction) => {
     };
 };
 
-export const crearEstudiantes = async (req, res) => {
+export const cargarEstudiantes = async (req, res) => {
     const t = await sequelize.transaction();
     const resultados = [];
+    const estudiantesDataArchivo = [
+        {
+            cedula: 1001,
+            nombre: "Ana",
+            apellidoUno: "García",
+            apellidoDos: "López",
+            estado: 1,
+            telefono: "88889999",
+            correo: "ana.garcia@email.com",
+            seccion: "A",
+            fechaNacimiento: "2005-03-15",
+            idEspecialidad: 1
+        },
+        {
+            cedula: 1002,
+            nombre: "Luis",
+            apellidoUno: "Martínez",
+            apellidoDos: "Pérez",
+            estado: 1,
+            telefono: "87776666",
+            correo: "luis.martinez@email.com",
+            seccion: "B",
+            fechaNacimiento: "2004-11-22",
+            idEspecialidad: 1
+        },
+    ];
+
 
     try {
-        const estudiantesData = req.body.estudiantes;
+        const estudiantesData = estudiantesDataArchivo;
 
         for (const data of estudiantesData) {
             const resultado = await procesarEstudiante(data, t);

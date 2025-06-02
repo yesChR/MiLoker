@@ -1,6 +1,7 @@
 import { Usuario } from "../../models/usuario.model.js";
 import bcrypt from "bcrypt";
 import generatePassword from 'generate-password';
+import { ROLES } from "../../common/roles.js";
 
 function generarContraseña(longitud = 10) {
     return generatePassword.generate({
@@ -19,7 +20,7 @@ export async function crearUsuario({ cedula, correo, rol, longitudPassword = 10,
     let usuario;
     let contraseñaGenerada = null;
 
-    if (rol === 3) { // 3 = Estudiante
+    if (rol === ROLES.ESTUDIANTE) { // 3 = Estudiante
         usuario = await Usuario.create({
             cedula,
             nombreUsuario,
@@ -42,12 +43,19 @@ export async function crearUsuario({ cedula, correo, rol, longitudPassword = 10,
     }
 }
 
-export async function actualizarEstadoUsuario({ cedula, estado, transaction }) {
+export async function actualizarEstadoUsuarioEstudiante({ cedula, estado, transaction }) {
     const usuario = await Usuario.findOne({ where: { cedula }, transaction });
+
     if (!usuario) {
         throw new Error("Usuario no encontrado");
     }
-    usuario.estado = estado;
+    const contraseñaGenerada = generarContraseña(10);
+    const contraseña = await bcrypt.hash(contraseñaGenerada, 10);
+    usuario.update({
+        estado,
+        contraseña // Actualizamos la contraseña al generar una nueva
+    }, { transaction });
+
     await usuario.save({ transaction });
-    return usuario;
+    return { usuario, contraseñaGenerada };
 }

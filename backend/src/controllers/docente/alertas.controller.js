@@ -1,9 +1,9 @@
 import { Incidente } from "../../models/incidente.model.js";
 import { EstudianteXIncidente } from "../../models/estudianteXIncidente.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
-import { EvidenciaXIncidente } from "../../models/evidenciaXincidente.model.js";
+import { EvidenciaXIncidente } from "../../models/evidenciaXIncidente.model.js";
 import { Evidencia } from "../../models/evidencia.model.js";
-import { EstudianteXEncargado } from "../../models/estudianteXencargado.model.js";
+import { EstudianteXEncargado } from "../../models/estudianteXEncargado.model.js";
 import { Encargado } from "../../models/encargado.model.js";
 import { EstadoIncidente } from "../../models/estadoIncidente.model.js";
 import { Usuario } from "../../models/usuario.model.js";
