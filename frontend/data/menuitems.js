@@ -36,7 +36,7 @@ export const menuItems = [
     ],
   },
   {
-    id: 6,
+    id: 3,
     label: "Casillero",
     icon: GiLockers,
     link: "/casillero/armario",

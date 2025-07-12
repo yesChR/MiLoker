@@ -3,7 +3,7 @@ import express from 'express';
 import config from './config/config';
 
 const nodemailer = require("./routes/nodemailer.routes");
-const administrador= require("./routes/Administrativo/administrador.routes");
+import administrador from "./routes/administrativo/administrador.routes.js";
 const profesor = require("./routes/administrativo/profesor.routes");
 const estudiante = require("./routes/administrativo/estudiante.routes");
 const especialidad = require("./routes/administrativo/especialidad.routes");

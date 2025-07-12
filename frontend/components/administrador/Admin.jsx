@@ -2,60 +2,166 @@ import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import { BiEditAlt } from "react-icons/bi";
 import { DeleteIcon } from "../icons/DeleteIcon";
-import { Select } from "@heroui/react";
+import { Select, SelectItem, Chip } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
 import React, { useState, useEffect } from "react";
 import { MdOutlinePassword } from "react-icons/md";
+import { getAdministradores, createAdministrador, updateAdministrador, disableAdministrador } from "../../services/adminService";
+import CustomAlert from "../CustomAlert";
 
 const Admin = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const [selectedItem, setSelectedItem] = useState(null);//aqui almacena el elemento seleccionado del editable
-    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [accion, setAccion] = useState("");
+    const [administradores, setAdministradores] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [alert, setAlert] = useState({ show: false, type: '', message: '' });
+
+    // Constantes para estados y roles
+    const ESTADOS = {
+        INACTIVO: 1,
+        ACTIVO: 2
+    };
+
+    const ROLES = {
+        ADMINISTRADOR: 1,
+        PROFESOR: 2,
+        ESTUDIANTE: 3
+    };
+
+    // Funciones helper para mostrar estados y roles
+    const getEstadoLabel = (estado) => {
+        const labels = {
+            [ESTADOS.INACTIVO]: "Inactivo",
+            [ESTADOS.ACTIVO]: "Activo"
+        };
+        return labels[estado] || "Desconocido";
+    };
+
+    const getEstadoColor = (estado) => {
+        const colors = {
+            [ESTADOS.INACTIVO]: "danger",
+            [ESTADOS.ACTIVO]: "success"
+        };
+        return colors[estado] || "default";
+    };
+
+    // Cargar administradores al montar el componente
+    useEffect(() => {
+        loadAdministradores();
+    }, []);
+
+    const loadAdministradores = async () => {
+        try {
+            setLoading(true);
+            const data = await getAdministradores();
+            setAdministradores(data);
+        } catch (error) {
+            console.error('Error al cargar administradores:', error);
+            setAlert({
+                show: true,
+                type: 'error',
+                message: 'Error al cargar los administradores'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCrear = async () => {
+        try {
+            // Validar que existan datos
+            if (!selectedItem) {
+                setAlert({
+                    show: true,
+                    type: 'error',
+                    message: 'Error: No hay datos en el formulario'
+                });
+                return;
+            }
+            
+            // Validar campos requeridos
+            if (!selectedItem?.cedula || !selectedItem?.nombre || !selectedItem?.apellidoUno || !selectedItem?.apellidoDos || !selectedItem?.correo) {
+                setAlert({
+                    show: true,
+                    type: 'error',
+                    message: 'Por favor complete todos los campos requeridos'
+                });
+                return;
+            }
+            
+            const adminData = {
+                cedula: selectedItem?.cedula,
+                nombre: selectedItem?.nombre,
+                apellidoUno: selectedItem?.apellidoUno,
+                apellidoDos: selectedItem?.apellidoDos,
+                correo: selectedItem?.correo,
+                telefono: selectedItem?.telefono,
+                estado: ESTADOS.ACTIVO,
+                rol: ROLES.ADMINISTRADOR
+            };
+
+            const result = await createAdministrador(adminData);
+            
+            setAlert({
+                show: true,
+                type: 'success',
+                message: 'Administrador creado exitosamente'
+            });
+            loadAdministradores();
+            onOpenChange();
+            setSelectedItem(null);
+        } catch (error) {
+            console.error('Error al crear administrador:', error);
+            setAlert({
+                show: true,
+                type: 'error',
+                message: error.message || 'Error al crear el administrador'
+            });
+        }
+    };
+
+    const handleEditarSubmit = async () => {
+        try {
+            const adminData = {
+                nombre: selectedItem?.nombre,
+                apellidoUno: selectedItem?.apellidoUno,
+                apellidoDos: selectedItem?.apellidoDos,
+                correo: selectedItem?.correo,
+                telefono: selectedItem?.telefono,
+                estado: selectedItem?.estado
+            };
+
+            await updateAdministrador(selectedItem.cedula, adminData);
+            setAlert({
+                show: true,
+                type: 'success',
+                message: 'Administrador editado exitosamente'
+            });
+            loadAdministradores();
+            onOpenChange();
+            setSelectedItem(null);
+        } catch (error) {
+            console.error('Error al editar administrador:', error);
+            setAlert({
+                show: true,
+                type: 'error',
+                message: error.message || 'Error al editar el administrador'
+            });
+        }
+    };
 
     const columnasPrueba = [
         { name: "Cédula", uid: "cedula" },
         { name: "Nombre", uid: "nombre" },
-        { name: "Primer Apellido", uid: "primerApellido" },
-        { name: "Segundo Apellido", uid: "segundoApellido" },
+        { name: "Primer Apellido", uid: "apellidoUno" },
+        { name: "Segundo Apellido", uid: "apellidoDos" },
         { name: "Correo", uid: "correo" },
         { name: "Teléfono", uid: "telefono" },
         { name: "Estado", uid: "estado" },
         { name: "Acciones", uid: "acciones" },
-    ];
-
-    const datosPrueba = [
-        {
-            id: 1,
-            cedula: "123456789",
-            nombre: "Juan",
-            primerApellido: "Pérez",
-            segundoApellido: "Gómez",
-            correo: "juan.perez@example.com",
-            telefono: "88808888",
-            estado: "Activo",
-        },
-        {
-            id: 2,
-            cedula: "987654321",
-            nombre: "María",
-            primerApellido: "Rodríguez",
-            segundoApellido: "López",
-            correo: "maria.rodriguez@example.com",
-            telefono: "11112777",
-            estado: "Inactivo",
-        },
-        {
-            id: 3,
-            cedula: "456789123",
-            nombre: "Carlos",
-            primerApellido: "Jiménez",
-            segundoApellido: "Martínez",
-            correo: "carlos.jimenez@example.com",
-            telefono: "55556666",
-            estado: "Activo",
-        },
     ];
 
     const handleEditar = (item) => {
@@ -67,21 +173,19 @@ const Admin = () => {
             const data = {
                 cedula: item.cedula,
                 nombre: item.nombre,
-                primerApellido: item.primerApellido,
-                segundoApellido: item.segundoApellido,
+                apellidoUno: item.apellidoUno,
+                apellidoDos: item.apellidoDos,
                 correo: item.correo,
                 telefono: item.telefono,
                 estado: item.estado,
             };
             setSelectedItem(data);
-        }
-            , 500);
+        }, 500);
     };
 
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
-        { field: "role", label: "Rol", values: ["Admin", "Usuario"] },
-    ]
+    ];
 
     const accionesPrueba = [
         {
@@ -95,14 +199,28 @@ const Admin = () => {
             handler: (item) => console.log("Eliminar", item),
         },
         {
-            tooltip: <span className="text-danger">Eliminar</span>,
+            tooltip: <span className="text-danger">Deshabilitar</span>,
             icon: <DeleteIcon className="text-danger" />,
             handler: (item) => console.log("Eliminar", item),
         },
     ];
 
+    // Limpiar formulario cuando se abre para crear
+    useEffect(() => {
+        if (isOpen && accion !== 1) {
+            setSelectedItem({});
+        }
+    }, [isOpen, accion]);
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
+            {alert.show && (
+                <CustomAlert
+                    type={alert.type}
+                    message={alert.message}
+                    onClose={() => setAlert({ show: false, type: '', message: '' })}
+                />
+            )}
             <div className="w-full">
                 <CabezeraDinamica
                     title="Administradores"
@@ -113,113 +231,235 @@ const Admin = () => {
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
                         columns={columnasPrueba}
-                        data={datosPrueba}
+                        data={administradores}
                         acciones={accionesPrueba}
                         filterOptions={filterOptions}
                         onOpen={onOpen}
                         setAccion={setAccion}
+                        loading={loading}
                     />
                 </div>
                 <DrawerGeneral
                     titulo={accion === 1 ? "Editar Administrador" : "Agregar Administrador"}
                     size={"xs"}
                     isOpen={isOpen}
-                    onOpenChange={onOpenChange}
+                    onOpenChange={(open) => {
+                        onOpenChange(open);
+                    }}
                     textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
+                    onBotonPrimario={() => {
+                        return accion === 1 ? handleEditarSubmit() : handleCrear();
+                    }}
+                    onBotonSecundario={() => {
+                        console.log("🚪 Botón cerrar clickeado");
+                    }}
                 >   
-                    <Input
-                        placeholder="Cédula"
-                        value={accion === 1 && selectedItem ? selectedItem.cedula : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                cedula: e.target.value, // Actualiza el campo "cedula"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Nombre"
-                        value={accion === 1 && selectedItem ? selectedItem.nombre : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                nombre: e.target.value, // Actualiza el campo "nombre"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Primer apellido"
-                        value={accion === 1 && selectedItem ? selectedItem.primerApellido : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                primerApellido: e.target.value, // Actualiza el campo "primerApellido"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Segundo apellido"
-                        value={accion === 1 && selectedItem ? selectedItem.segundoApellido : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                segundoApellido: e.target.value, // Actualiza el campo "segundoApellido"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Correo"
-                        value={accion === 1 && selectedItem ? selectedItem.correo : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                correo: e.target.value, // Actualiza el campo "correo"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Input
-                        placeholder="Teléfono"
-                        value={accion === 1 && selectedItem ? selectedItem.telefono : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                telefono: e.target.value, // Actualiza el campo "telefono"
-                            }))
-                        }
-                        variant={"bordered"}
-                        type={"tel"}
-                        pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
-                        className="focus:border-primario"
-                        color="primary"
-                    />
-                    <Select
-                        placeholder="Especialidad"
-                        value={accion === 1 && selectedItem ? selectedItem.especialidad : ""}
-                        onChange={(e) =>
-                            setSelectedItem((prev) => ({
-                                ...prev,
-                                especialidad: e.target.value, // Actualiza el campo "especialidad"
-                            }))
-                        }
-                        variant={"bordered"}
-                        className="focus:border-primario"
-                        color="primary"
-                    />
+                    {accion === 1 ? (
+                        // Formulario de Edición
+                        <>
+                            <Input
+                                placeholder="Cédula"
+                                value={selectedItem?.cedula || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        cedula: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isDisabled={accion === 1} // Solo deshabilitar al editar
+                            />
+                            <Input
+                                placeholder="Nombre"
+                                value={selectedItem?.nombre || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        nombre: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                            />
+                            <Input
+                                placeholder="Primer apellido"
+                                value={selectedItem?.apellidoUno || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        apellidoUno: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                            />
+                            <Input
+                                placeholder="Segundo apellido"
+                                value={selectedItem?.apellidoDos || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        apellidoDos: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                            />
+                            <Input
+                                placeholder="Correo"
+                                value={selectedItem?.correo || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        correo: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                type="email"
+                            />
+                            <Input
+                                placeholder="Teléfono"
+                                value={selectedItem?.telefono || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        telefono: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                type={"tel"}
+                                pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
+                                className="focus:border-primario"
+                                color="primary"
+                            />
+                            <Select
+                                placeholder="Estado"
+                                selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
+                                onSelectionChange={(keys) => {
+                                    const selectedValue = Array.from(keys)[0];
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        estado: parseInt(selectedValue),
+                                    }));
+                                }}
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                            >
+                                <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO}>
+                                    <div className="flex items-center gap-2">
+                                        <Chip color="success" variant="flat" size="sm">
+                                            Activo
+                                        </Chip>
+                                    </div>
+                                </SelectItem>
+                                <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO}>
+                                    <div className="flex items-center gap-2">
+                                        <Chip color="danger" variant="flat" size="sm">
+                                            Inactivo
+                                        </Chip>
+                                    </div>
+                                </SelectItem>
+                            </Select>
+                        </>
+                    ) : (
+                        // Formulario de Creación
+                        <>
+                            <Input
+                                placeholder="Cédula"
+                                value={selectedItem?.cedula || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        cedula: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isRequired
+                            />
+                            <Input
+                                placeholder="Nombre"
+                                value={selectedItem?.nombre || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        nombre: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isRequired
+                            />
+                            <Input
+                                placeholder="Primer apellido"
+                                value={selectedItem?.apellidoUno || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        apellidoUno: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isRequired
+                            />
+                            <Input
+                                placeholder="Segundo apellido"
+                                value={selectedItem?.apellidoDos || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        apellidoDos: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isRequired
+                            />
+                            <Input
+                                placeholder="Correo electrónico"
+                                value={selectedItem?.correo || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        correo: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                type="email"
+                                isRequired
+                            />
+                            <Input
+                                placeholder="Teléfono (opcional)"
+                                value={selectedItem?.telefono || ""}
+                                onChange={(e) =>
+                                    setSelectedItem((prev) => ({
+                                        ...prev,
+                                        telefono: e.target.value,
+                                    }))
+                                }
+                                variant={"bordered"}
+                                type={"tel"}
+                                pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
+                                className="focus:border-primario"
+                                color="primary"
+                            />
+                        </>
+                    )}
                 </DrawerGeneral>
             </div>
         </div>
