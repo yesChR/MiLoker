@@ -7,11 +7,15 @@ import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Input } from "@heroui/react";
 import React, { useState, useEffect } from "react";
+import { Toast } from "../CustomAlert";
 import { MdOutlinePassword } from "react-icons/md";
 import { getAdministradores, createAdministrador, updateAdministrador, disableAdministrador } from "../../services/adminService";
-import CustomAlert from "../CustomAlert";
+import ConfirmModal from "../ConfirmModal";
 
 const Admin = () => {
+    // Estado para modal de confirmación de deshabilitar
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [adminToDisable, setAdminToDisable] = useState(null);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState(null);
     const [accion, setAccion] = useState("");
@@ -51,6 +55,7 @@ const Admin = () => {
     // Cargar administradores al montar el componente
     useEffect(() => {
         loadAdministradores();
+        Toast.success("Prueba de toast", "Si ves este mensaje, los toasts funcionan correctamente.");
     }, []);
 
     const loadAdministradores = async () => {
@@ -60,11 +65,7 @@ const Admin = () => {
             setAdministradores(data);
         } catch (error) {
             console.error('Error al cargar administradores:', error);
-            setAlert({
-                show: true,
-                type: 'error',
-                message: 'Error al cargar los administradores'
-            });
+            Toast.error('Error', 'Error al cargar los datos iniciales');
         } finally {
             setLoading(false);
         }
@@ -74,24 +75,14 @@ const Admin = () => {
         try {
             // Validar que existan datos
             if (!selectedItem) {
-                setAlert({
-                    show: true,
-                    type: 'error',
-                    message: 'Error: No hay datos en el formulario'
-                });
+                Toast.error('Error', 'No hay datos en el formulario');
                 return;
             }
-            
             // Validar campos requeridos
             if (!selectedItem?.cedula || !selectedItem?.nombre || !selectedItem?.apellidoUno || !selectedItem?.apellidoDos || !selectedItem?.correo) {
-                setAlert({
-                    show: true,
-                    type: 'error',
-                    message: 'Por favor complete todos los campos requeridos'
-                });
+                Toast.error('Error', 'Por favor complete todos los campos requeridos');
                 return;
             }
-            
             const adminData = {
                 cedula: selectedItem?.cedula,
                 nombre: selectedItem?.nombre,
@@ -102,24 +93,14 @@ const Admin = () => {
                 estado: ESTADOS.ACTIVO,
                 rol: ROLES.ADMINISTRADOR
             };
-
-            const result = await createAdministrador(adminData);
-            
-            setAlert({
-                show: true,
-                type: 'success',
-                message: 'Administrador creado exitosamente'
-            });
+            await createAdministrador(adminData);
             loadAdministradores();
             onOpenChange();
             setSelectedItem(null);
+            Toast.success("Administrador creado", "El administrador fue creado exitosamente.");
         } catch (error) {
             console.error('Error al crear administrador:', error);
-            setAlert({
-                show: true,
-                type: 'error',
-                message: error.message || 'Error al crear el administrador'
-            });
+            Toast.error('Error', error.message || 'Error al crear el administrador');
         }
     };
 
@@ -133,23 +114,14 @@ const Admin = () => {
                 telefono: selectedItem?.telefono,
                 estado: selectedItem?.estado
             };
-
             await updateAdministrador(selectedItem.cedula, adminData);
-            setAlert({
-                show: true,
-                type: 'success',
-                message: 'Administrador editado exitosamente'
-            });
+            Toast.success("Administrador editado", "El administrador fue editado exitosamente.");
             loadAdministradores();
             onOpenChange();
             setSelectedItem(null);
         } catch (error) {
             console.error('Error al editar administrador:', error);
-            setAlert({
-                show: true,
-                type: 'error',
-                message: error.message || 'Error al editar el administrador'
-            });
+            Toast.error('Error', error.message || 'Error al editar el administrador');
         }
     };
 
@@ -162,6 +134,11 @@ const Admin = () => {
         { name: "Teléfono", uid: "telefono" },
         { name: "Estado", uid: "estado" },
         { name: "Acciones", uid: "acciones" },
+    ];
+
+    // Definir filterOptions para evitar ReferenceError
+    const filterOptions = [
+        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
     ];
 
     const handleEditar = (item) => {
@@ -183,9 +160,6 @@ const Admin = () => {
         }, 500);
     };
 
-    const filterOptions = [
-        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
-    ];
 
     const accionesPrueba = [
         {
@@ -196,12 +170,15 @@ const Admin = () => {
         {
             tooltip: <span className="text-danger">Restablecer contraseña</span>,
             icon: <MdOutlinePassword className="text-danger" />,
-            handler: (item) => console.log("Eliminar", item),
+            handler: (item) => console.log("Restablecer contraseña", item),
         },
         {
-            tooltip: <span className="text-danger">Deshabilitar</span>,
+            tooltip: <span className="text-danger">Inhabilitar</span>,
             icon: <DeleteIcon className="text-danger" />,
-            handler: (item) => console.log("Eliminar", item),
+            handler: (item) => {
+                setAdminToDisable(item);
+                setShowConfirmModal(true);
+            },
         },
     ];
 
@@ -214,13 +191,30 @@ const Admin = () => {
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
-            {alert.show && (
-                <CustomAlert
-                    type={alert.type}
-                    message={alert.message}
-                    onClose={() => setAlert({ show: false, type: '', message: '' })}
-                />
-            )}
+            <ConfirmModal
+                isOpen={showConfirmModal}
+                onClose={() => {
+                    setShowConfirmModal(false);
+                    setAdminToDisable(null);
+                }}
+                title="¿Deshabilitar administrador?"
+                description={`¿Estás seguro que deseas deshabilitar al administrador ${adminToDisable?.nombre || ''} ${adminToDisable?.apellidoUno || ''}?`}
+                confirmText="Inhabilitar"
+                cancelText="Cancelar"
+                confirmColor="danger"
+                onConfirm={async () => {
+                    try {
+                        await disableAdministrador(adminToDisable.cedula);
+                        Toast.success("Administrador deshabilitado", "El administrador fue deshabilitado exitosamente.");
+                        loadAdministradores();
+                    } catch (error) {
+                        Toast.error('Error', error.message || 'Error al deshabilitar el administrador');
+                    }
+                }}
+                size="sm"
+                showIcon={true}
+                centered={true}
+            />
             <div className="w-full">
                 <CabezeraDinamica
                     title="Administradores"
@@ -253,10 +247,11 @@ const Admin = () => {
                     onBotonSecundario={() => {
                         console.log("🚪 Botón cerrar clickeado");
                     }}
-                >   
+                >
                     {accion === 1 ? (
                         // Formulario de Edición
                         <>
+                            {/* ...existing code... */}
                             <Input
                                 placeholder="Cédula"
                                 value={selectedItem?.cedula || ""}
@@ -269,7 +264,7 @@ const Admin = () => {
                                 variant={"bordered"}
                                 className="focus:border-primario"
                                 color="primary"
-                                isDisabled={accion === 1} // Solo deshabilitar al editar
+                                isDisabled={accion === 1}
                             />
                             <Input
                                 placeholder="Nombre"
@@ -372,6 +367,7 @@ const Admin = () => {
                     ) : (
                         // Formulario de Creación
                         <>
+                            {/* ...existing code... */}
                             <Input
                                 placeholder="Cédula"
                                 value={selectedItem?.cedula || ""}

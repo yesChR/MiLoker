@@ -4,6 +4,7 @@ import { Usuario } from "../../models/usuario.model.js";
 import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
+import { ROLES } from "../../common/roles.js";
 
 export const crearAdministrador = async (req, res) => {
     const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol } = req.body;
@@ -18,7 +19,7 @@ export const crearAdministrador = async (req, res) => {
                 apellidoUno: !apellidoUno,
                 apellidoDos: !apellidoDos,
                 correo: !correo,
-                rol: 1
+                rol: ROLES.ADMINISTRADOR
             }
         });
     }

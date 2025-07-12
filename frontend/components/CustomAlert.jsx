@@ -1,64 +1,85 @@
-import React from "react";
-import { Alert } from "@heroui/react";
-import classNames from "classnames";
+import { addToast, cn } from "@heroui/react";
 
-const CustomAlert = React.forwardRef(
-  (
-    { title, children, variant = "faded", color = "secondary", className, classNames: customClassNames = {}, ...props },
-    ref
-  ) => {
-    const colorClass = React.useMemo(() => {
-      switch (color) {
-        case "default":
-          return "before:bg-default-300";
-        case "primary":
-          return "before:bg-primary";
-        case "secondary":
-          return "before:bg-secondary";
-        case "success":
-          return "before:bg-success";
-        case "warning":
-          return "before:bg-warning";
-        case "danger":
-          return "before:bg-danger";
-        default:
-          return "before:bg-default-200";
-      }
-    }, [color]);
+export const Toast = {
+  success: (title, description, options = {}) => {
+    addToast({
+      title: title || "¡Éxito!",
+      description: description,
+      timeout: 3000,
+      shouldShowTimeoutProgress: true,
+      classNames: {
+        base: cn([
+          "bg-default-50 dark:bg-background shadow-sm",
+          "border border-l-8 rounded-md rounded-l-none",
+          "flex flex-col items-start",
+          "border-success-200 dark:border-success-100 border-l-success",
+        ]),
+        icon: "w-6 h-6 fill-current",
+      },
+      color: "success",
+      ...options
+    });
+  },
 
-    return (
-      <Alert
-        ref={ref}
-        classNames={{
-          ...customClassNames,
-          base: classNames(
-            [
-              "bg-default-50 dark:bg-background shadow-sm",
-              "border-1 border-default-200 dark:border-default-100",
-              "relative before:content-[''] before:absolute before:z-10",
-              "before:left-0 before:top-[-1px] before:bottom-[-1px] before:w-1",
-              "rounded-l-none border-l-0",
-              colorClass,
-            ],
-            customClassNames.base,
-            className
-          ),
-          mainWrapper: classNames("pt-1", customClassNames.mainWrapper),
-          iconWrapper: classNames("dark:bg-transparent", customClassNames.iconWrapper),
-          title: classNames("font-semibold", customClassNames.title),
-          description: classNames("text-sm text-gray-700", customClassNames.description),
-        }}
-        color={color}
-        title={title}
-        variant={variant}
-        {...props}
-      >
-        {children}
-      </Alert>
-    );
+  error: (title, description, options = {}) => {
+    addToast({
+      title: title || "Error",
+      description: description,
+      timeout: 3000,
+      shouldShowTimeoutProgress: true,
+      classNames: {
+        base: cn([
+          "bg-default-50 dark:bg-background shadow-sm",
+          "border border-l-8 rounded-md rounded-l-none",
+          "flex flex-col items-start",
+          "border-danger-200 dark:border-danger-100 border-l-danger",
+        ]),
+        icon: "w-6 h-6 fill-current",
+      },
+      color: "danger",
+      ...options
+    });
+  },
+
+  warning: (title, description, options = {}) => {
+    addToast({
+      title: title || "Advertencia",
+      description: description,
+      timeout: 3000,
+      shouldShowTimeoutProgress: true,
+      classNames: {
+        base: cn([
+          "bg-default-50 dark:bg-background shadow-sm",
+          "border border-l-8 rounded-md rounded-l-none",
+          "flex flex-col items-start",
+          "border-warning-200 dark:border-warning-100 border-l-warning",
+        ]),
+        icon: "w-6 h-6 fill-current",
+      },
+      color: "warning",
+      ...options
+    });
+  },
+
+  info: (title, description, options = {}) => {
+    addToast({
+      title: title || "Información",
+      description: description,
+      timeout: 3000,
+      shouldShowTimeoutProgress: true,
+      classNames: {
+        base: cn([
+          "bg-default-50 dark:bg-background shadow-sm",
+          "border border-l-8 rounded-md rounded-l-none",
+          "flex flex-col items-start",
+          "border-primary-200 dark:border-primary-100 border-l-primary",
+        ]),
+        icon: "w-6 h-6 fill-current",
+      },
+      color: "primary",
+      ...options
+    });
   }
-);
+};
 
-CustomAlert.displayName = "CustomAlert";
-
-export default CustomAlert;
+export default Toast;
