@@ -1,8 +1,14 @@
 import express from 'express';
-import { cargarEstudiantes, habilitarUsuarioEstudiante } from '../../controllers/docente/usuarios.controller.js';
+import { 
+    habilitarUsuarioEstudiante, 
+    cargarEstudiantesDesdeExcel,
+    uploadExcel
+} from '../../controllers/docente/usuarios.controller.js';
 const router = express.Router();
 
 router.put('/habilitar/estudiante/:cedula', habilitarUsuarioEstudiante);
-router.post('/cargar/estudiantes', cargarEstudiantes);
+
+// Nueva ruta para cargar estudiantes desde archivo Excel
+router.post('/cargar/estudiantes', uploadExcel, cargarEstudiantesDesdeExcel);
 
 module.exports = router;

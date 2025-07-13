@@ -15,7 +15,7 @@ function generarContraseña(longitud = 10) {
 };
 
 export async function crearUsuario({ cedula, correo, rol, longitudPassword = 10, transaction }) {
-    const nombreUsuario = correo.split('@')[0];
+    const nombreUsuario = correo;
 
     let usuario;
     let contraseñaGenerada = null;

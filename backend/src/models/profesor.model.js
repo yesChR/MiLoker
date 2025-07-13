@@ -5,7 +5,7 @@ import { Especialidad } from "./especialidad.model.js";
 
 export const Profesor = sequelize.define("profesor", {
   cedula: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false

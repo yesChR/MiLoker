@@ -8,6 +8,10 @@ import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { crearUsuario, actualizarEstadoUsuarioEstudiante } from "../../controllers/usuario/usuario.controller.js";
 import { ROLES } from "../../common/roles.js";
 import { ESTADOS } from "../../common/estados.js";
+import { leerArchivoExcel } from "../../utils/excelReader.js";
+import { uploadExcel } from "../../config/multer.js";
+
+export { uploadExcel };
 
 export const habilitarUsuarioEstudiante = async (req, res) => {
     const cedula = req.params.cedula;
@@ -24,7 +28,7 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
     const t = await sequelize.transaction();
 
     try {
-        // 1️⃣ Buscar primero si el estudiante existe
+        // Buscar si el estudiante existe
         const estudiante = await Estudiante.findOne({
             where: { cedula },
             attributes: ['correo'],
@@ -36,30 +40,29 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             return res.status(404).json({ error: "Estudiante no encontrado" });
         }
 
-        // 2️⃣ Verificar si ya tiene un usuario creado
+        // Verificar si ya tiene un usuario creado
         const usuario = await Usuario.findOne({ where: { cedula }, transaction: t });
         if (!usuario) {
             await t.rollback();
             return res.status(404).json({ error: "El estudiante no tiene un usuario registrado" });
         }
 
-        // 3️⃣ Cambiar el estado del usuario a activo
-        const { contraseñaGenerada } = await actualizarEstadoUsuarioEstudiante({ cedula, estado: ESTADOS.ACTIVO, transaction: t });
+        // Cambiar el estado del usuario a activo
+        const { contraseñaGenerada } = await actualizarEstadoUsuarioEstudiante({ 
+            cedula, 
+            estado: ESTADOS.ACTIVO, 
+            transaction: t 
+        });
 
-        // 4️⃣ Procesar encargados
+        // Procesar encargados
         for (const encargado of encargados) {
-            const {
-                cedula: cedulaEncargado,
-                nombre,
-                apellidoUno,
-                apellidoDos,
-                parentesco,
-                correo: correoEncargado,
-                telefono
-            } = encargado;
+            const { cedula: cedulaEncargado } = encargado;
 
             // Verificar si ya existe el encargado
-            let encargadoExistente = await Encargado.findOne({ where: { cedula: cedulaEncargado }, transaction: t });
+            let encargadoExistente = await Encargado.findOne({ 
+                where: { cedula: cedulaEncargado }, 
+                transaction: t 
+            });
 
             if (!encargadoExistente) {
                 encargadoExistente = await Encargado.create(encargado, { transaction: t });
@@ -82,7 +85,7 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             }
         }
 
-        // 5️⃣ Enviar correo de bienvenida al usuario
+        // Enviar correo de bienvenida
         await enviarCorreo({
             to: estudiante.correo,
             subject: "Tu cuenta ha sido creada",
@@ -97,7 +100,6 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             })
         });
 
-        // 6️⃣ Confirmar transacción
         await t.commit();
         res.status(200).json({ message: "Usuario habilitado y encargados asociados correctamente" });
     } catch (error) {
@@ -110,8 +112,8 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
 const procesarEstudiante = async (data, transaction) => {
     const { cedula, correo, seccion } = data;
 
-    let usuario = await Usuario.findOne({ where: { cedula }, transaction });
-    let estudiante = await Estudiante.findOne({ where: { cedula }, transaction });
+    const usuario = await Usuario.findOne({ where: { cedula }, transaction });
+    const estudiante = await Estudiante.findOne({ where: { cedula }, transaction });
 
     if (estudiante) {
         estudiante.seccion = seccion;
@@ -121,7 +123,7 @@ const procesarEstudiante = async (data, transaction) => {
             cedula,
             accion: "actualizado",
             mensaje: "Estudiante ya existía, se actualizó la sección.",
-            usuario: usuario ? usuario.nombreUsuario : null
+            usuario: usuario?.nombreUsuario || null
         };
     }
 
@@ -140,61 +142,58 @@ const procesarEstudiante = async (data, transaction) => {
         contraseñaGenerada = resultadoUsuario.contraseñaGenerada;
     }
 
-    // Crear estudiante (después de crear usuario)
-    estudiante = await Estudiante.create({ ...data }, { transaction });
+    // Crear estudiante
+    await Estudiante.create({ ...data }, { transaction });
 
     return {
         cedula,
         accion: "creado",
         mensaje: "Estudiante y usuario creados.",
-        usuario: usuarioCreado ? usuarioCreado.nombreUsuario : null,
+        usuario: usuarioCreado?.nombreUsuario || null,
         contraseña: contraseñaGenerada,
         correo
     };
 };
 
-export const cargarEstudiantes = async (req, res) => {
+export const cargarEstudiantesDesdeExcel = async (req, res) => {
     const t = await sequelize.transaction();
     const resultados = [];
-    const estudiantesDataArchivo = [
-        {
-            cedula: 1001,
-            nombre: "Ana",
-            apellidoUno: "García",
-            apellidoDos: "López",
-            estado: 1,
-            telefono: "88889999",
-            correo: "ana.garcia@email.com",
-            seccion: "A",
-            fechaNacimiento: "2005-03-15",
-            idEspecialidad: 1
-        },
-        {
-            cedula: 1002,
-            nombre: "Luis",
-            apellidoUno: "Martínez",
-            apellidoDos: "Pérez",
-            estado: 1,
-            telefono: "87776666",
-            correo: "luis.martinez@email.com",
-            seccion: "B",
-            fechaNacimiento: "2004-11-22",
-            idEspecialidad: 1
-        },
-    ];
-
 
     try {
-        const estudiantesData = estudiantesDataArchivo;
+        if (!req.file) {
+            return res.status(400).json({ 
+                error: "No se proporcionó ningún archivo Excel" 
+            });
+        }
 
+        const estudiantesData = await leerArchivoExcel(req.file.buffer);
+        
+        if (!estudiantesData || estudiantesData.length === 0) {
+            return res.status(400).json({ 
+                error: "No se encontraron datos válidos en el archivo Excel" 
+            });
+        }
+
+        // Procesar cada estudiante
         for (const data of estudiantesData) {
-            const resultado = await procesarEstudiante(data, t);
-            resultados.push(resultado);
+            try {
+                const resultado = await procesarEstudiante(data, t);
+                resultados.push(resultado);
+            } catch (error) {
+                resultados.push({
+                    cedula: data.cedula,
+                    accion: "error",
+                    mensaje: `Error al procesar: ${error.message}`
+                });
+            }
         }
 
         await t.commit();
         return res.status(201).json({
-            message: "Proceso de carga finalizado.",
+            message: "Proceso de carga desde Excel finalizado.",
+            totalProcesados: estudiantesData.length,
+            exitosos: resultados.filter(r => r.accion !== "error").length,
+            errores: resultados.filter(r => r.accion === "error").length,
             resultados
         });
     } catch (error) {

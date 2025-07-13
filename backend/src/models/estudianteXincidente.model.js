@@ -10,7 +10,7 @@ export const EstudianteXIncidente = sequelize.define("estudianteXincidente", {
     autoIncrement: true
   },
   cedulaEstudiante: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false
   },
   idIncidente: {

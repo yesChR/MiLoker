@@ -3,7 +3,7 @@ import { sequelize } from "../bd_config/conexion.js";
 
 export const Encargado = sequelize.define("encargado", {
   cedula: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: false
   },
