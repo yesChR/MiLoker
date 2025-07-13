@@ -4,9 +4,25 @@ import { Usuario } from "../../models/usuario.model.js";
 import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
+import { ROLES } from "../../common/roles.js";
 
 export const crearAdministrador = async (req, res) => {
     const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol } = req.body;
+
+    // Validar campos requeridos
+    if (!cedula || !nombre || !apellidoUno || !apellidoDos || !correo || !rol) {
+        return res.status(400).json({ 
+            error: "Faltan campos requeridos",
+            faltantes: {
+                cedula: !cedula,
+                nombre: !nombre,
+                apellidoUno: !apellidoUno,
+                apellidoDos: !apellidoDos,
+                correo: !correo,
+                rol: ROLES.ADMINISTRADOR
+            }
+        });
+    }
 
     const t = await sequelize.transaction();
 
@@ -29,7 +45,7 @@ export const crearAdministrador = async (req, res) => {
         });
 
         // Crea el administrador
-        await Administrador.create({
+        const administrador = await Administrador.create({
             cedula,
             nombre,
             apellidoUno,
@@ -56,9 +72,14 @@ export const crearAdministrador = async (req, res) => {
 
         await t.commit();
 
-        res.status(201).json({ message: "Administrador y usuario creados exitosamente" });
+        res.status(201).json({ 
+            message: "Administrador y usuario creados exitosamente",
+            administrador: { cedula, nombre, apellidoUno, apellidoDos, correo }
+        });
     } catch (error) {
+        console.error("Error en crearAdministrador:", error);
         await t.rollback();
+        console.log("Transacción revertida");
         res.status(500).json({ error: "Error interno en el servidor", details: error.message });
     }
 };
@@ -86,12 +107,12 @@ export const deshabilitarAdministrador = async (req, res) => {
         if (!admin) {
             return res.status(404).json({ error: "El administrador no existe" });
         }
-        await Administrador.update({ estado: 0 }, { where: { cedula } });
+        await Administrador.update({ estado: 1 }, { where: { cedula } });
 
         // Deshabilita el usuario asociado (si existe)
         const usuario = await Usuario.findByPk(cedula);
         if (usuario) {
-            await Usuario.update({ estado: 0 }, { where: { cedula } });
+            await Usuario.update({ estado: 1 }, { where: { cedula } });
         }
 
         res.status(200).json({ message: "Administrador y usuario deshabilitados exitosamente" });

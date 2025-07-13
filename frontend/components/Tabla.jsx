@@ -22,8 +22,18 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     };
 
     const estadosColors = {
-        "Activo": "success",
-        "Inactivo": "danger"
+        1: "danger",   // Inactivo
+        2: "success",  // Activo
+        "Inactivo": "danger",
+        "Activo": "success"
+    };
+
+    const getEstadoLabel = (estado) => {
+        const labels = {
+            1: "Inactivo",
+            2: "Activo"
+        };
+        return labels[estado] || estado;
     };
 
     const filteredData = useMemo(() => {
@@ -98,13 +108,13 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
             case "estado":
                 return (
                     <Tooltip
-                        color={estadosColors[item.estado]}
-                        content={`${item.estado}`}
+                        color={estadosColors[cellValue]}
+                        content={getEstadoLabel(cellValue)}
                     >
-                        <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                        <span className="text-lg cursor-pointer active:opacity-50">
                             <Chip
                                 className="capitalize border-none gap-1 text-default-600"
-                                color={estadosColors[item.estado]}
+                                color={estadosColors[cellValue]}
                                 size="sm"
                                 variant="dot"
                             >
