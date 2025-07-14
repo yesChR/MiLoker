@@ -101,7 +101,7 @@ export async function leerArchivoExcel(fileBuffer) {
                     especialidad: row[5]?.toString().trim() || "", // Columna F
 
                     // Campos adicionales requeridos por tu modelo (con valores por defecto)
-                    estado: ESTADOS.ACTIVO,
+                    estado: ESTADOS.INACTIVO,
                     telefono: row[8]?.toString().trim() || "", // Columna G
                     correo: generarCorreo(row[0]), // Generar correo basado en cédula
                     fechaNacimiento: convertirFecha(row[6]), // Convertir fecha de nacimiento

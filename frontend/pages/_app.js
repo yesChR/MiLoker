@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }) {
 
   return (
     <HeroUIProvider>
-      <ToastProvider placement={"top-right"} toastOffset={placement.includes("top") ? 60 : 0} />
+      <ToastProvider placement={"top-right"} toastOffset={60} />
       {noLayoutPages.includes(router.pathname) ? (
         <Component {...pageProps} />
       ) : (
