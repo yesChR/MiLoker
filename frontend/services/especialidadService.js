@@ -1,5 +1,7 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export const createEspecialidad = async (especialidadData) => {
-    const response = await fetch(`${API_URL}/especialidad/crear`, {
+    const response = await fetch(`${API_URL}/administrativo/especialidad/crear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(especialidadData),
@@ -9,7 +11,7 @@ export const createEspecialidad = async (especialidadData) => {
 };
 
 export const updateEspecialidad = async (id, especialidadData) => {
-    const response = await fetch(`${API_URL}/especialidad/editar/${id}`, {
+    const response = await fetch(`${API_URL}/administrativo/especialidad/editar/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(especialidadData),
@@ -19,14 +21,12 @@ export const updateEspecialidad = async (id, especialidadData) => {
 };
 
 export const deleteEspecialidad = async (id) => {
-    const response = await fetch(`${API_URL}/especialidad/eliminar/${id}`, {
+    const response = await fetch(`${API_URL}/administrativo/especialidad/eliminar/${id}`, {
         method: "DELETE",
     });
     if (!response.ok) throw new Error("Error al eliminar especialidad");
     return await response.json();
 };
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
 
 export const getEspecialidades = async () => {
     const response = await fetch(`${API_URL}/administrativo/especialidad/visualizar`);
