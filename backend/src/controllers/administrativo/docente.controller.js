@@ -2,7 +2,7 @@ import { Profesor } from "../../models/profesor.model.js";
 import { Usuario } from "../../models/usuario.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { Especialidad } from "../../models/especialidad.model.js";
-import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
+import { crearUsuario } from "../usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 

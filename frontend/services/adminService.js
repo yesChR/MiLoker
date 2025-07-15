@@ -32,7 +32,7 @@ const handleResponse = async (response) => {
 // Obtener todos los administradores
 export const getAdministradores = async () => {
     try {
-        const response = await fetch(`${API_URL}/administrador/visualizar`, {
+        const response = await fetch(`${API_URL}/administrativo/administrador/visualizar`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export const getAdministradores = async () => {
 // Crear un nuevo administrador
 export const createAdministrador = async (adminData) => {
     try {
-        const response = await fetch(`${API_URL}/administrador/crear`, {
+        const response = await fetch(`${API_URL}/administrativo/administrador/crear`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export const createAdministrador = async (adminData) => {
 // Editar un administrador existente
 export const updateAdministrador = async (cedula, adminData) => {
     try {
-        const response = await fetch(`${API_URL}/administrador/editar/${cedula}`, {
+        const response = await fetch(`${API_URL}/administrativo/administrador/editar/${cedula}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export const updateAdministrador = async (cedula, adminData) => {
 // Deshabilitar un administrador
 export const disableAdministrador = async (cedula) => {
     try {
-        const response = await fetch(`${API_URL}/administrador/deshabilitar/${cedula}`, {
+        const response = await fetch(`${API_URL}/administrativo/administrador/deshabilitar/${cedula}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

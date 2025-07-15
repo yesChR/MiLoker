@@ -1,5 +1,5 @@
 import express from 'express';
-import { crearProfesor, deshabilitarProfesor, editarProfesor, visualizar} from '../../controllers/administrativo/profesor.controller.js';
+import { crearProfesor, deshabilitarProfesor, editarProfesor, visualizar} from '../../controllers/administrativo/docente.controller.js';
 const router = express.Router();
 
 //rutas

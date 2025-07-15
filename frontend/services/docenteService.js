@@ -25,7 +25,7 @@ const handleResponse = async (response) => {
 
 export const getDocentes = async () => {
     try {
-        const response = await fetch(`${API_URL}/profesor/visualizar`, {
+        const response = await fetch(`${API_URL}/administrativo/docente/visualizar`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
@@ -38,7 +38,7 @@ export const getDocentes = async () => {
 
 export const createDocente = async (docenteData) => {
     try {
-        const response = await fetch(`${API_URL}/profesor/crear`, {
+        const response = await fetch(`${API_URL}/administrativo/docente/crear`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(docenteData),
@@ -52,7 +52,7 @@ export const createDocente = async (docenteData) => {
 
 export const updateDocente = async (cedula, docenteData) => {
     try {
-        const response = await fetch(`${API_URL}/profesor/editar/${cedula}`, {
+        const response = await fetch(`${API_URL}/administrativo/docente/editar/${cedula}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(docenteData),
@@ -66,7 +66,7 @@ export const updateDocente = async (cedula, docenteData) => {
 
 export const disableDocente = async (cedula) => {
     try {
-        const response = await fetch(`${API_URL}/profesor/deshabilitar/${cedula}`, {
+        const response = await fetch(`${API_URL}/administrativo/docente/deshabilitar/${cedula}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
         });
