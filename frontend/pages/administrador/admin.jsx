@@ -1,4 +1,4 @@
-import Admin from "@/components/administrador/Admin"
+import Admin from "@/components/administrador/admin/Admin"
 
 const AdminPage = () => {
     return (
