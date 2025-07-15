@@ -69,7 +69,11 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     }, [filteredData, currentPage, numElementos]);
 
     const renderCell = useCallback((item, index, columnKey) => {
-        const cellValue = item[columnKey];
+        let cellValue = item[columnKey];
+
+        if (columnKey === "nombreCompleto") {
+            cellValue = `${item.nombre || ""} ${item.apellidoUno || ""} ${item.apellidoDos || ""}`.trim();
+        }
 
         switch (columnKey) {
             case "acciones":
