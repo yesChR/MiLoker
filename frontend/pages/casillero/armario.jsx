@@ -1,4 +1,4 @@
-import Armario from "@/components/casillero/Armario";
+import Armario from "@/components/casillero/armario";
 
 const ArmarioPage = () => {
     return (

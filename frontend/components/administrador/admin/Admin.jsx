@@ -106,9 +106,7 @@ const Admin = () => {
 
     const columnas = [
         { name: "Cédula", uid: "cedula" },
-        { name: "Nombre", uid: "nombre" },
-        { name: "Primer Apellido", uid: "apellidoUno" },
-        { name: "Segundo Apellido", uid: "apellidoDos" },
+        { name: "Nombre completo", uid: "nombreCompleto" },
         { name: "Correo", uid: "correo" },
         { name: "Teléfono", uid: "telefono" },
         { name: "Estado", uid: "estado" },
