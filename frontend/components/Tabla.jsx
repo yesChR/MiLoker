@@ -156,7 +156,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                     />
                     <div className="flex gap-3">
 
-                        {filterOptions.map(({ field, label, values }) => (
+                        {filterOptions.map(({ field, label, values, labels }) => (
                             <Dropdown key={field}>
                                 <DropdownTrigger>
                                     <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
@@ -177,7 +177,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                                 >
                                     {values.map((value) => (
                                         <DropdownItem key={value} className="capitalize">
-                                            {value}
+                                            {labels ? labels[value] : value}
                                         </DropdownItem>
                                     ))}
                                 </DropdownMenu>
