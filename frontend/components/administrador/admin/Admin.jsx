@@ -1,7 +1,7 @@
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import TablaDinamica from "../../Tabla";
 import { BiEditAlt } from "react-icons/bi";
-import { useDisclosure } from "@heroui/react";
+import { useDisclosure, Spinner } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
 import FormCrear from "./FormCrear";
 import FormEditar from "./FormEditar";

@@ -1,5 +1,5 @@
 import { Incidente } from "../../models/incidente.model.js";
-import { EstudianteXIncidente } from "../../models/estudianteXIncidente.model.js";
+import { EstudianteXIncidente } from "../../models/estudianteXincidente.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
 import { EvidenciaXIncidente } from "../../models/evidenciaXIncidente.model.js";
 import { Evidencia } from "../../models/evidencia.model.js";
