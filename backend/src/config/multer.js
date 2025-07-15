@@ -15,12 +15,11 @@ const upload = multer({
             cb(new Error('Solo se permiten archivos Excel (.xls, .xlsx)'), false);
         }
     },
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB máximo
+    limits: { 
+        fileSize: 10 * 1024 * 1024, // 10MB máximo por archivo
+        files: 10 // Máximo 10 archivos
+    }
 });
 
-export const uploadExcel = upload.single('archivo');
-
-// Si necesitas otras configuraciones de multer en el futuro, las puedes agregar aquí
-// Por ejemplo:
-// export const uploadImages = upload.single('imagen');
-// export const uploadDocuments = upload.array('documentos', 5);
+// Exportar la instancia de upload para usar en las rutas
+export { upload };

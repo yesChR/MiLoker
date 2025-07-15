@@ -1,14 +1,14 @@
 import express from 'express';
 import { 
     habilitarUsuarioEstudiante, 
-    cargarEstudiantesDesdeExcel,
-    uploadExcel
+    cargarEstudiantesDesdeExcel
 } from '../../controllers/docente/usuarios.controller.js';
+import { upload } from '../../config/multer.js';
+
 const router = express.Router();
 
 router.put('/habilitar/estudiante/:cedula', habilitarUsuarioEstudiante);
 
-// Nueva ruta para cargar estudiantes desde archivo Excel
-router.post('/cargar/estudiantes', uploadExcel, cargarEstudiantesDesdeExcel);
+router.post('/cargar/estudiantes', upload.any(), cargarEstudiantesDesdeExcel);
 
 module.exports = router;

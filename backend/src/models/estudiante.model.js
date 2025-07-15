@@ -6,7 +6,7 @@ import { Solicitud } from "./solicitud.model.js";
 
 export const Estudiante = sequelize.define("estudiante", {
   cedula: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false

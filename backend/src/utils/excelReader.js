@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { obtenerIdEspecialidad } from '../common/especialidades.js';
+import { obtenerIdEspecialidad, obtenerEspecialidades } from '../common/especialidades.js';
 import { ESTADOS } from '../common/estados.js';
 
 
@@ -64,8 +64,11 @@ function convertirFecha(fechaExcel) {
     }
 }
 
-export async function leerArchivoExcel(fileBuffer) {
+export async function leerArchivoExcel(fileBuffer, especialidadesCache = null) {
     try {
+        // Obtener especialidades una sola vez si no se proporciona cache
+        const especialidades = especialidadesCache || await obtenerEspecialidades();
+        
         // Leer el archivo Excel desde el buffer
         const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
 
@@ -81,18 +84,22 @@ export async function leerArchivoExcel(fileBuffer) {
         });
 
         // Mapear los datos al formato que necesita tu aplicación
-        const estudiantesData = await Promise.all(
-            rawData.map(async (row, index) => {
-                // Validar que la fila tenga datos
-                if (!row[0] || !row[1] || !row[3]) {
-                    console.warn(`Fila ${index + 6} ignorada: datos incompletos`, row);
-                    return null;
-                }
+        const estudiantesData = [];
+        
+        for (let index = 0; index < rawData.length; index++) {
+            const row = rawData[index];
+            
+            // Validar que la fila tenga datos
+            if (!row[0] || !row[1] || !row[3]) {
+                console.warn(`Fila ${index + 6} ignorada: datos incompletos`, row);
+                continue;
+            }
 
-                // Obtener ID de especialidad de forma dinámica
-                const idEspecialidad = await obtenerIdEspecialidad(row[5]);
+            try {
+                // Obtener ID de especialidad usando el cache
+                const idEspecialidad = await obtenerIdEspecialidad(row[5], especialidades);
 
-                return {
+                const estudianteData = {
                     cedula: limpiarCedula(row[0]), // Columna A
                     apellidoUno: row[1]?.toString().trim() || "", // Columna B
                     apellidoDos: row[2]?.toString().trim() || "", // Columna C
@@ -107,11 +114,16 @@ export async function leerArchivoExcel(fileBuffer) {
                     fechaNacimiento: convertirFecha(row[6]), // Convertir fecha de nacimiento
                     idEspecialidad // ID obtenido dinámicamente
                 };
-            })
-        );
+                
+                estudiantesData.push(estudianteData);
+            } catch (error) {
+                // Error específico para especialidad no encontrada - CANCELAR TODO
+                console.error(`ERROR CRÍTICO en fila ${index + 6}: ${error.message}`);
+                throw new Error(`Error en fila ${index + 6} (Estudiante: ${row[3]} ${row[1]}): ${error.message}`);
+            }
+        }
 
-        // Filtrar filas nulas
-        return estudiantesData.filter(item => item !== null);
+        return estudiantesData;
     } catch (error) {
         throw new Error(`Error al leer archivo Excel: ${error.message}`);
     }

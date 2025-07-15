@@ -3,7 +3,7 @@ import { sequelize } from "../bd_config/conexion.js";
 
 export const Usuario = sequelize.define("usuario", {
   cedula: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false

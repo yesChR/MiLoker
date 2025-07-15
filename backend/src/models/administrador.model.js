@@ -4,7 +4,7 @@ import { Usuario } from "./usuario.model.js";
 
 export const Administrador = sequelize.define("administrador", {
   cedula: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     autoIncrement: false,
     primaryKey: true,
     allowNull: false

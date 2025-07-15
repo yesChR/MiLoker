@@ -11,11 +11,11 @@ export const ESPECIALIDADES_ID = {
 
 function getEspecialidadesPorDefecto() {
     return [
-        { id: 1, nombre: "ADMINISTRACION LOGISTICA Y DISTRIBUCION" },
-        { id: 2, nombre: "ADMINISTRACION Y OPERACION ADUANERA" },
-        { id: 3, nombre: "GESTION DE LA PRODUCCION" },
-        { id: 4, nombre: "CONFIGURACION Y SOPORTE DE REDES" },
-        { id: 5, nombre: "SALUD OCUPACIONAL" }
+        { idEspecialidad: 1, nombre: "ADMINISTRACION LOGISTICA Y DISTRIBUCION" },
+        { idEspecialidad: 2, nombre: "ADMINISTRACION Y OPERACION ADUANERA" },
+        { idEspecialidad: 3, nombre: "GESTION DE LA PRODUCCION" },
+        { idEspecialidad: 4, nombre: "CONFIGURACION Y SOPORTE DE REDES" },
+        { idEspecialidad: 5, nombre: "SALUD OCUPACIONAL" }
     ];
 }
 
@@ -23,8 +23,8 @@ export async function obtenerEspecialidades() {
     try {
         const especialidades = await Especialidad.findAll({
             where: { estado: 1 }, // Solo especialidades activas
-            attributes: ['id', 'nombre'],
-            order: [['id', 'ASC']]
+            attributes: ['idEspecialidad', 'nombre'],
+            order: [['idEspecialidad', 'ASC']]
         });
         return especialidades;
     } catch (error) {
@@ -34,10 +34,13 @@ export async function obtenerEspecialidades() {
     }
 }
 
-export async function obtenerIdEspecialidad(nombreEspecialidad) {
-    if (!nombreEspecialidad) return 1; // ID por defecto
+export async function obtenerIdEspecialidad(nombreEspecialidad, especialidadesCache = null) {
+    if (!nombreEspecialidad) {
+        throw new Error(`Especialidad requerida: No se proporcionó nombre de especialidad`);
+    }
 
-    const especialidades = await obtenerEspecialidades();
+    // Usar cache si está disponible, sino obtener especialidades
+    const especialidades = especialidadesCache || await obtenerEspecialidades();
 
     // Limpiar el nombre de especialidad (quitar comillas, espacios, etc.)
     const nombreNormalizado = limpiarNombreEspecialidad(nombreEspecialidad);
@@ -48,7 +51,7 @@ export async function obtenerIdEspecialidad(nombreEspecialidad) {
     );
 
     if (especialidadEncontrada) {
-        return especialidadEncontrada.id;
+        return especialidadEncontrada.idEspecialidad;
     }
 
     // Buscar coincidencia parcial (palabras clave)
@@ -62,11 +65,11 @@ export async function obtenerIdEspecialidad(nombreEspecialidad) {
     });
 
     if (especialidadEncontrada) {
-        return especialidadEncontrada.id;
+        return especialidadEncontrada.idEspecialidad;
     }
 
-    console.warn(`No se encontró especialidad para: "${nombreEspecialidad}". Usando ID por defecto.`);
-    return 1; // ID por defecto
+    // Si no se encuentra, lanzar error específico
+    throw new Error(`Especialidad no encontrada: "${nombreEspecialidad}". Las especialidades disponibles son: ${especialidades.map(e => e.nombre).join(', ')}`);
 }
 
 function limpiarNombreEspecialidad(nombre) {
