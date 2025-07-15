@@ -59,7 +59,8 @@ export const crearProfesor = async (req, res) => {
         res.status(201).json({ message: "Profesor y usuario creados exitosamente" });
     } catch (error) {
         await t.rollback();
-        res.status(500).json({ error: "Error interno en el servidor" });
+        console.error("Error en crearProfesor:", error);
+        res.status(500).json({ error: error.message, details: error });
     }
 };
 
