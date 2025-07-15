@@ -1,15 +1,58 @@
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip, Button, Pagination, Input, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu, Chip } from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip, Button, Pagination, Input, Dropdown, DropdownItem, DropdownTrigger, DropdownMenu, Chip, Spinner } from "@heroui/react";
 import React, { useState, useCallback, useMemo } from "react";
 import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 
-const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [] }) => {
+const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [], loading = false }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
     const [selectedFilters, setSelectedFilters] = useState({});
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 7;
+
+    // Componente personalizado para el mensaje de tabla vacía
+    const EmptyTableMessage = () => (
+        <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="bg-gray-100 rounded-full p-6 mb-4">
+                <svg 
+                    className="w-14 h-14 text-gray-400" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                >
+                    <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={1.5} 
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" 
+                    />
+                </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                No hay datos disponibles
+            </h3>
+            <p className="text-sm text-gray-500 text-center max-w-sm">
+                No se encontraron registros que coincidan con los criterios de búsqueda.
+            </p>
+        </div>
+    );
+
+    // Componente personalizado para el spinner de carga
+    const LoadingTableMessage = () => (
+        <div className="flex flex-col items-center justify-center py-16 px-6">
+            <Spinner 
+                size="lg" 
+                color="primary" 
+                label="Cargando datos..."
+                labelColor="primary"
+                className="mb-4"
+            />
+            <p className="text-sm text-gray-500 text-center">
+                Por favor espere mientras se cargan los datos
+            </p>
+        </div>
+    );
 
     
     const abrirDrawer = (accion = 0) => {
@@ -254,8 +297,8 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                     </TableColumn>
                 )}
             </TableHeader>
-            <TableBody>
-                {datosPaginados.map((item, index) => (
+            <TableBody emptyContent={loading ? <LoadingTableMessage /> : <EmptyTableMessage />}>
+                {loading ? [] : datosPaginados.map((item, index) => (
                     <TableRow key={item.id || index} className="hover:bg-gray-200 hover:rounded-full transition duration-300">
                         {columns
                             .filter((col) => visibleColumns.has(col.uid))

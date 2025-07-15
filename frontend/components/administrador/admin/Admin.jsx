@@ -1,11 +1,11 @@
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import TablaDinamica from "../../Tabla";
 import { BiEditAlt } from "react-icons/bi";
-import { useDisclosure } from "@heroui/react";
+import { useDisclosure, Spinner } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
 import FormCrear from "./FormCrear";
 import FormEditar from "./FormEditar";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "../../CustomAlert";
 import { MdOutlinePassword } from "react-icons/md";
 import { getAdministradores, createAdministrador, updateAdministrador } from "../../../services/adminService";
@@ -19,6 +19,8 @@ const Admin = () => {
     const [administradores, setAdministradores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [drawerLoading, setDrawerLoading] = useState(false);
+    const formCrearRef = useRef();
+    const formEditarRef = useRef();
 
     // Cargar administradores al montar el componente
     useEffect(() => {
@@ -39,15 +41,22 @@ const Admin = () => {
     };
 
     const handleCrear = async () => {
+        // Usar la referencia del formulario para validar y obtener datos
+        if (!formCrearRef.current?.validateAndSubmit()) {
+            return; // Si la validación falla, no continuar
+        }
+    };
+
+    const handleFormCrearSubmit = async (formData) => {
         setDrawerLoading(true);
         try {
             const adminData = {
-                cedula: selectedItem?.cedula,
-                nombre: selectedItem?.nombre,
-                apellidoUno: selectedItem?.apellidoUno,
-                apellidoDos: selectedItem?.apellidoDos,
-                correo: selectedItem?.correo,
-                telefono: selectedItem?.telefono,
+                cedula: formData.cedula,
+                nombre: formData.nombre,
+                apellidoUno: formData.apellidoUno,
+                apellidoDos: formData.apellidoDos,
+                correo: formData.correo,
+                telefono: formData.telefono,
                 estado: ESTADOS.ACTIVO,
                 rol: ROLES.ADMINISTRADOR
             };
@@ -65,17 +74,24 @@ const Admin = () => {
     };
 
     const handleEditarSubmit = async () => {
+        // Usar la referencia del formulario para validar y obtener datos
+        if (!formEditarRef.current?.validateAndSubmit()) {
+            return; // Si la validación falla, no continuar
+        }
+    };
+
+    const handleFormEditarSubmit = async (formData) => {
         setDrawerLoading(true);
         try {
             const adminData = {
-                nombre: selectedItem?.nombre,
-                apellidoUno: selectedItem?.apellidoUno,
-                apellidoDos: selectedItem?.apellidoDos,
-                correo: selectedItem?.correo,
-                telefono: selectedItem?.telefono,
-                estado: selectedItem?.estado
+                nombre: formData.nombre,
+                apellidoUno: formData.apellidoUno,
+                apellidoDos: formData.apellidoDos,
+                correo: formData.correo,
+                telefono: formData.telefono,
+                estado: formData.estado
             };
-            await updateAdministrador(selectedItem.cedula, adminData);
+            await updateAdministrador(formData.cedula, adminData);
             Toast.success("Administrador editado", "El administrador fue editado exitosamente.");
             await loadAdministradores();
             setSelectedItem(null);
@@ -186,9 +202,19 @@ const Admin = () => {
                     disableClose={drawerLoading}
                 >
                     {accion === 1 ? (
-                        <FormEditar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+                        <FormEditar 
+                            ref={formEditarRef}
+                            selectedItem={selectedItem} 
+                            setSelectedItem={setSelectedItem}
+                            onSubmit={handleFormEditarSubmit}
+                        />
                     ) : (
-                        <FormCrear selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+                        <FormCrear 
+                            ref={formCrearRef}
+                            selectedItem={selectedItem} 
+                            setSelectedItem={setSelectedItem}
+                            onSubmit={handleFormCrearSubmit}
+                        />
                     )}
                 </DrawerGeneral>
             </div>
