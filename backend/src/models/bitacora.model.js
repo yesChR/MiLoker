@@ -10,7 +10,7 @@ export const Bitacora = sequelize.define("bitacora", {
     autoIncrement: true
   },
   cedula: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING,
     allowNull: false
   },
   idIncidente: {

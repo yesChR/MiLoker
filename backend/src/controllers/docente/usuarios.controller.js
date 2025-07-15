@@ -9,6 +9,7 @@ import { crearUsuario, actualizarEstadoUsuarioEstudiante } from "../../controlle
 import { ROLES } from "../../common/roles.js";
 import { ESTADOS } from "../../common/estados.js";
 import { leerArchivoExcel } from "../../utils/excelReader.js";
+import { obtenerEspecialidades } from "../../common/especialidades.js";
 import { uploadExcel } from "../../config/multer.js";
 
 export { uploadExcel };
@@ -155,49 +156,105 @@ const procesarEstudiante = async (data, transaction) => {
     };
 };
 
+// Endpoint flexible para cargar estudiantes desde uno o múltiples archivos Excel
 export const cargarEstudiantesDesdeExcel = async (req, res) => {
     const t = await sequelize.transaction();
     const resultados = [];
+    const resumenArchivos = [];
 
     try {
-        if (!req.file) {
-            return res.status(400).json({ 
-                error: "No se proporcionó ningún archivo Excel" 
-            });
-        }
-
-        const estudiantesData = await leerArchivoExcel(req.file.buffer);
+        // Obtener especialidades una sola vez para optimizar performance
+        const especialidadesCache = await obtenerEspecialidades();
         
-        if (!estudiantesData || estudiantesData.length === 0) {
+        // Obtener archivos de diferentes formas (req.files viene de upload.any())
+        const archivos = req.files || [];
+        
+        if (archivos.length === 0) {
             return res.status(400).json({ 
-                error: "No se encontraron datos válidos en el archivo Excel" 
+                error: "No se proporcionaron archivos Excel" 
             });
         }
 
-        // Procesar cada estudiante
-        for (const data of estudiantesData) {
+        console.log(`Procesando ${archivos.length} archivo(s) Excel...`);
+
+        // Procesar cada archivo
+        for (let i = 0; i < archivos.length; i++) {
+            const file = archivos[i];
+            console.log(`Procesando archivo ${i + 1}/${archivos.length}: ${file.originalname}`);
+
             try {
-                const resultado = await procesarEstudiante(data, t);
-                resultados.push(resultado);
+                // Leer y procesar el archivo Excel con cache de especialidades
+                const estudiantesData = await leerArchivoExcel(file.buffer, especialidadesCache);
+                
+                if (!estudiantesData || estudiantesData.length === 0) {
+                    throw new Error(`No se encontraron datos válidos en el archivo: ${file.originalname}`);
+                }
+
+                const resultadosArchivo = [];
+
+                // Procesar cada estudiante del archivo actual
+                for (const data of estudiantesData) {
+                    try {
+                        const resultado = await procesarEstudiante(data, t);
+                        resultadosArchivo.push(resultado);
+                        resultados.push({
+                            ...resultado,
+                            archivo: file.originalname
+                        });
+                    } catch (error) {
+                        // Si hay cualquier error al procesar, cancelar toda la transacción
+                        await t.rollback();
+                        return res.status(500).json({
+                            error: "Error al procesar estudiante",
+                            detalle: error.message,
+                            archivo: file.originalname,
+                            estudiante: `${data.nombre} ${data.apellidoUno} (${data.cedula})`,
+                            mensaje: "Se canceló el proceso completo debido a errores al crear el estudiante"
+                        });
+                    }
+                }
+
+                // Resumen del archivo procesado
+                resumenArchivos.push({
+                    archivo: file.originalname,
+                    totalEstudiantes: estudiantesData.length,
+                    exitosos: resultadosArchivo.filter(r => r.accion !== "error").length,
+                    errores: resultadosArchivo.filter(r => r.accion === "error").length
+                });
+
             } catch (error) {
-                resultados.push({
-                    cedula: data.cedula,
-                    accion: "error",
-                    mensaje: `Error al procesar: ${error.message}`
+                // Error al procesar el archivo Excel (incluyendo especialidades no encontradas)
+                await t.rollback();
+                return res.status(400).json({ 
+                    error: "Error al procesar archivo Excel",
+                    archivo: file.originalname,
+                    detalle: error.message,
+                    mensaje: "Se canceló el proceso completo debido a errores en los datos"
                 });
             }
         }
 
         await t.commit();
+        
+        // Respuesta adaptativa según cantidad de archivos
+        const esMultiple = archivos.length > 1;
+        
         return res.status(201).json({
-            message: "Proceso de carga desde Excel finalizado.",
-            totalProcesados: estudiantesData.length,
+            message: esMultiple 
+                ? "Proceso de carga desde múltiples archivos Excel finalizado."
+                : "Proceso de carga desde archivo Excel finalizado.",
+            ...(esMultiple && { totalArchivos: archivos.length }),
+            totalEstudiantes: resultados.length,
             exitosos: resultados.filter(r => r.accion !== "error").length,
             errores: resultados.filter(r => r.accion === "error").length,
+            ...(esMultiple && { resumenPorArchivo: resumenArchivos }),
             resultados
         });
     } catch (error) {
-        await t.rollback();
+        // Solo hacer rollback si la transacción aún está activa
+        if (!t.finished) {
+            await t.rollback();
+        }
         return res.status(500).json({
             error: "Error interno del servidor",
             detalle: error.message

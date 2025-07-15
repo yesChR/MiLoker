@@ -11,7 +11,7 @@ export const Solicitud = sequelize.define("solicitud", {
         allowNull: false
     },
     cedulaEstudiante: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: false
     },
     fechaSolicitud: {

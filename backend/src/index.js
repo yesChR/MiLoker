@@ -12,18 +12,16 @@ import './models/estadoIncidente.model.js'
 import './models/estudiante.model.js'
 import './models/estudianteXcasillero.model.js'
 import './models/estudianteXEncargado.model.js'
-import './models/estudianteXIncidente.model.js'
+import './models/estudianteXincidente.model.js'
 import './models/evidencia.model.js'
 import './models/evidenciaXIncidente.model.js'
 import './models/usuario.model.js'
 import './models/profesor.model.js'
 import './models/incidente.model.js'
 import './models/periodo.model.js'
-import './models/profesor.model.js'
 import './models/sancion.model.js'
 import './models/solicitud.model.js'
 import './models/solicitudXcasillero.model.js'
-import './models/usuario.model.js'
 
 const main = async () => {
   try {
@@ -31,7 +29,7 @@ const main = async () => {
     console.log('Conexión a la base de datos exitosa');
 
     // Crear o actualizar las tablas sin borrar datos
-    await sequelize.sync({ alter: true});
+    await sequelize.sync({ alter: false});
 
     app.listen(app.get('port'));
     console.log(`Servidor corriendo en el puerto ${app.get('port')}`);

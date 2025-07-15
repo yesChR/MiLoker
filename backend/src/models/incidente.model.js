@@ -11,7 +11,7 @@ export const Incidente = sequelize.define("incidente", {
         allowNull: false
     },
     usuarioCreador: { // <-- Usa este nombre en todo
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: false
     },
     fechaCreacion: {
