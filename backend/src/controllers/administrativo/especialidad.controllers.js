@@ -1,15 +1,16 @@
 import { sequelize } from "../../bd_config/conexion.js";
 import { Especialidad } from "../../models/especialidad.model.js";
+import { ESTADOS } from "../../common/estados.js";
 
 export const crearEspecialidad = async (req, res) => {
-    const { nombre, estado } = req.body;
+    const { nombre } = req.body;
     try {
         const existeEspecialidad = await Especialidad.findOne({ where: { nombre: nombre } }); 
         if (existeEspecialidad === null) {
-            const nuevaEspecialidad = await Especialidad.create({ nombre, estado });
+            const nuevaEspecialidad = await Especialidad.create({ nombre, estado: ESTADOS.ACTIVO });
             await nuevaEspecialidad.save();
             res.status(201).json({ message: "Especialidad creada exitosamente" });
-        }   
+        }
         else {
             res.status(409).json({ error: "La especialidad ya existe" })
         }
