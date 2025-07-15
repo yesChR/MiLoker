@@ -18,6 +18,7 @@ const FormCrear = ({ selectedItem, setSelectedItem }) => (
             className="focus:border-primario"
             color="primary"
             isRequired
+            errorMessage="La cédula es obligatoria"
         />
         <Input
             label="Nombre"
@@ -33,6 +34,7 @@ const FormCrear = ({ selectedItem, setSelectedItem }) => (
             className="focus:border-primario"
             color="primary"
             isRequired
+            errorMessage="El nombre es obligatorio"
         />
         <Input
             label="Primer apellido"
@@ -48,6 +50,7 @@ const FormCrear = ({ selectedItem, setSelectedItem }) => (
             className="focus:border-primario"
             color="primary"
             isRequired
+            errorMessage="El primer apellido es obligatorio"
         />
         <Input
             label="Segundo apellido"
@@ -63,6 +66,7 @@ const FormCrear = ({ selectedItem, setSelectedItem }) => (
             className="focus:border-primario"
             color="primary"
             isRequired
+            errorMessage="El segundo apellido es obligatorio"
         />
         <Input
             label="Correo"
@@ -79,6 +83,7 @@ const FormCrear = ({ selectedItem, setSelectedItem }) => (
             color="primary"
             type="email"
             isRequired
+            errorMessage="El correo es obligatorio"
         />
         <Input
             label="Teléfono (opcional)"

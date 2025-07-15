@@ -33,6 +33,8 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             variant={"bordered"}
             className="focus:border-primario"
             color="primary"
+            isRequired
+            errorMessage="El nombre es obligatorio"
         />
         <Input
             label="Primer apellido"
@@ -46,6 +48,8 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             variant={"bordered"}
             className="focus:border-primario"
             color="primary"
+            isRequired
+            errorMessage="El primer apellido es obligatorio"
         />
         <Input
             label="Segundo apellido"
@@ -59,6 +63,8 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             variant={"bordered"}
             className="focus:border-primario"
             color="primary"
+            isRequired
+            errorMessage="El segundo apellido es obligatorio"
         />
         <Input
             label="Correo"
@@ -73,6 +79,8 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             className="focus:border-primario"
             color="primary"
             type="email"
+            isRequired
+            errorMessage="El correo es obligatorio"
         />
         <Input
             label="Teléfono"
@@ -88,6 +96,8 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
             className="focus:border-primario"
             color="primary"
+            isRequired
+            errorMessage="El teléfono es obligatorio"
         />
         <Select
             label="Estado"
@@ -102,15 +112,17 @@ const FormEditar = ({ selectedItem, setSelectedItem }) => (
             variant={"bordered"}
             className="focus:border-primario"
             color="primary"
+            isRequired
+            errorMessage="El estado es obligatorio"
         >
-            <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO}>
+            <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
                 <div className="flex items-center gap-2">
                     <Chip color="success" variant="flat" size="sm">
                         Activo
                     </Chip>
                 </div>
             </SelectItem>
-            <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO}>
+            <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO} textValue="Inactivo">
                 <div className="flex items-center gap-2">
                     <Chip color="danger" variant="flat" size="sm">
                         Inactivo
