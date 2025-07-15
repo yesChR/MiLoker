@@ -127,6 +127,11 @@ const Docentes = () => {
 
     // AGREGADO siguiendo Admin
     const handleCrearDocente = async () => {
+        // Validar el formulario hijo antes de continuar
+        if (!formCrearRef.current?.validateAndSubmit()) {
+            setDrawerLoading(false);
+            return;
+        }
         setDrawerLoading(true);
         try {
             const docenteData = {
@@ -142,10 +147,7 @@ const Docentes = () => {
             };
             await createDocente(docenteData);
             await cargarDocentes();
-            // No limpiar selectedItem ni especialidad aquí, solo mostrar el toast
             Toast.success("Docente creado", "El docente fue creado exitosamente.");
-            // Si quieres limpiar los campos solo al cerrar el drawer, hazlo en el efecto de cierre
-            // onOpenChange();
         } catch (error) {
             console.error("Error al crear docente:", error);
             Toast.error("Error", error.message || "Error al crear docente");
@@ -156,6 +158,11 @@ const Docentes = () => {
 
     // AGREGADO siguiendo Admin
     const handleEditarDocente = async () => {
+        // Validar el formulario hijo antes de continuar
+        if (!formEditarRef.current?.validateAndSubmit()) {
+            setDrawerLoading(false);
+            return;
+        }
         setDrawerLoading(true);
         try {
             const docenteData = {

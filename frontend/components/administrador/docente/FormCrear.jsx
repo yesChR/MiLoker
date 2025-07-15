@@ -59,7 +59,9 @@ const FormCrear = forwardRef(({
             className="w-full flex flex-col gap-4"
             onSubmit={handleSubmit}>
             <Input
+                isRequired
                 label="Cédula"
+                name="cedula"
                 placeholder="70987654"
                 value={selectedItem?.cedula || ""}
                 onChange={(e) =>
@@ -71,9 +73,13 @@ const FormCrear = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario"
                 color="primary"
+                isInvalid={showErrors && !selectedItem?.cedula?.trim()}
+                errorMessage="La cédula es obligatoria"
             />
             <Input
+                isRequired
                 label="Nombre"
+                name="nombre"
                 placeholder="Maria"
                 value={selectedItem?.nombre || ""}
                 onChange={(e) =>
@@ -85,9 +91,13 @@ const FormCrear = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario"
                 color="primary"
+                isInvalid={showErrors && !selectedItem?.nombre?.trim()}
+                errorMessage="El nombre es obligatorio"
             />
             <Input
+                isRequired
                 label="Primer apellido"
+                name="apellidoUno"
                 placeholder="Rojas"
                 value={selectedItem?.apellidoUno || ""}
                 onChange={(e) =>
@@ -99,9 +109,13 @@ const FormCrear = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario"
                 color="primary"
+                isInvalid={showErrors && !selectedItem?.apellidoUno?.trim()}
+                errorMessage="El primer apellido es obligatorio"
             />
             <Input
+                isRequired
                 label="Segundo apellido"
+                name="apellidoDos"
                 placeholder="Gómez"
                 value={selectedItem?.apellidoDos || ""}
                 onChange={(e) =>
@@ -113,9 +127,13 @@ const FormCrear = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario"
                 color="primary"
+                isInvalid={showErrors && !selectedItem?.apellidoDos?.trim()}
+                errorMessage="El segundo apellido es obligatorio"
             />
             <Input
+                isRequired
                 label="Correo"
+                name="correo"
                 placeholder="maria@gmail.com"
                 value={selectedItem?.correo || ""}
                 onChange={(e) =>
@@ -127,9 +145,14 @@ const FormCrear = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario"
                 color="primary"
+                type="email"
+                isInvalid={showErrors && !selectedItem?.correo?.trim()}
+                errorMessage="El correo es obligatorio"
             />
             <Input
+                isRequired
                 label="Teléfono"
+                name="telefono"
                 placeholder="67453212"
                 value={selectedItem?.telefono || ""}
                 onChange={(e) =>
@@ -143,6 +166,8 @@ const FormCrear = forwardRef(({
                 pattern="^(?:\+506\s?)?[26-9]\d{3}-?\d{4}$"
                 className="focus:border-primario"
                 color="primary"
+                isInvalid={showErrors && !selectedItem?.telefono?.trim()}
+                errorMessage="El teléfono es obligatorio"
             />
             <Select
                 label="Especialidad"
