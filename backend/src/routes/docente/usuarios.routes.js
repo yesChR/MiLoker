@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.put('/habilitar/estudiante/:cedula', habilitarUsuarioEstudiante);
 
+// Ruta FLEXIBLE para cargar estudiantes (acepta uno o múltiples archivos)
 router.post('/cargar/estudiantes', upload.any(), cargarEstudiantesDesdeExcel);
 
 module.exports = router;
