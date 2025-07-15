@@ -9,7 +9,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     const [filterValue, setFilterValue] = useState("");
     const [selectedFilters, setSelectedFilters] = useState({});
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
-    const numElementos = 5;
+    const numElementos = 7;
 
     
     const abrirDrawer = (accion = 0) => {
@@ -37,7 +37,6 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     };
 
     const filteredData = useMemo(() => {
-
         return data.filter((item) => {
             const searchMatch = columns.some((column) =>
                 String(item[column.uid] || "")
@@ -47,6 +46,13 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
 
             const filtersMatch = Object.entries(selectedFilters).every(([field, values]) => {
                 if (!values || values.length === 0) return true;
+                // Si el filtro es de estado, comparar por label
+                if (field === "estado") {
+                    const itemLabel = getEstadoLabel(item[field]);
+                    return values.some((value) =>
+                        String(itemLabel).toLowerCase() === String(value).toLowerCase()
+                    );
+                }
                 return values.some((value) =>
                     String(item[field] || "").toLowerCase() === String(value).toLowerCase()
                 );
@@ -105,23 +111,26 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                     );
                 }
 
-            case "estado":
+            case "estado": {
+                // Definir color de texto según el estado
+                let textColor = "";
+                if (cellValue === 2 || cellValue === "Activo") textColor = "text-green-700";
+                else if (cellValue === 1 || cellValue === "Inactivo") textColor = "text-red-600";
+                else if (cellValue === "Paused") textColor = "text-pink-600";
+                else if (cellValue === "Vacation") textColor = "text-yellow-700";
+                else textColor = "text-gray-700";
+
                 return (
-                    <Tooltip
+                    <Chip
+                        className={`capitalize border-none gap-1 px-3 py-1 text-sm font-semibold bg-opacity-80 ${textColor}`}
                         color={estadosColors[cellValue]}
-                        content={getEstadoLabel(cellValue)}
+                        size="sm"
+                        variant="flat"
                     >
-                        <span className="text-lg cursor-pointer active:opacity-50">
-                            <Chip
-                                className="capitalize border-none gap-1 text-default-600"
-                                color={estadosColors[cellValue]}
-                                size="sm"
-                                variant="dot"
-                            >
-                            </Chip>
-                        </span>
-                    </Tooltip>
+                        {getEstadoLabel(cellValue)}
+                    </Chip>
                 );
+            }
 
             default:
                 return cellValue;
@@ -229,7 +238,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
             bottomContent={bottomContent}
             bottomContentPlacement="outside"
             classNames={{
-                wrapper: "max-h-[382px]",
+                wrapper: "max-h-[700px]",
                 th: "bg-primario text-white",
             }}
             color="danger"
