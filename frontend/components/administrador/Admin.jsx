@@ -21,6 +21,7 @@ const Admin = () => {
     const [accion, setAccion] = useState("");
     const [administradores, setAdministradores] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [drawerLoading, setDrawerLoading] = useState(false);
     const [alert, setAlert] = useState({ show: false, type: '', message: '' });
 
     // Constantes para estados y roles
@@ -35,27 +36,9 @@ const Admin = () => {
         ESTUDIANTE: 3
     };
 
-    // Funciones helper para mostrar estados y roles
-    const getEstadoLabel = (estado) => {
-        const labels = {
-            [ESTADOS.INACTIVO]: "Inactivo",
-            [ESTADOS.ACTIVO]: "Activo"
-        };
-        return labels[estado] || "Desconocido";
-    };
-
-    const getEstadoColor = (estado) => {
-        const colors = {
-            [ESTADOS.INACTIVO]: "danger",
-            [ESTADOS.ACTIVO]: "success"
-        };
-        return colors[estado] || "default";
-    };
-
     // Cargar administradores al montar el componente
     useEffect(() => {
         loadAdministradores();
-        Toast.success("Prueba de toast", "Si ves este mensaje, los toasts funcionan correctamente.");
     }, []);
 
     const loadAdministradores = async () => {
@@ -72,15 +55,18 @@ const Admin = () => {
     };
 
     const handleCrear = async () => {
+        setDrawerLoading(true);
         try {
             // Validar que existan datos
             if (!selectedItem) {
                 Toast.error('Error', 'No hay datos en el formulario');
+                setDrawerLoading(false);
                 return;
             }
             // Validar campos requeridos
             if (!selectedItem?.cedula || !selectedItem?.nombre || !selectedItem?.apellidoUno || !selectedItem?.apellidoDos || !selectedItem?.correo) {
                 Toast.error('Error', 'Por favor complete todos los campos requeridos');
+                setDrawerLoading(false);
                 return;
             }
             const adminData = {
@@ -94,17 +80,20 @@ const Admin = () => {
                 rol: ROLES.ADMINISTRADOR
             };
             await createAdministrador(adminData);
-            loadAdministradores();
-            onOpenChange();
+            await loadAdministradores();
             setSelectedItem(null);
             Toast.success("Administrador creado", "El administrador fue creado exitosamente.");
+            onOpenChange();
         } catch (error) {
             console.error('Error al crear administrador:', error);
             Toast.error('Error', error.message || 'Error al crear el administrador');
+        } finally {
+            setDrawerLoading(false);
         }
     };
 
     const handleEditarSubmit = async () => {
+        setDrawerLoading(true);
         try {
             const adminData = {
                 nombre: selectedItem?.nombre,
@@ -116,16 +105,18 @@ const Admin = () => {
             };
             await updateAdministrador(selectedItem.cedula, adminData);
             Toast.success("Administrador editado", "El administrador fue editado exitosamente.");
-            loadAdministradores();
-            onOpenChange();
+            await loadAdministradores();
             setSelectedItem(null);
+            onOpenChange();
         } catch (error) {
             console.error('Error al editar administrador:', error);
             Toast.error('Error', error.message || 'Error al editar el administrador');
+        } finally {
+            setDrawerLoading(false);
         }
     };
 
-    const columnasPrueba = [
+    const columnas = [
         { name: "Cédula", uid: "cedula" },
         { name: "Nombre", uid: "nombre" },
         { name: "Primer Apellido", uid: "apellidoUno" },
@@ -161,7 +152,7 @@ const Admin = () => {
     };
 
 
-    const accionesPrueba = [
+    const acciones = [
         {
             tooltip: "Editar",
             icon: <BiEditAlt />,
@@ -171,15 +162,7 @@ const Admin = () => {
             tooltip: <span className="text-danger">Restablecer contraseña</span>,
             icon: <MdOutlinePassword className="text-danger" />,
             handler: (item) => console.log("Restablecer contraseña", item),
-        },
-        {
-            tooltip: <span className="text-danger">Inhabilitar</span>,
-            icon: <DeleteIcon className="text-danger" />,
-            handler: (item) => {
-                setAdminToDisable(item);
-                setShowConfirmModal(true);
-            },
-        },
+        }
     ];
 
     // Limpiar formulario cuando se abre para crear
@@ -224,9 +207,9 @@ const Admin = () => {
             <div className="w-full max-w-4xl">
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
-                        columns={columnasPrueba}
+                        columns={columnas}
                         data={administradores}
-                        acciones={accionesPrueba}
+                        acciones={acciones}
                         filterOptions={filterOptions}
                         onOpen={onOpen}
                         setAccion={setAccion}
@@ -237,23 +220,32 @@ const Admin = () => {
                     titulo={accion === 1 ? "Editar Administrador" : "Agregar Administrador"}
                     size={"xs"}
                     isOpen={isOpen}
+                    // Evita que el Drawer se cierre por onOpenChange mientras está cargando
                     onOpenChange={(open) => {
-                        onOpenChange(open);
+                        if (!drawerLoading && open === false) onOpenChange(open);
                     }}
                     textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
-                    onBotonPrimario={() => {
-                        return accion === 1 ? handleEditarSubmit() : handleCrear();
+                    onBotonPrimario={async () => {
+                        if (!drawerLoading) {
+                            return accion === 1 ? handleEditarSubmit() : handleCrear();
+                        }
                     }}
-                    onBotonSecundario={() => {
-                        console.log("🚪 Botón cerrar clickeado");
+                    onBotonSecundario={async () => {
+                        if (!drawerLoading) {
+                            // Si DrawerGeneral cierra con este callback
+                            onOpenChange(false);
+                        }
                     }}
+                    loadingBotonPrimario={drawerLoading}
+                    loadingBotonSecundario={drawerLoading}
+                    disableClose={drawerLoading}
                 >
                     {accion === 1 ? (
                         // Formulario de Edición
                         <>
                             {/* ...existing code... */}
                             <Input
-                                placeholder="Cédula"
+                                label="Cédula"
                                 value={selectedItem?.cedula || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -267,7 +259,7 @@ const Admin = () => {
                                 isDisabled={accion === 1}
                             />
                             <Input
-                                placeholder="Nombre"
+                                label="Nombre"
                                 value={selectedItem?.nombre || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -280,7 +272,7 @@ const Admin = () => {
                                 color="primary"
                             />
                             <Input
-                                placeholder="Primer apellido"
+                                label="Primer apellido"
                                 value={selectedItem?.apellidoUno || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -293,7 +285,7 @@ const Admin = () => {
                                 color="primary"
                             />
                             <Input
-                                placeholder="Segundo apellido"
+                                label="Segundo apellido"
                                 value={selectedItem?.apellidoDos || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -306,7 +298,7 @@ const Admin = () => {
                                 color="primary"
                             />
                             <Input
-                                placeholder="Correo"
+                                label="Correo"
                                 value={selectedItem?.correo || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -320,7 +312,7 @@ const Admin = () => {
                                 type="email"
                             />
                             <Input
-                                placeholder="Teléfono"
+                                label="Teléfono"
                                 value={selectedItem?.telefono || ""}
                                 onChange={(e) =>
                                     setSelectedItem((prev) => ({
@@ -335,7 +327,7 @@ const Admin = () => {
                                 color="primary"
                             />
                             <Select
-                                placeholder="Estado"
+                                label="Estado"
                                 selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
                                 onSelectionChange={(keys) => {
                                     const selectedValue = Array.from(keys)[0];

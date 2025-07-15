@@ -18,10 +18,13 @@ const DrawerGeneral = ({
     textoBotonSecundario = "Cerrar", // Texto del botón secundario
     onBotonPrimario = () => {}, // Función del botón primario
     onBotonSecundario = () => {}, // Función del botón secundario
+    loadingBotonPrimario = false,
+    loadingBotonSecundario = false,
+    disableClose = false,
 }) => {
     return (
         <>
-            <Drawer isOpen={isOpen} onOpenChange={onOpenChange} size={size}>
+            <Drawer isOpen={isOpen} onOpenChange={disableClose ? undefined : onOpenChange} size={size}>
                 <DrawerContent>
                     {(onClose) => (
                         <>
@@ -34,19 +37,16 @@ const DrawerGeneral = ({
                                     <Button
                                         color="danger"
                                         variant="flat"
-                                        onPress={() => {
-                                            onBotonSecundario();
-                                            onClose();
-                                        }}
+                                        isDisabled={loadingBotonPrimario || loadingBotonSecundario}
+                                        onPress={onBotonSecundario}
                                     >
                                         {textoBotonSecundario}
                                     </Button>
                                     <Button
                                         color="primary"
-                                        onPress={() => {
-                                            onBotonPrimario();
-                                            onClose();
-                                        }}
+                                        isLoading={loadingBotonPrimario || loadingBotonSecundario}
+                                        isDisabled={loadingBotonPrimario || loadingBotonSecundario}
+                                        onPress={onBotonPrimario}
                                     >
                                         {textoBotonPrimario}
                                     </Button>

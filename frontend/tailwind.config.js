@@ -13,7 +13,7 @@ module.exports = {
       colors: {
         azulOscuro: "#0D3858",
         primario: "#0b72eb",
-        cabecera: "#d7e8ff",
+        cabecera: "#398cebff",
         fondoLogin: "#fcfbfb",
         celeste: "#38b6ff",
       },
