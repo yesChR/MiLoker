@@ -157,7 +157,10 @@ const Docentes = () => {
             label: "Especialidad",
             values: especialidades.map(e => e.idEspecialidad?.toString()),
             labels: especialidades.reduce((acc, e) => {
-                acc[e.idEspecialidad?.toString()] = e.nombre;
+                const nombreFormateado = e.nombre
+                    ? e.nombre.charAt(0).toUpperCase() + e.nombre.slice(1).toLowerCase()
+                    : "";
+                acc[e.idEspecialidad?.toString()] = nombreFormateado;
                 return acc;
             }, {})
         }
@@ -258,15 +261,6 @@ const Docentes = () => {
                             <Input
                                 label="Primer apellido"
                                 value={selectedItem?.apellidoUno || ""}
-                                onChange={(e) =>
-                                    setSelectedItem((prev) => ({
-                                        ...prev,
-                                        apellidoUno: e.target.value,
-                                    }))
-                                }
-                                variant={"bordered"}
-                                className="focus:border-primario"
-                                color="primary"
                             />
                             <Input
                                 label="Segundo apellido"
@@ -354,15 +348,20 @@ const Docentes = () => {
                                 className="focus:border-primario mt-2"
                                 color="primary"
                             >
-                                {especialidades.map((esp) => (
-                                    <SelectItem
-                                        key={esp.idEspecialidad}
-                                        value={esp.idEspecialidad.toString()}
-                                        textValue={esp.nombre}
-                                    >
-                                        {esp.nombre}
-                                    </SelectItem>
-                                ))}
+                                {especialidades.map((esp) => {
+                                    const nombreFormateado = esp.nombre
+                                        ? esp.nombre.charAt(0).toUpperCase() + esp.nombre.slice(1).toLowerCase()
+                                        : "";
+                                    return (
+                                        <SelectItem
+                                            key={esp.idEspecialidad}
+                                            value={esp.idEspecialidad.toString()}
+                                            textValue={nombreFormateado}
+                                        >
+                                            {nombreFormateado}
+                                        </SelectItem>
+                                    );
+                                })}
                             </Select>
                         </>
                     ) : (
@@ -469,15 +468,20 @@ const Docentes = () => {
                                 className="focus:border-primario mt-2"
                                 color="primary"
                             >
-                                {especialidades.map((esp) => (
-                                    <SelectItem
-                                        key={esp.idEspecialidad}
-                                        value={esp.idEspecialidad.toString()}
-                                        textValue={esp.nombre}
-                                    >
-                                        {esp.nombre}
-                                    </SelectItem>
-                                ))}
+                                {especialidades.map((esp) => {
+                                    const nombreFormateado = esp.nombre
+                                        ? esp.nombre.charAt(0).toUpperCase() + esp.nombre.slice(1).toLowerCase()
+                                        : "";
+                                    return (
+                                        <SelectItem
+                                            key={esp.idEspecialidad}
+                                            value={esp.idEspecialidad.toString()}
+                                            textValue={nombreFormateado}
+                                        >
+                                            {nombreFormateado}
+                                        </SelectItem>
+                                    );
+                                })}
                             </Select>
                         </>
                     )}
