@@ -1,11 +1,8 @@
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import TablaDinamica from "../../Tabla";
 import { BiEditAlt } from "react-icons/bi";
-import { DeleteIcon } from "../../icons/DeleteIcon";
-import { Select, SelectItem, Chip } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
-import { Input } from "@heroui/react";
 import React, { useState, useEffect } from "react";
 import { getDocentes, createDocente, updateDocente } from "../../../services/docenteService";
 import { getEspecialidades } from "../../../services/especialidadService";
@@ -17,6 +14,8 @@ import FormCrear from "./FormCrear";
 import FormEditar from "./FormEditar";
 
 const Docentes = () => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [drawerLoading, setDrawerLoading] = useState(false);
     // Placeholder para evitar ReferenceError
     const handleFormCrearSubmit = () => {
         // Implementa aquí la lógica de creación si es necesario
@@ -50,7 +49,6 @@ const Docentes = () => {
     };
     const formCrearRef = React.useRef(null);
     const formEditarRef = React.useRef(null);
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState({});//aqui almacena el elemento seleccionado del editable
     const [especialidad, setEspecialidad] = useState("");
     const [especialidades, setEspecialidades] = useState([]);
@@ -68,7 +66,6 @@ const Docentes = () => {
 
     const [datosDocentes, setDatosDocentes] = useState([]);
     const [loading, setLoading] = useState(true); // AGREGADO siguiendo Admin
-    const [drawerLoading, setDrawerLoading] = useState(false); // AGREGADO siguiendo Admin
 
     useEffect(() => {
         cargarDocentes();
@@ -147,7 +144,10 @@ const Docentes = () => {
             };
             await createDocente(docenteData);
             await cargarDocentes();
+            setSelectedItem({ idEspecialidad: "" });
+            setEspecialidad("");
             Toast.success("Docente creado", "El docente fue creado exitosamente.");
+            onOpenChange();
         } catch (error) {
             console.error("Error al crear docente:", error);
             Toast.error("Error", error.message || "Error al crear docente");
