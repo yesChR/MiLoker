@@ -67,7 +67,7 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, sanciones, onSub
             <div className="relative w-full mt-4">
                 <textarea
                     placeholder=" "
-                    className={`border-2 rounded-2xl p-2 pt-7 w-full h-32 resize-y placeholder:text-base text-sm text-gray-900 focus:border-blue-500 focus:outline-none peer border-gray-300`}
+                    className={`border-2 rounded-2xl p-2 pt-7 pl-3 w-full h-32 resize-y placeholder:text-sm text-sm text-gray-600 focus:border-blue-500 focus:outline-none peer border-gray-300`}
                     value={selectedItem ? selectedItem.detalle : ""}
                     onChange={e => setSelectedItem(prev => ({ ...prev, detalle: e.target.value }))}
                     required
@@ -76,7 +76,7 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, sanciones, onSub
                     text-xs top-2
                     ${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-blue-600'}
                     `}
-                >Detalle<span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
+                > Detalle<span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
                 {showErrors && !selectedItem?.detalle?.trim() && (
                     <div className="text-danger text-xs mt-1">El detalle es obligatorio</div>
                 )}
