@@ -45,14 +45,14 @@ export const deshabilitarSancion = async (req, res) => {
 
 export const editarSancion = async (req, res) => {
     const { idSancion } = req.params;
-    const { gravedad,detalle } = req.body;
+    const { gravedad, detalle, estado } = req.body;
     try {
         const existeSancion = await Sancion.findByPk(idSancion);
         if (existeSancion !== null) {
             const existeGravedad = await Sancion.findOne({ where: { gravedad: gravedad } });
             if (existeGravedad === null || existeGravedad.idSancion == idSancion) {
                 await Sancion.update(
-                    { gravedad, detalle },
+                    { gravedad, detalle, estado },
                     { where: { idSancion: idSancion } }
                 );
                 res.status(201).json({ message: "Sanción editada exitosamente" });
