@@ -199,7 +199,9 @@ const Especialidades = () => {
                     {accion === 1 ? (
                         <Form>
                             <Input
-                                placeholder="Nombre"
+                                label="Nombre"
+                                placeholder="Salud Ocupacional"
+                                isRequired
                                 value={selectedItem ? selectedItem.nombre : ""}
                                 onChange={(e) => {
                                     setSelectedItem((prev) => ({
@@ -251,7 +253,9 @@ const Especialidades = () => {
                     ) : (
                         <Form>
                             <Input
-                                placeholder="Nombre"
+                                label="Nombre"
+                                placeholder="Salud Ocupacional"
+                                isRequired
                                 value={selectedItem ? selectedItem.nombre : ""}
                                 onChange={(e) => {
                                     setSelectedItem((prev) => ({
