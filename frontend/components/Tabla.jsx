@@ -15,17 +15,17 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     const EmptyTableMessage = () => (
         <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="bg-gray-100 rounded-full p-6 mb-4">
-                <svg 
-                    className="w-14 h-14 text-gray-400" 
-                    fill="none" 
-                    stroke="currentColor" 
+                <svg
+                    className="w-14 h-14 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
-                    <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={1.5} 
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" 
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     />
                 </svg>
             </div>
@@ -41,9 +41,9 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     // Componente personalizado para el spinner de carga
     const LoadingTableMessage = () => (
         <div className="flex flex-col items-center justify-center py-16 px-6">
-            <Spinner 
-                size="lg" 
-                color="primary" 
+            <Spinner
+                size="lg"
+                color="primary"
                 label="Cargando datos..."
                 labelColor="primary"
                 className="mb-4"
@@ -54,7 +54,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
         </div>
     );
 
-    
+
     const abrirDrawer = (accion = 0) => {
         if (setAccion !== null) {
             if (accion !== 0) {
@@ -111,14 +111,101 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
         return filteredData.slice(start, end);
     }, [filteredData, currentPage, numElementos]);
 
+    // Función para capitalizar texto correctamente
+    const capitalizarTexto = (texto) => {
+        if (!texto) return '';
+        return texto.toLowerCase()
+            .split(' ')
+            .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+            .join(' ');
+    };
+
     const renderCell = useCallback((item, index, columnKey) => {
         let cellValue = item[columnKey];
-
-        if (columnKey === "nombreCompleto") {
-            cellValue = `${item.nombre || ""} ${item.apellidoUno || ""} ${item.apellidoDos || ""}`.trim();
-        }
-
         switch (columnKey) {
+            case "nombreCompleto":
+                // Construir nombres automáticamente desde los campos individuales
+                const nombreCorto = `${capitalizarTexto(item.nombre)} ${capitalizarTexto(item.apellidoUno)}`.trim();
+                const nombreCompleto = `${capitalizarTexto(item.nombre)} ${capitalizarTexto(item.apellidoUno)} ${capitalizarTexto(item.apellidoDos)}`.trim();
+
+                return (
+                    <Tooltip content={nombreCompleto} delay={300}>
+                        <span className="text-sm font-medium cursor-help">
+                            {nombreCorto}
+                        </span>
+                    </Tooltip>
+                );
+
+            case "especialidadCorta":
+                // Mostrar especialidad corta con tooltip de la especialidad completa (capitalizada)
+                const especialidadCompleta = capitalizarTexto(item.especialidadNombre || '');
+                const especialidadTruncada = capitalizarTexto(cellValue || '');
+                return (
+                    <Tooltip content={especialidadCompleta} delay={300} color="primary">
+                        <Chip
+                            size="sm"
+                            variant="flat"
+                            color="primary"
+                            className="cursor-help max-w-[120px]"
+                        >
+                            <span className="truncate">
+                                {especialidadTruncada}
+                            </span>
+                        </Chip>
+                    </Tooltip>
+                );
+
+            case "correo":
+                // Truncar correos largos
+                const correoTruncado = cellValue && cellValue.length > 20
+                    ? cellValue.substring(0, 20) + '...'
+                    : cellValue;
+                return (
+                    <Tooltip content={cellValue} delay={300}>
+                        <span className="text-sm cursor-help">
+                            {correoTruncado}
+                        </span>
+                    </Tooltip>
+                );
+
+            case "telefono":
+                // Formatear teléfono para Costa Rica (XXXX-XXXX)
+                const formatearTelefono = (numero) => {
+                    if (!numero) return numero;
+                    // Limpiar el número (solo dígitos)
+                    const soloNumeros = numero.toString().replace(/\D/g, '');
+
+                    // Formatear según la longitud
+                    if (soloNumeros.length === 8) {
+                        // Formato: XXXX-XXXX
+                        return `${soloNumeros.slice(0, 4)}-${soloNumeros.slice(4)}`;
+                    }
+                    // Si no coincide con ningún formato esperado, devolver original
+                    return numero;
+                };
+
+                const telefonoFormateado = formatearTelefono(cellValue);
+                return (
+                    <Tooltip content={telefonoFormateado} delay={300}>
+                        <span className="text-sm cursor-help">
+                            {telefonoFormateado}
+                        </span>
+                    </Tooltip>
+                );
+
+            case "estadoTexto":
+                // Mostrar estado con chip colorido
+                const estadoColor = cellValue === "Activo" ? "success" : "danger";
+                return (
+                    <Chip
+                        size="sm"
+                        variant="flat"
+                        color={estadoColor}
+                    >
+                        {cellValue}
+                    </Chip>
+                );
+
             case "acciones":
                 if (mostrarAcciones) {
                     return (
@@ -220,7 +307,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                                 >
                                     {values.map((value) => (
                                         <DropdownItem key={value} className="capitalize">
-                                            {labels ? labels[value] : value}
+                                            {labels ? capitalizarTexto(labels[value]) : capitalizarTexto(value)}
                                         </DropdownItem>
                                     ))}
                                 </DropdownMenu>

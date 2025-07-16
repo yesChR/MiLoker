@@ -31,7 +31,12 @@ const Admin = () => {
         try {
             setLoading(true);
             const data = await getAdministradores();
-            setAdministradores(data);
+            // Procesar datos para mostrar en la tabla
+            const administradoresProcessed = data.map(admin => ({
+                ...admin,
+                estadoTexto: admin.estado === 1 ? 'Activo' : 'Inactivo'
+            }));
+            setAdministradores(administradoresProcessed);
         } catch (error) {
             console.error('Error al cargar administradores:', error);
             Toast.error('Error', 'Error al cargar los datos iniciales');
@@ -106,16 +111,16 @@ const Admin = () => {
 
     const columnas = [
         { name: "Cédula", uid: "cedula" },
-        { name: "Nombre completo", uid: "nombreCompleto" },
+        { name: "Nombre", uid: "nombreCompleto" },
         { name: "Correo", uid: "correo" },
         { name: "Teléfono", uid: "telefono" },
-        { name: "Estado", uid: "estado" },
+        { name: "Estado", uid: "estadoTexto" },
         { name: "Acciones", uid: "acciones" },
     ];
 
     // Definir filterOptions para evitar ReferenceError
     const filterOptions = [
-        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+        { field: "estadoTexto", label: "Estado", values: ["Activo", "Inactivo"] },
     ];
 
     const handleEditar = (item) => {

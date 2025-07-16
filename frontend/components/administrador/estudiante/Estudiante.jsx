@@ -36,8 +36,10 @@ const Estudiante = () => {
             // Procesar datos para mostrar en la tabla
             const estudiantesProcessed = data.map(estudiante => ({
                 ...estudiante,
-                nombreCompleto: `${estudiante.nombre} ${estudiante.apellidoUno} ${estudiante.apellidoDos}`,
                 especialidadNombre: estudiante.especialidad?.nombre || 'No asignada',
+                especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
+                    ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
+                    : estudiante.especialidad?.nombre || 'No asignada',
                 estadoTexto: estudiante.estado === 1 ? 'Activo' : 'Inactivo'
             }));
             setEstudiantes(estudiantesProcessed);
@@ -142,11 +144,10 @@ const Estudiante = () => {
 
     const columnas = [
         { name: "Cédula", uid: "cedula" },
-        { name: "Nombre completo", uid: "nombreCompleto" },
+        { name: "Nombre", uid: "nombreCompleto" },
         { name: "Correo", uid: "correo" },
-        { name: "Teléfono", uid: "telefono" },
         { name: "Sección", uid: "seccion" },
-        { name: "Especialidad", uid: "especialidadNombre" },
+        { name: "Especialidad", uid: "especialidadCorta" },
         { name: "Estado", uid: "estadoTexto" },
         { name: "Acciones", uid: "acciones" },
     ];
@@ -155,6 +156,7 @@ const Estudiante = () => {
     const filterOptions = [
         { field: "estadoTexto", label: "Estado", values: ["Activo", "Inactivo"] },
         { field: "especialidadNombre", label: "Especialidad", values: especialidades.map(esp => esp.nombre) },
+        { field: "seccion", label: "Sección", values: [...new Set(estudiantes.map(est => est.seccion).filter(Boolean))] },
     ];
 
     const handleEditar = (item) => {

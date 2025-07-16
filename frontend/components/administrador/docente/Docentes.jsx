@@ -56,10 +56,11 @@ const Docentes = () => {
     // QUITADO columna especialidad
     const columnas = [
         { name: "Cédula", uid: "cedula" },
-        { name: "Nombre completo", uid: "nombreCompleto" },
+        { name: "Nombre", uid: "nombreCompleto" },
         { name: "Correo", uid: "correo" },
         { name: "Teléfono", uid: "telefono" },
-        { name: "Estado", uid: "estado" },
+        { name: "Especialidad", uid: "especialidadCorta" },
+        { name: "Estado", uid: "estadoTexto" },
         { name: "Acciones", uid: "acciones" },
     ];
 
@@ -67,9 +68,18 @@ const Docentes = () => {
     const [loading, setLoading] = useState(true); // AGREGADO siguiendo Admin
 
     useEffect(() => {
-        cargarDocentes();
-        cargarEspecialidades();
+        const cargarDatos = async () => {
+            await cargarEspecialidades();
+        };
+        cargarDatos();
     }, []);
+
+    // Cargar docentes cuando se carguen las especialidades
+    useEffect(() => {
+        if (especialidades.length > 0) {
+            cargarDocentes();
+        }
+    }, [especialidades]);
 
     // AGREGADO siguiendo Admin
     const cargarEspecialidades = async () => {
@@ -87,7 +97,19 @@ const Docentes = () => {
         try {
             setLoading(true);
             const data = await getDocentes();
-            setDatosDocentes(data);
+            // Procesar datos para mostrar en la tabla
+            const docentesProcessed = data.map(docente => {
+                const especialidadObj = especialidades.find(e => e.idEspecialidad?.toString() === docente.idEspecialidad?.toString());
+                return {
+                    ...docente,
+                    especialidadNombre: especialidadObj ? especialidadObj.nombre : "Sin especialidad",
+                    especialidadCorta: especialidadObj && especialidadObj.nombre?.length > 15 
+                        ? especialidadObj.nombre.substring(0, 15) + '...' 
+                        : (especialidadObj ? especialidadObj.nombre : "Sin especialidad"),
+                    estadoTexto: docente.estado === 1 ? 'Activo' : 'Inactivo'
+                };
+            });
+            setDatosDocentes(docentesProcessed);
         } catch (error) {
             console.error("Error al cargar docentes:", error);
             Toast.error("Error", "Error al cargar docentes");
@@ -189,18 +211,11 @@ const Docentes = () => {
 
     // CORREGIDO filtro por especialidad (solo ids como value, opcional labels)
     const filterOptions = [
-        { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
+        { field: "estadoTexto", label: "Estado", values: ["Activo", "Inactivo"] },
         {
-            field: "idEspecialidad",
+            field: "especialidadNombre",
             label: "Especialidad",
-            values: especialidades.map(e => e.idEspecialidad?.toString()),
-            labels: especialidades.reduce((acc, e) => {
-                const nombreFormateado = e.nombre
-                    ? e.nombre.charAt(0).toUpperCase() + e.nombre.slice(1).toLowerCase()
-                    : "";
-                acc[e.idEspecialidad?.toString()] = nombreFormateado;
-                return acc;
-            }, {})
+            values: [...new Set(datosDocentes.map(doc => doc.especialidadNombre).filter(Boolean))]
         }
     ];
 
@@ -229,14 +244,7 @@ const Docentes = () => {
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
                         columns={columnas}
-                        data={datosDocentes.map((doc) => {
-                            const especialidadObj = especialidades.find(e => e.idEspecialidad?.toString() === doc.idEspecialidad?.toString());
-                            return {
-                                ...doc,
-                                nombreCompleto: `${doc.nombre || ""} ${doc.apellidoUno || doc.primerApellido || ""} ${doc.apellidoDos || doc.segundoApellido || ""}`.trim(),
-                                especialidadNombre: especialidadObj ? especialidadObj.nombre : "Sin especialidad"
-                            };
-                        })}
+                        data={datosDocentes}
                         acciones={acciones}
                         filterOptions={filterOptions}
                         onOpen={onOpen}
