@@ -5,9 +5,11 @@ import { ESTADOS } from "../../common/estados.js";
 export const crearEspecialidad = async (req, res) => {
     const { nombre } = req.body;
     try {
-        const existeEspecialidad = await Especialidad.findOne({ where: { nombre: nombre } }); 
+        // Convertir nombre a mayúsculas para almacenamiento
+        const nombreMayusculas = nombre.toUpperCase();
+        const existeEspecialidad = await Especialidad.findOne({ where: { nombre: nombreMayusculas } }); 
         if (existeEspecialidad === null) {
-            const nuevaEspecialidad = await Especialidad.create({ nombre, estado: ESTADOS.ACTIVO });
+            const nuevaEspecialidad = await Especialidad.create({ nombre: nombreMayusculas, estado: ESTADOS.ACTIVO });
             await nuevaEspecialidad.save();
             res.status(201).json({ message: "Especialidad creada exitosamente" });
         }
@@ -50,10 +52,12 @@ export const editarEspecialidad = async (req, res) => {
     try {
         const existeEspecialidad = await Especialidad.findByPk(idEspecialidad);
         if (existeEspecialidad !== null) {
-            const existeNombre = await Especialidad.findOne({ where: { nombre: nombre } });
+            // Convertir nombre a mayúsculas para almacenamiento
+            const nombreMayusculas = nombre.toUpperCase();
+            const existeNombre = await Especialidad.findOne({ where: { nombre: nombreMayusculas } });
             if (existeNombre === null || existeNombre.idEspecialidad == idEspecialidad) {
                 await Especialidad.update(
-                    { nombre, estado },
+                    { nombre: nombreMayusculas, estado },
                     { where: { idEspecialidad: idEspecialidad } }
                 );
                 res.status(201).json({ message: "Especialidad editada exitosamente" });
