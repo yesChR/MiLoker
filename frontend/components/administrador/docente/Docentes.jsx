@@ -137,7 +137,7 @@ const Docentes = () => {
                 apellidoDos: selectedItem?.apellidoDos,
                 correo: selectedItem?.correo,
                 telefono: selectedItem?.telefono,
-                estado: selectedItem?.estado ?? ESTADOS.ACTIVO,
+                estado: ESTADOS.ACTIVO, // Siempre activo al crear
                 rol: ROLES.PROFESOR,
                 idEspecialidad: especialidad ? Number(especialidad) : null
             };
