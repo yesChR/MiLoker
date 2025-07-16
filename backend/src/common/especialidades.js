@@ -22,7 +22,6 @@ function getEspecialidadesPorDefecto() {
 export async function obtenerEspecialidades() {
     try {
         const especialidades = await Especialidad.findAll({
-            where: { estado: 1 }, // Solo especialidades activas
             attributes: ['idEspecialidad', 'nombre'],
             order: [['idEspecialidad', 'ASC']]
         });
