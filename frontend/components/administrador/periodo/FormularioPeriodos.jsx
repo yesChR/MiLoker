@@ -100,6 +100,7 @@ const FormularioPeriodos = ({
                             placeholder="Selecciona una fecha"
                             minValue={fechaActual}
                             isDisabled={loading || loadingData}
+                            locale="es-ES"
                         />
                     </div>
                     <div className="w-full sm:w-1/2">
@@ -114,6 +115,7 @@ const FormularioPeriodos = ({
                             placeholder="Selecciona una fecha"
                             minValue={fechaMinimaFinSolicitud}
                             isDisabled={loading || loadingData}
+                            locale="es-ES"
                         />
                     </div>
                 </div>
@@ -131,6 +133,7 @@ const FormularioPeriodos = ({
                             placeholder="Selecciona una fecha"
                             minValue={fechaMinimaInicioAsignacion}
                             isDisabled={loading || loadingData}
+                            locale="es-ES"
                         />
                     </div>
                     <div className="w-full sm:w-1/2">
@@ -145,6 +148,7 @@ const FormularioPeriodos = ({
                             placeholder="Selecciona una fecha"
                             minValue={fechaMinimaFinAsignacion}
                             isDisabled={loading || loadingData}
+                            locale="es-ES"
                         />
                     </div>
                 </div>

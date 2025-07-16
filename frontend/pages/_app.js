@@ -10,7 +10,7 @@ export default function App({ Component, pageProps }) {
   const noLayoutPages = ["/auth/login"];
 
   return (
-    <HeroUIProvider>
+    <HeroUIProvider locale="es-ES">
       <ToastProvider placement={"top-right"} toastOffset={60} />
       {noLayoutPages.includes(router.pathname) ? (
         <Component {...pageProps} />

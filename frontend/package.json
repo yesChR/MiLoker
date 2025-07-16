@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroui/react": "^2.7.5",
+    "@internationalized/date": "^3.8.2",
     "classnames": "^2.5.1",
     "framer-motion": "^12.5.0",
     "next": "^15.2.4",
