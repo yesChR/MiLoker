@@ -50,11 +50,11 @@ export const Estudiante = sequelize.define("estudiante", {
 
 Estudiante.belongsTo(Usuario, {
   foreignKey: 'cedula',
-  as: 'estudiante'
+  as: 'usuario'
 });
 Usuario.hasOne(Estudiante, {
   foreignKey: 'cedula',
-  as: 'usuario'
+  as: 'estudiante'
 });
 
 Estudiante.belongsTo(Especialidad, {

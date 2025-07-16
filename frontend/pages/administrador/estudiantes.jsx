@@ -1,4 +1,4 @@
-import Estudiante from "@/components/administrador/Estudiante";
+import Estudiante from "../../components/administrador/estudiante/Estudiante";
 
 const EstudiantesPage = () => {
     return (
