@@ -15,7 +15,7 @@ import usuarios from "./routes/docente/usuarios.routes.js";
 import alertas from "./routes/docente/alertas.routes.js";
 
 const app = express();
-const cors = require("cors");
+import cors from 'cors';
 
 // Configuración
 app.set("port", config.port);

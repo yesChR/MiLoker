@@ -169,7 +169,7 @@ export const visualizar = async (req, res) => {
             include: [
                 {
                     model: Usuario,
-                    as: "usuario",
+                    as: "usuario", // Ahora usamos 'usuario' como alias
                     attributes: ["cedula", "nombreUsuario", "rol"]
                 },
                 {
@@ -184,7 +184,7 @@ export const visualizar = async (req, res) => {
         });
         res.status(200).json(estudiantes);
     } catch (error) {
-        res.status(500).json({ error: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor", detalle: error.message });
     }
 };
 
