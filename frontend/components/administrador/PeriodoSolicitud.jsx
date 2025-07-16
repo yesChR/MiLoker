@@ -72,7 +72,7 @@ const PeriodoSolicitud = () => {
                     <div
                         key={index}
                         className={`flex flex-col items-center justify-center p-4 rounded-lg shadow-md ${tarjeta.color} w-full sm:w-[325px] h-[100px] ${tarjeta.titulo === "Restablecer"
-                            ? "cursor-pointer hover:shadow-lg hover:bg-red-300"
+                            ? "cursor-pointer hover:shadow-lg hover:bg-red-300 transition-transform duration-200 hover:scale-105"
                             : ""
                             }`}
                         onClick={() => {

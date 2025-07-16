@@ -1,4 +1,4 @@
-import TiposSanciones from "@/components/administrador/TiposSanciones";
+import TiposSanciones from "@/components/administrador/sancion/TiposSanciones";
 
 const TiposSancionesPage = () => {
     return (
