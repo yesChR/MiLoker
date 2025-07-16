@@ -1,22 +1,32 @@
-import CabezeraDinamica from "../Layout/CabeceraDinamica";
-import TablaDinamica from "../Tabla";
+import CabezeraDinamica from "../../Layout/CabeceraDinamica";
+import TablaDinamica from "../../Tabla";
 import { BiEditAlt, BiUnderline } from "react-icons/bi";
-import { DeleteIcon } from "../icons/DeleteIcon";
 import { Drawer, Form, Select } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
-import DrawerGeneral from "../DrawerGeneral";
-import { Input, SelectItem, Chip } from "@heroui/react";
-import Toast from "../CustomAlert";
+import DrawerGeneral from "../../DrawerGeneral";
+import Toast from "../../CustomAlert";
 import React, { useState, useEffect } from "react";
-import { ESTADOS } from "../common/estados";
+import { ESTADOS } from "../../common/estados";
+import FormCrear from "./FormCrear";
+import FormEditar from "./FormEditar";
 
 const Especialidades = () => {
+    // Funciones de submit reales para los formularios
+    const handleFormCrearSubmit = async (formData) => {
+        await handleCrearEspecialidad(formData);
+    };
+    const handleFormEditarSubmit = async (formData) => {
+        await handleEditarEspecialidad(formData);
+    };
+    const formCrearRef = React.useRef();
+    const formEditarRef = React.useRef();
     const [showErrors, setShowErrors] = useState(false);
     const [drawerLoading, setDrawerLoading] = useState(false);
+
     // Función para recargar especialidades después de crear/editar/eliminar
     const recargarEspecialidades = async () => {
         try {
-            const { getEspecialidades } = await import("../../services/especialidadService");
+            const { getEspecialidades } = await import("../../../services/especialidadService");
             const especialidades = await getEspecialidades();
             setEspecialidades(especialidades);
         } catch (error) {
@@ -30,8 +40,15 @@ const Especialidades = () => {
             setShowErrors(true);
             return;
         }
+        // Validar nombre duplicado
+        const nombreNormalizado = selectedItem.nombre.trim().toLowerCase();
+        const existe = especialidades.some(e => e.nombre.trim().toLowerCase() === nombreNormalizado);
+        if (existe) {
+            return;
+        }
+        setDrawerLoading(true);
         try {
-            const { createEspecialidad } = await import("../../services/especialidadService");
+            const { createEspecialidad } = await import("../../../services/especialidadService");
             await createEspecialidad({ nombre: selectedItem.nombre, estado: ESTADOS.ACTIVO });
             Toast.success("Especialidad creada exitosamente");
             onOpenChange();
@@ -41,6 +58,8 @@ const Especialidades = () => {
         } catch (error) {
             Toast.error("Error al crear especialidad");
             console.error("Error al crear especialidad:", error);
+        } finally {
+            setDrawerLoading(false);
         }
     };
 
@@ -50,8 +69,18 @@ const Especialidades = () => {
             setShowErrors(true);
             return;
         }
+        // Validar nombre duplicado (ignorando el propio id)
+        const nombreNormalizado = selectedItem.nombre.trim().toLowerCase();
+        const existe = especialidades.some(e =>
+            e.nombre.trim().toLowerCase() === nombreNormalizado &&
+            (e.idEspecialidad || e.id || e._id) !== selectedItem.id
+        );
+        if (existe) {
+            return;
+        }
+        setDrawerLoading(true);
         try {
-            const { updateEspecialidad } = await import("../../services/especialidadService");
+            const { updateEspecialidad } = await import("../../../services/especialidadService");
             // Log para depuración
             console.log("Enviando a updateEspecialidad:", {
                 id: selectedItem.id,
@@ -75,19 +104,11 @@ const Especialidades = () => {
                 Toast.error("Error al editar especialidad");
                 console.error("Error al editar especialidad:", error);
             }
+        } finally {
+            setDrawerLoading(false);
         }
     };
 
-    // Eliminar especialidad
-    const handleEliminarEspecialidad = async (item) => {
-        try {
-            const { deleteEspecialidad } = await import("../../services/especialidadService");
-            await deleteEspecialidad(item.id);
-            await recargarEspecialidades();
-        } catch (error) {
-            console.error("Error al eliminar especialidad:", error);
-        }
-    };
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState(null); // Elemento seleccionado para editar/crear
     const [accion, setAccion] = useState(""); // "Editar" o "Crear"
@@ -109,7 +130,7 @@ const Especialidades = () => {
     useEffect(() => {
         const fetchEspecialidades = async () => {
             try {
-                const { getEspecialidades } = await import("../../services/especialidadService");
+                const { getEspecialidades } = await import("../../../services/especialidadService");
                 const especialidades = await getEspecialidades();
                 setEspecialidades(especialidades);
             } catch (error) {
@@ -142,7 +163,6 @@ const Especialidades = () => {
         }
     ];
 
-    // Abrir drawer para crear especialidad y limpiar el formulario
     const handleAbrirCrear = () => {
         setAccion(0);
         setSelectedItem({ nombre: "" });
@@ -177,14 +197,20 @@ const Especialidades = () => {
                     titulo={accion === 1 ? "Editar Especialidad" : "Agregar Especialidad"}
                     size={"sm"}
                     isOpen={isOpen}
-                    // Evita que el Drawer se cierre por onOpenChange mientras está cargando
                     onOpenChange={(open) => {
                         if (!drawerLoading && open === false) onOpenChange(open);
                     }}
                     textoBotonPrimario={accion === 1 ? "Editar" : "Agregar"}
                     onBotonPrimario={async () => {
-                        if (!drawerLoading) {
-                            return accion === 1 ? handleEditarEspecialidad() : handleCrearEspecialidad();
+                        if (drawerLoading) return;
+                        if (accion === 1) {
+                            // Editar
+                            const valid = await formEditarRef.current?.validateAndSubmit?.();
+                            if (valid) await handleEditarEspecialidad();
+                        } else {
+                            // Crear
+                            const valid = await formCrearRef.current?.validateAndSubmit?.();
+                            if (valid) await handleCrearEspecialidad();
                         }
                     }}
                     onBotonSecundario={async () => {
@@ -197,80 +223,19 @@ const Especialidades = () => {
                     disableClose={drawerLoading}
                 >
                     {accion === 1 ? (
-                        <Form>
-                            <Input
-                                label="Nombre"
-                                placeholder="Salud Ocupacional"
-                                isRequired
-                                value={selectedItem ? selectedItem.nombre : ""}
-                                onChange={(e) => {
-                                    setSelectedItem((prev) => ({
-                                        ...prev,
-                                        nombre: e.target.value,
-                                    }));
-                                    if (showErrors) setShowErrors(false);
-                                }}
-                                variant={"bordered"}
-                                className="focus:border-primario"
-                                color={showErrors && !selectedItem?.nombre ? "danger" : "primary"}
-                                isInvalid={showErrors && !selectedItem?.nombre}
-                                errorMessage={showErrors && !selectedItem?.nombre ? "El nombre es obligatorio" : ""}
-                            />
-                            <Select
-                                isRequired
-                                label="Estado"
-                                name="estado"
-                                selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
-                                onSelectionChange={(keys) => {
-                                    const selectedValue = Number(Array.from(keys)[0]);
-                                    setSelectedItem((prev) => ({
-                                        ...prev,
-                                        estado: selectedValue,
-                                    }));
-                                }}
-                                variant="bordered"
-                                className="focus:border-primario"
-                                color="primary"
-                                isInvalid={showErrors && (!selectedItem?.estado && selectedItem?.estado !== 0)}
-                                errorMessage="El estado es obligatorio"
-                            >
-                                <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
-                                    <div className="flex items-center gap-2">
-                                        <Chip color="success" variant="flat" size="sm">
-                                            Activo
-                                        </Chip>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO} textValue="Inactivo">
-                                    <div className="flex items-center gap-2">
-                                        <Chip color="danger" variant="flat" size="sm">
-                                            Inactivo
-                                        </Chip>
-                                    </div>
-                                </SelectItem>
-                            </Select>
-                        </Form>
+                        <FormEditar
+                            ref={formEditarRef}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            especialidades={especialidades}
+                        />
                     ) : (
-                        <Form>
-                            <Input
-                                label="Nombre"
-                                placeholder="Salud Ocupacional"
-                                isRequired
-                                value={selectedItem ? selectedItem.nombre : ""}
-                                onChange={(e) => {
-                                    setSelectedItem((prev) => ({
-                                        ...prev,
-                                        nombre: e.target.value,
-                                    }));
-                                    if (showErrors) setShowErrors(false);
-                                }}
-                                variant={"bordered"}
-                                className="focus:border-primario"
-                                color={showErrors && !selectedItem?.nombre ? "danger" : "primary"}
-                                isInvalid={showErrors && !selectedItem?.nombre}
-                                errorMessage={showErrors && !selectedItem?.nombre ? "El nombre es obligatorio" : ""}
-                            />
-                        </Form>
+                        <FormCrear
+                            ref={formCrearRef}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
+                            especialidades={especialidades}
+                        />
                     )}
                 </DrawerGeneral>
             </div>

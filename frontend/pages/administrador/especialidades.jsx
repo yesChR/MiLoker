@@ -1,4 +1,4 @@
-import Especialidades from "@/components/administrador/Especialidades";
+import Especialidades from "@/components/administrador/Especialidad/Especialidades";
 
 const EspecialidadesPage = () => {
     return (
