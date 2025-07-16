@@ -68,7 +68,7 @@ const FormCrear = forwardRef(({ selectedItem, setSelectedItem, sanciones }, ref)
                 />
                 <label className={`absolute left-3 top-2 text-base pointer-events-none transition-all duration-200
                     text-xs top-2
-                    ${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-blue-600'}
+                    ${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-primario'}
                     `}
                 > Detalle<span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
                 {showErrors && !selectedItem?.detalle?.trim() && (
