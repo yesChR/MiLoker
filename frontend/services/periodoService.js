@@ -142,6 +142,20 @@ export const getPeriodoPorId = async (idPeriodo) => {
     }
 };
 
+// Obtener períodos para mostrar en tarjetas
+export const getPeriodosParaTarjetas = async () => {
+    try {
+        const response = await fetch(`${API_URL}/administrativo/periodo/tarjetas`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return await handleResponse(response);
+    } catch (error) {
+        console.error('Error al obtener períodos para tarjetas:', error);
+        throw error;
+    }
+};
+
 // Formatear fecha para mostrar
 export const formatearFecha = (fecha) => {
     if (!fecha) return "No definida";

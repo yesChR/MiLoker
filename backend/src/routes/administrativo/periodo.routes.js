@@ -6,6 +6,7 @@ import {
     verificarPeriodoVigente,
     restablecerAsignaciones,
     obtenerEstadoPeriodos,
+    obtenerPeriodosParaTarjetas,
     obtenerHistorialPeriodos,
     obtenerPeriodoPorId
 } from '../../controllers/administrativo/periodo.controller.js';
@@ -18,6 +19,7 @@ router.get('/activo/:tipo', obtenerPeriodoActivo);
 router.get('/vigente/:tipo', verificarPeriodoVigente);
 router.delete('/restablecer', restablecerAsignaciones);
 router.get('/estado', obtenerEstadoPeriodos);
+router.get('/tarjetas', obtenerPeriodosParaTarjetas);
 router.get('/historial/:tipo', obtenerHistorialPeriodos);
 router.get('/:idPeriodo', obtenerPeriodoPorId);
 

@@ -12,10 +12,24 @@ const FormularioPeriodos = ({
     setFinAsignacion,
     onSubmit,
     loading,
-    loadingData
+    loadingData,
+    periodos // Agregar prop para verificar períodos vencidos
 }) => {
     // Obtener la fecha actual como mínima
     const fechaActual = today(getLocalTimeZone());
+    
+    // Verificar si algún período está vencido
+    const verificarPeriodosVencidos = () => {
+        if (!periodos || periodos.length === 0) return false;
+        
+        const ahora = new Date();
+        return periodos.some(periodo => {
+            const fechaFin = new Date(periodo.fechaFin);
+            return fechaFin < ahora;
+        });
+    };
+    
+    const hayPeriodosVencidos = verificarPeriodosVencidos();
     
     // Calcular fechas mínimas dinámicamente
     const fechaMinimaFinSolicitud = inicioSolicitud ? inicioSolicitud.add({ days: 1 }) : fechaActual.add({ days: 1 });
@@ -60,6 +74,17 @@ const FormularioPeriodos = ({
             <div className="bg-primario text-white p-2 rounded-md font-bold">
                 {loadingData ? "Cargando datos..." : "Fechas de períodos activos"}
             </div>
+            
+            {/* Mensaje de advertencia para períodos vencidos */}
+            {hayPeriodosVencidos && (
+                <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-sm text-red-700">
+                        <strong>⚠️ Períodos Vencidos:</strong> Hay períodos que han expirado. 
+                        Debe restablecer las asignaciones antes de poder actualizar los períodos.
+                    </p>
+                </div>
+            )}
+            
             <div className="mt-4 flex flex-col text-left">
                 <label className="block font-bold text-gray-700 mb-2">Período de solicitud: <span className="text-red-500">*</span></label>
                 <div className="flex flex-wrap gap-4 sm:flex-nowrap">
@@ -126,11 +151,12 @@ const FormularioPeriodos = ({
                 <div className="flex justify-end mt-4">
                     <Button 
                         type="submit" 
-                        className="bg-primario text-white w-[160px]"
+                        className={`w-[160px] ${hayPeriodosVencidos ? 'bg-gray-400 cursor-not-allowed' : 'bg-primario'} text-white`}
                         isLoading={loading}
-                        disabled={loading || loadingData}
+                        disabled={loading || loadingData || hayPeriodosVencidos}
+                        title={hayPeriodosVencidos ? "Debe restablecer las asignaciones primero" : ""}
                     >
-                        {loading ? "Actualizando..." : "Actualizar"}
+                        {loading ? "Actualizando..." : hayPeriodosVencidos ? "Bloqueado" : "Actualizar"}
                     </Button>
                 </div>
             </div>

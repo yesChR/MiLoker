@@ -155,22 +155,16 @@ export const restablecerAsignaciones = async (req, res) => {
     const t = await sequelize.transaction();
     
     try {
-        // Eliminar todas las relaciones estudiante-casillero
+        // Solo eliminar las relaciones estudiante-casillero (asignaciones)
         await EstudianteXCasillero.destroy({ 
             where: {},
             transaction: t 
         });
 
-        // Opcional: También eliminar todas las solicitudes
-        await Solicitud.destroy({ 
-            where: {},
-            transaction: t 
-        });
-
-        // Desactivar todos los períodos
+        // Desactivar todos los períodos activos
         await Periodo.update(
             { estado: ESTADOS.INACTIVO },
-            { where: {}, transaction: t }
+            { where: { estado: ESTADOS.ACTIVO }, transaction: t }
         );
 
         await t.commit();
@@ -195,25 +189,8 @@ export const obtenerEstadoPeriodos = async (req, res) => {
             order: [['tipo', 'ASC'], ['idPeriodo', 'DESC']]
         });
 
-        // Si no hay períodos activos, obtener los más recientes de cada tipo
-        let periodos = periodosActivos;
-        
-        if (periodosActivos.length === 0) {
-            const periodoSolicitud = await Periodo.findOne({
-                where: { tipo: 2 },
-                order: [['idPeriodo', 'DESC']]
-            });
-            
-            const periodoAsignacion = await Periodo.findOne({
-                where: { tipo: 1 },
-                order: [['idPeriodo', 'DESC']]
-            });
-
-            periodos = [periodoAsignacion, periodoSolicitud].filter(Boolean);
-        }
-
-        // Simplificar respuesta - solo agregar texto descriptivo
-        const estadoPeriodos = periodos.map(periodo => ({
+        // Solo devolver períodos activos - si no hay, array vacío para habilitar formulario
+        const estadoPeriodos = periodosActivos.map(periodo => ({
             ...periodo.toJSON(),
             tipoTexto: periodo.tipo === 1 ? 'Asignación' : 'Solicitud'
         }));
@@ -268,6 +245,47 @@ export const obtenerPeriodoPorId = async (req, res) => {
             ...periodo.toJSON(),
             tipoTexto: periodo.tipo === 1 ? 'Asignación' : 'Solicitud'
         });
+    } catch (error) {
+        res.status(500).json({
+            error: "Error interno del servidor",
+            detalle: error.message
+        });
+    }
+};
+
+// Obtener períodos para mostrar en tarjetas (incluyendo los más recientes si no hay activos)
+export const obtenerPeriodosParaTarjetas = async (req, res) => {
+    try {
+        // Obtener todos los períodos activos de ambos tipos
+        const periodosActivos = await Periodo.findAll({
+            where: { estado: ESTADOS.ACTIVO },
+            order: [['tipo', 'ASC'], ['idPeriodo', 'DESC']]
+        });
+
+        // Si no hay períodos activos, obtener los más recientes de cada tipo
+        let periodos = periodosActivos;
+        
+        if (periodosActivos.length === 0) {
+            const periodoSolicitud = await Periodo.findOne({
+                where: { tipo: 2 },
+                order: [['idPeriodo', 'DESC']]
+            });
+            
+            const periodoAsignacion = await Periodo.findOne({
+                where: { tipo: 1 },
+                order: [['idPeriodo', 'DESC']]
+            });
+
+            periodos = [periodoAsignacion, periodoSolicitud].filter(Boolean);
+        }
+
+        // Agregar texto descriptivo
+        const estadoPeriodos = periodos.map(periodo => ({
+            ...periodo.toJSON(),
+            tipoTexto: periodo.tipo === 1 ? 'Asignación' : 'Solicitud'
+        }));
+
+        res.status(200).json(estadoPeriodos);
     } catch (error) {
         res.status(500).json({
             error: "Error interno del servidor",
