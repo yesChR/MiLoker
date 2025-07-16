@@ -35,7 +35,6 @@ const Docentes = () => {
                 idEspecialidad: especialidad ? Number(especialidad) : null
             };
             await updateDocente(formData.cedula, docenteData);
-            Toast.success("Docente editado", "El docente fue editado exitosamente.");
             await cargarDocentes();
             setSelectedItem(null);
             setEspecialidad("");
