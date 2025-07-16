@@ -6,16 +6,21 @@ const FormCrear = forwardRef(({ selectedItem, setSelectedItem, sanciones }, ref)
     const [showErrors, setShowErrors] = useState(false);
     const [duplicado, setDuplicado] = useState(false);
 
+
     const validateAndSubmit = () => {
         setShowErrors(true);
         setDuplicado(false);
-        if (!selectedItem?.gravedad || !selectedItem?.detalle || selectedItem.estado === undefined) {
+        if (
+            !selectedItem?.gravedad?.trim() ||
+            !selectedItem?.detalle?.trim()
+        ) {
             return false;
         }
-        // Validar duplicado (gravedad + detalle)
+        // Validar duplicado (ignorando el propio id)
         const existe = sanciones?.some(s =>
             s.gravedad.trim().toLowerCase() === selectedItem.gravedad.trim().toLowerCase() &&
-            s.detalle.trim().toLowerCase() === selectedItem.detalle.trim().toLowerCase()
+            s.detalle.trim().toLowerCase() === selectedItem.detalle.trim().toLowerCase() &&
+            (s.idSancion || s.id) !== selectedItem.id
         );
         if (existe) {
             setDuplicado(true);
@@ -32,58 +37,45 @@ const FormCrear = forwardRef(({ selectedItem, setSelectedItem, sanciones }, ref)
         <Form autoComplete="off">
             <Input
                 label="Gravedad"
-                placeholder="Gravedad"
+                placeholder="Muy alta"
                 isRequired
                 value={selectedItem ? selectedItem.gravedad : ""}
-                onChange={e => setSelectedItem(prev => ({ ...prev, gravedad: e.target.value }))}
-                status={showErrors && !selectedItem?.gravedad ? "error" : undefined}
-                errorMessage={showErrors && !selectedItem?.gravedad ? "La gravedad es obligatoria" : undefined}
-            />
-            <textarea
-                placeholder="Detalle de la sanción"
-                className="border-2 border-gray-300 rounded-2xl p-2 w-full h-32 resize-none focus:border-blue-500 hover:border-gray-400 placeholder:text-sm text-gray-900 mt-4"
-                value={selectedItem ? selectedItem.detalle : ""}
-                onChange={e => setSelectedItem(prev => ({ ...prev, detalle: e.target.value }))}
-            />
-            {showErrors && !selectedItem?.detalle && (
-                <div className="text-red-500 text-xs mt-1">El detalle es obligatorio</div>
-            )}
-            {duplicado && (
-                <div className="text-red-500 text-xs mt-1">Ya existe una sanción con esa gravedad y detalle</div>
-            )}
-            <Select
-                isRequired
-                label="Estado"
-                name="estado"
-                selectedKeys={selectedItem?.estado !== undefined ? [selectedItem.estado.toString()] : []}
-                onSelectionChange={(keys) => {
-                    const selectedValue = Number(Array.from(keys)[0]);
+                onChange={(e) => {
                     setSelectedItem((prev) => ({
                         ...prev,
-                        estado: selectedValue,
+                        gravedad: e.target.value,
                     }));
+                    if (showErrors) setShowErrors(false);
+                    if (duplicado) setDuplicado(false);
                 }}
-                variant="bordered"
-                className="focus:border-primario mt-4"
-                color="primary"
-                isInvalid={showErrors && (!selectedItem?.estado && selectedItem?.estado !== 0)}
-                errorMessage="El estado es obligatorio"
-            >
-                <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
-                    <div className="flex items-center gap-2">
-                        <Chip color="success" variant="flat" size="sm">
-                            Activo
-                        </Chip>
-                    </div>
-                </SelectItem>
-                <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO} textValue="Inactivo">
-                    <div className="flex items-center gap-2">
-                        <Chip color="danger" variant="flat" size="sm">
-                            Inactivo
-                        </Chip>
-                    </div>
-                </SelectItem>
-            </Select>
+                variant={"bordered"}
+                className="focus:border-primario"
+                color={showErrors && (!selectedItem?.gravedad?.trim() || duplicado) ? "danger" : "primary"}
+                isInvalid={showErrors && (!selectedItem?.gravedad?.trim() || duplicado)}
+                errorMessage={
+                    duplicado
+                        ? "Ya existe una gravedad con ese nombre"
+                        : "La gravedad es obligatoria"
+                }
+            />
+            <div className="relative w-full mt-4">
+                <textarea
+                    placeholder="Almacenamiento de comida"
+                    className={`border-2 rounded-2xl p-2 pt-7 w-full h-32 resize-y placeholder:text-sm text-sm text-gray-600 focus:border-blue-500 focus:outline-none peer border-gray-300`}
+                    value={selectedItem ? selectedItem.detalle : ""}
+                    onChange={e => setSelectedItem(prev => ({ ...prev, detalle: e.target.value }))}
+                    required
+                />
+                <label className={`absolute left-3 top-2 text-base pointer-events-none transition-all duration-200
+                    text-xs top-2
+                    ${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-blue-600'}
+                    `}
+                >Detalle<span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
+                {showErrors && !selectedItem?.detalle?.trim() && (
+                    <div className="text-danger text-xs mt-1">El detalle es obligatorio</div>
+                )}
+            </div>
+
         </Form>
     );
 });

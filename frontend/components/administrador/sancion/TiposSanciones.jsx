@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as sancionService from "../../../services/sancionService";
 import Toast from "../../CustomAlert";
 import { Chip } from "@heroui/react";
+import { ESTADOS } from "../../common/estados";
 
 const TiposSanciones = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -87,7 +88,7 @@ const TiposSanciones = () => {
             await sancionService.createSancion({
                 gravedad: selectedItem.gravedad,
                 detalle: selectedItem.detalle,
-                estado: 1
+                estado: ESTADOS.ACTIVO // Siempre activo
             });
             Toast.success("Sanción creada exitosamente");
             onOpenChange();

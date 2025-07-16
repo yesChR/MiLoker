@@ -2,7 +2,6 @@ import React, { useState, useImperativeHandle, forwardRef } from "react";
 import { Input, Form, Select, SelectItem } from "@heroui/react";
 import { ESTADOS } from "../../common/estados";
 import { Chip } from "@heroui/react";
-import { Textarea } from "@heroui/react";
 
 const FormEditar = forwardRef(({ selectedItem, setSelectedItem, sanciones, onSubmit }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
@@ -19,13 +18,12 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, sanciones, onSub
         ) {
             return false;
         }
-        // Validar duplicado (ignorando el propio id)
-        const existe = sanciones?.some(s =>
+        // Validar duplicado de gravedad (ignorando el propio id)
+        const gravedadDuplicada = sanciones?.some(s =>
             s.gravedad.trim().toLowerCase() === selectedItem.gravedad.trim().toLowerCase() &&
-            s.detalle.trim().toLowerCase() === selectedItem.detalle.trim().toLowerCase() &&
             (s.idSancion || s.id) !== selectedItem.id
         );
-        if (existe) {
+        if (gravedadDuplicada) {
             setDuplicado(true);
             return false;
         }
@@ -78,7 +76,7 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, sanciones, onSub
                     text-xs top-2
                     ${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-blue-600'}
                     `}
-                >Detalle <span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
+                >Detalle<span className={`${showErrors && !selectedItem?.detalle?.trim() ? 'text-danger' : 'text-danger'}`}>*</span></label>
                 {showErrors && !selectedItem?.detalle?.trim() && (
                     <div className="text-danger text-xs mt-1">El detalle es obligatorio</div>
                 )}
