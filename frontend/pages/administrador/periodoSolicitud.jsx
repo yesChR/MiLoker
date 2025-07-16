@@ -1,4 +1,4 @@
-import PeriodoSolicitud from "@/components/administrador/PeriodoSolicitud";
+import PeriodoSolicitud from "../../components/administrador/periodo/PeriodoSolicitud";
 
 const PeriodoSolicitudPage = () => {
     return (
