@@ -17,10 +17,10 @@ const FormCrear = forwardRef(({
         setShowErrors(true);
 
         // Validar campos requeridos
-        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo'];
+        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono', 'idEspecialidad'];
         const emptyFields = requiredFields.filter(field => {
             const value = selectedItem?.[field];
-            return !value || !value.trim();
+            return !value || !value.toString().trim();
         });
 
         if (emptyFields.length > 0) {
@@ -170,6 +170,7 @@ const FormCrear = forwardRef(({
                 errorMessage="El teléfono es obligatorio"
             />
             <Select
+                isRequired
                 label="Especialidad"
                 placeholder="Seleccione especialidad"
                 selectedKeys={selectedItem?.idEspecialidad ? [selectedItem.idEspecialidad.toString()] : []}
@@ -184,6 +185,8 @@ const FormCrear = forwardRef(({
                 variant="bordered"
                 className="focus:border-primario mt-2"
                 color="primary"
+                isInvalid={showErrors && (!selectedItem?.idEspecialidad || !selectedItem?.idEspecialidad.toString().trim())}
+                errorMessage="La especialidad es obligatoria"
             >
                 {especialidades.map((esp) => {
                     const nombreFormateado = esp.nombre

@@ -16,7 +16,7 @@ const FormEditar = forwardRef(({
         setShowErrors(true);
 
         // Validar campos requeridos (incluyendo cédula aunque esté deshabilitada)
-        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono'];
+        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono', 'idEspecialidad'];
         const emptyFields = requiredFields.filter(field => {
             const value = selectedItem?.[field];
             return !value || !value.toString().trim();
@@ -168,6 +168,7 @@ const FormEditar = forwardRef(({
                 errorMessage="El teléfono es obligatorio"
             />
             <Select
+                isRequired
                 label="Estado"
                 selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
                 onSelectionChange={(keys) => {
@@ -180,6 +181,8 @@ const FormEditar = forwardRef(({
                 variant={"bordered"}
                 className="focus:border-primario mt-2"
                 color="primary"
+                isInvalid={showErrors && (!selectedItem?.estado && selectedItem?.estado !== 0)}
+                errorMessage="El estado es obligatorio"
             >
                 <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
                     <div className="flex items-center gap-2">
@@ -197,6 +200,7 @@ const FormEditar = forwardRef(({
                 </SelectItem>
             </Select>
             <Select
+                isRequired
                 label="Especialidad"
                 selectedKeys={selectedItem?.idEspecialidad ? [selectedItem.idEspecialidad.toString()] : []}
                 onSelectionChange={(keys) => {
@@ -210,6 +214,12 @@ const FormEditar = forwardRef(({
                 variant="bordered"
                 className="focus:border-primario mt-2"
                 color="primary"
+                isInvalid={showErrors && (!selectedItem?.idEspecialidad || !selectedItem?.idEspecialidad.toString().trim())}
+                errorMessage={
+                    showErrors && (!selectedItem?.idEspecialidad || !selectedItem?.idEspecialidad.toString().trim())
+                        ? "La especialidad es obligatoria"
+                        : undefined
+                }
             >
                 {especialidades.map((esp) => {
                     const nombreFormateado = esp.nombre
