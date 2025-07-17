@@ -11,6 +11,8 @@ import { MdOutlinePassword } from "react-icons/md";
 import { DeleteIcon } from "../../icons/DeleteIcon";
 import { getEstudiantes, cargarEstudiantesExcel, updateEstudiante, disableEstudiante } from "../../../services/estudianteService";
 import { getEspecialidades } from "../../../services/especialidadService";
+import { ROLES } from "@/components/common/roles";
+import { ESTADOS } from "@/components/common/estados";
 
 const Estudiante = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -40,7 +42,7 @@ const Estudiante = () => {
                 especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
                     ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
                     : estudiante.especialidad?.nombre || 'No asignada',
-                estadoTexto: estudiante.estado === 1 ? 'Activo' : 'Inactivo'
+                estadoTexto: estudiante.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
             }));
             setEstudiantes(estudiantesProcessed);
         } catch (error) {
@@ -116,7 +118,7 @@ const Estudiante = () => {
                 seccion: formData.seccion,
                 fechaNacimiento: formData.fechaNacimiento,
                 idEspecialidad: formData.idEspecialidad,
-                rol: formData.rol || 3 // Rol de estudiante por defecto
+                rol: formData.rol || ROLES.ESTUDIANTE // Rol de estudiante por defecto
             };
             await updateEstudiante(formData.cedula, estudianteData);
             Toast.success("Estudiante editado", "El estudiante fue editado exitosamente.");
@@ -128,17 +130,6 @@ const Estudiante = () => {
             Toast.error('Error', error.message || 'Error al editar el estudiante');
         } finally {
             setDrawerLoading(false);
-        }
-    };
-
-    const handleDeshabilitar = async (item) => {
-        try {
-            await disableEstudiante(item.cedula);
-            Toast.success("Estudiante deshabilitado", "El estudiante fue deshabilitado exitosamente.");
-            await loadEstudiantes();
-        } catch (error) {
-            console.error('Error al deshabilitar estudiante:', error);
-            Toast.error('Error', error.message || 'Error al deshabilitar el estudiante');
         }
     };
 
@@ -160,6 +151,7 @@ const Estudiante = () => {
     ];
 
     const handleEditar = (item) => {
+        console.log('Datos del item a editar:', item);
         setAccion(1);
         setSelectedItem(null);
         onOpen();
@@ -177,6 +169,7 @@ const Estudiante = () => {
                 fechaNacimiento: item.fechaNacimiento,
                 idEspecialidad: item.idEspecialidad,
             };
+            console.log('Datos enviados al formulario:', data);
             setSelectedItem(data);
         }, 500);
     };
@@ -192,11 +185,6 @@ const Estudiante = () => {
             icon: <MdOutlinePassword className="text-danger" />,
             handler: (item) => console.log("Restablecer contraseña", item),
         },
-        {
-            tooltip: <span className="text-danger">Deshabilitar</span>,
-            icon: <DeleteIcon className="text-danger" />,
-            handler: handleDeshabilitar,
-        }
     ];
 
     // Limpiar formulario cuando se abre para cargar Excel

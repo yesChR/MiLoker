@@ -83,19 +83,3 @@ export const updateEstudiante = async (cedula, estudianteData) => {
         throw error;
     }
 };
-
-// Deshabilitar un estudiante
-export const disableEstudiante = async (cedula) => {
-    try {
-        const response = await fetch(`${API_URL}/administrativo/estudiante/deshabilitar/${cedula}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        return await handleResponse(response);
-    } catch (error) {
-        console.error('Error al deshabilitar estudiante:', error);
-        throw error;
-    }
-};

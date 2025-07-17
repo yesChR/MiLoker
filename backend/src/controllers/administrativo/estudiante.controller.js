@@ -212,31 +212,35 @@ export const deshabilitarEstudiante = async (req, res) => {
 // Editar estudiante
 export const editarEstudiante = async (req, res) => {
     const { cedula } = req.params;
-    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, seccion, fechaNacimiento, rol, idEspecialidad } = req.body;
+    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, seccion, fechaNacimiento, idEspecialidad } = req.body;
     try {
         const existeEstudiante = await Estudiante.findByPk(cedula);
         if (existeEstudiante !== null) {
-            await Estudiante.update(
-                { nombre, apellidoUno, apellidoDos, estado, telefono, correo, seccion, fechaNacimiento, idEspecialidad },
-                { where: { cedula } }
-            );
-
-            // Genera valores estáticos y nombreUsuario desde correo
-            const nombreUsuario = correo.split('@')[0];
-            const token = "token_estatico";
-            const contraseña = "123456";
-
-            // Actualiza Usuario
-            await Usuario.update(
-                { estado, nombreUsuario, token, contraseña, rol },
-                { where: { cedula } }
-            );
+            // Preparar datos para actualizar
+            const updateData = {
+                nombre, 
+                apellidoUno, 
+                apellidoDos, 
+                estado, 
+                telefono, 
+                correo, 
+                seccion, 
+                idEspecialidad
+            };
+            
+            // Solo incluir fechaNacimiento si se envía desde el frontend
+            if (fechaNacimiento !== undefined) {
+                updateData.fechaNacimiento = fechaNacimiento;
+            }
+            
+            await Estudiante.update(updateData, { where: { cedula } });
 
             res.status(200).json({ message: "Estudiante y usuario editados exitosamente" });
         } else {
             res.status(404).json({ error: "El estudiante no existe" });
         }
     } catch (error) {
-        res.status(500).json({ error: "Error interno en el servidor" });
+        console.error('Error al editar estudiante:', error);
+        res.status(500).json({ error: "Error interno en el servidor", detalle: error.message });
     }
 };

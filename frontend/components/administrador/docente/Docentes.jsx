@@ -106,7 +106,7 @@ const Docentes = () => {
                     especialidadCorta: especialidadObj && especialidadObj.nombre?.length > 15 
                         ? especialidadObj.nombre.substring(0, 15) + '...' 
                         : (especialidadObj ? especialidadObj.nombre : "Sin especialidad"),
-                    estadoTexto: docente.estado === 1 ? 'Activo' : 'Inactivo'
+                    estadoTexto: docente.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
                 };
             });
             setDatosDocentes(docentesProcessed);

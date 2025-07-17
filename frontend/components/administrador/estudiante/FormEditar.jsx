@@ -1,6 +1,8 @@
 import React, { useState, useImperativeHandle, forwardRef } from "react";
-import { Input, Form, Select, SelectItem, Chip } from "@heroui/react";
+import { Input, Form, Select, SelectItem, Chip, DateInput } from "@heroui/react";
+import { CalendarDate } from "@internationalized/date";
 import { ESTADOS } from "../../common/estados";
+import { formatDateForInput, formatDateForSubmit, isValidDate } from "../../../utils/dateUtils";
 
 const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especialidades = [] }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
@@ -9,8 +11,8 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
         // Activar la visualización de errores
         setShowErrors(true);
         
-        // Validar campos requeridos (incluyendo cédula aunque esté deshabilitada)
-        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono'];
+        // Validar campos requeridos
+        const requiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono', 'seccion'];
         const emptyFields = requiredFields.filter(field => {
             const value = selectedItem?.[field];
             return !value || !value.toString().trim();
@@ -21,13 +23,28 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
             emptyFields.push('estado');
         }
         
+        // Validar que la especialidad esté seleccionada
+        if (!selectedItem?.idEspecialidad) {
+            emptyFields.push('idEspecialidad');
+        }
+        
+        // Validar fecha de nacimiento (requerida y válida)
+        if (!selectedItem?.fechaNacimiento) {
+            emptyFields.push('fechaNacimiento');
+        } else if (!isValidDate(selectedItem.fechaNacimiento)) {
+            emptyFields.push('fechaNacimiento_invalid');
+        }
+        
         if (emptyFields.length > 0) {
+            console.log('Campos requeridos faltantes o inválidos:', emptyFields);
             // No enviar si hay campos vacíos
             return false;
         }
         
         // Llamar la función onSubmit si se proporciona y todos los campos están llenos
         if (onSubmit) {
+            const fechaFormateada = formatDateForSubmit(selectedItem.fechaNacimiento);
+            
             const formData = {
                 cedula: selectedItem.cedula,
                 nombre: selectedItem.nombre,
@@ -36,10 +53,12 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                 correo: selectedItem.correo,
                 telefono: selectedItem.telefono,
                 estado: selectedItem.estado,
-                seccion: selectedItem.seccion || "",
-                fechaNacimiento: selectedItem.fechaNacimiento || "",
-                idEspecialidad: selectedItem.idEspecialidad || null
+                seccion: selectedItem.seccion,
+                fechaNacimiento: fechaFormateada, // Ahora es requerida
+                idEspecialidad: selectedItem.idEspecialidad
             };
+            
+            console.log("Datos del formulario a enviar:", formData);
             onSubmit(formData);
             return true;
         }
@@ -168,6 +187,7 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                 errorMessage="El teléfono es obligatorio"
             />
             <Input
+                isRequired
                 label="Sección"
                 name="seccion"
                 value={selectedItem?.seccion || ""}
@@ -181,23 +201,35 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                 className="focus:border-primario"
                 color="primary"
                 placeholder="Ej: A, B, C"
+                isInvalid={showErrors && !selectedItem?.seccion?.trim()}
+                errorMessage="La sección es obligatoria"
             />
-            <Input
+            <DateInput
+                isRequired
                 label="Fecha de Nacimiento"
                 name="fechaNacimiento"
-                value={selectedItem?.fechaNacimiento || ""}
-                onChange={(e) =>
+                value={formatDateForInput(selectedItem?.fechaNacimiento)}
+                onChange={(date) =>
                     setSelectedItem((prev) => ({
                         ...prev,
-                        fechaNacimiento: e.target.value,
+                        fechaNacimiento: date,
                     }))
                 }
                 variant="bordered"
-                type="date"
                 className="focus:border-primario"
                 color="primary"
+                placeholderValue={new CalendarDate(2000, 1, 1)}
+                isInvalid={showErrors && (!selectedItem?.fechaNacimiento || !isValidDate(selectedItem.fechaNacimiento))}
+                errorMessage={
+                    !selectedItem?.fechaNacimiento 
+                        ? "La fecha de nacimiento es obligatoria"
+                        : !isValidDate(selectedItem.fechaNacimiento)
+                        ? "La fecha de nacimiento no es válida"
+                        : ""
+                }
             />
             <Select
+                isRequired
                 label="Especialidad"
                 name="idEspecialidad"
                 selectedKeys={selectedItem?.idEspecialidad ? [selectedItem.idEspecialidad.toString()] : []}
@@ -212,6 +244,8 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                 className="focus:border-primario"
                 color="primary"
                 placeholder="Selecciona una especialidad"
+                isInvalid={showErrors && !selectedItem?.idEspecialidad}
+                errorMessage="La especialidad es obligatoria"
             >
                 {especialidades.map((especialidad) => (
                     <SelectItem key={especialidad.idEspecialidad} value={especialidad.idEspecialidad}>

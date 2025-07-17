@@ -34,7 +34,7 @@ const Admin = () => {
             // Procesar datos para mostrar en la tabla
             const administradoresProcessed = data.map(admin => ({
                 ...admin,
-                estadoTexto: admin.estado === 1 ? 'Activo' : 'Inactivo'
+                estadoTexto: admin.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
             }));
             setAdministradores(administradoresProcessed);
         } catch (error) {
