@@ -42,26 +42,36 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-fondoLogin px-4 md:px-2">
-      <Card className="flex flex-col md:flex-row w-full max-w-md md:max-w-3xl h-auto md:min-h-[500px] shadow-lg pb-8 md:pb-0" shadow="lg" radius="lg">
+    <div className="flex justify-center items-center min-h-screen bg-fondoLogin px-4 md:px-6">
+      <Card className="flex flex-col md:flex-row w-full max-w-lg md:max-w-4xl lg:max-w-5xl h-auto md:min-h-[600px] shadow-lg pb-8 md:pb-0" shadow="lg" radius="lg">
         {/* Sección izquierda con fondo e imagen */}
-        <div className="w-full md:w-[320px] bg-primario flex items-center justify-center py-6 md:py-0">
+        <div className="w-full md:w-[380px] lg:w-[420px] bg-primario flex items-center justify-center py-8 md:py-0">
           <Image
             src="/candadoCerrado.png"
             alt="Logo"
-            width={180}
-            height={180}
-            className="w-[120px] h-[120px] md:w-[180px] md:h-[180px]"
+            width={200}
+            height={200}
+            className="w-[140px] h-[140px] md:w-[200px] md:h-[200px] lg:w-[220px] lg:h-[220px]"
           />
         </div>
 
         {/* Sección derecha con el formulario */}
-        <CardBody className="w-full md:w-1/2 flex flex-col justify-center p-6 md:p-14 pb-8 md:pb-14">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-azulOscuro text-center">Inicio de sesión</h2>
+        <CardBody className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-16 lg:p-20 pb-8 md:pb-16 lg:pb-20">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 md:mb-10 lg:mb-12 text-azulOscuro text-center drop-shadow-lg shadow-gray-400/50">Inicio de sesión</h2>
           <Form
-            className="flex flex-col items-center gap-4 md:gap-6"
+            className="flex flex-col items-center gap-4 md:gap-5"
             onSubmit={handleLogin}
           >
+            {errorMessage && (
+              <div className="w-full md:w-3/4 bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-red-700 text-sm font-medium">{errorMessage}</span>
+                </div>
+              </div>
+            )}
             <div className="w-full md:w-3/4">
               <Input
                 isRequired
@@ -75,6 +85,7 @@ const Login = () => {
                 autoFocus
                 color="primary"
                 size="sm"
+                radius="md"
               />
             </div>
             <div className="w-full md:w-3/4">
@@ -84,14 +95,14 @@ const Login = () => {
                 endContent={
                   <button
                     aria-label="toggle password visibility"
-                    className="focus:outline-none"
+                    className="focus:outline-none p-1 rounded-full hover:bg-gray-100 transition-colors duration-200 ease-in-out"
                     type="button"
                     onClick={toggleVisibility}
                   >
                     {isVisible ? (
-                      <EyeSlashFilledIcon className="text-base md:text-lg text-default-400 pointer-events-none" />
+                      <EyeSlashFilledIcon className="text-lg md:text-xl text-gray-500 hover:text-primary transition-colors duration-200" />
                     ) : (
-                      <EyeFilledIcon className="text-base md:text-lg text-default-400 pointer-events-none" />
+                      <EyeFilledIcon className="text-lg md:text-xl text-gray-500 hover:text-primary transition-colors duration-200" />
                     )}
                   </button>
                 }
@@ -103,6 +114,7 @@ const Login = () => {
                 errorMessage="La contraseña es obligatoria"
                 color="primary"
                 size="sm"
+                radius="md"
               />
             </div>
             <div className="w-full md:w-3/4 flex justify-end">
@@ -110,17 +122,15 @@ const Login = () => {
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
-            {errorMessage && (
-              <div className="w-full md:w-3/4 text-red-500 text-sm text-right">{errorMessage}</div>
-            )}
             <div className="w-full md:w-3/4 flex justify-end">
               <Button
-                className="bg-primario text-white w-[100px] md:w-[170px] h-10 md:h-12 text-base md:text-lg hover:bg-primario-dark"
+                className="bg-gradient-to-r from-primario to-blue-600 text-white w-[120px] md:w-[140px] lg:w-[160px] h-8 md:h-10 text-base md:text-lg lg:text-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 hover:from-blue-600 hover:to-primario transition-all duration-300 ease-in-out transform active:scale-95"
                 type="submit"
                 isLoading={loading}
                 disabled={loading}
+                radius="lg"
               >
-                Login
+                <span className="text-sm md:text-base">Iniciar sesión</span>
               </Button>
             </div>
           </Form>
