@@ -3,6 +3,7 @@ import express from 'express';
 import config from './config/config';
 // Importación de las rutas
 import nodemailer from "./routes/nodemailer.routes.js";
+import authRoutes from "./routes/auth/auth.routes.js";
 import administrador from "./routes/administrativo/administrador.routes.js";
 import docente from "./routes/administrativo/docente.routes.js";
 import estudiante from "./routes/administrativo/estudiante.routes.js";
@@ -26,6 +27,9 @@ app.use(express.json());
 
 // Rutas (Agregar todas las rutas que existan en Routes)
 app.use("/nodemailer", nodemailer);
+
+// Ruta de autenticación para NextAuth
+app.use("/auth", authRoutes);
 
 // Rutas del módulo administrativo
 app.use("/administrativo/administrador", administrador);

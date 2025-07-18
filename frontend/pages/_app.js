@@ -2,9 +2,22 @@ import "@/styles/globals.css";
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
 import Layout from "@/components/Layout/Layout";
 import { useRouter } from "next/router";
+import { SessionProvider, useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { Toast } from "@/components/CustomAlert";
 
-export default function App({ Component, pageProps }) {
+// Componente que maneja el contenido de la aplicación
+function AppContent({ Component, pageProps }) {
+  const { status } = useSession();
   const router = useRouter();
+
+  // Verifica si el usuario está logueado
+  useEffect(() => {
+    if (status === "unauthenticated" && router.pathname !== "/auth/login") {
+      Toast.error("Tu sesión ha expirado");
+      router.push("/auth/login");
+    }
+  }, [status, router]);
 
   // Rutas sin Layout
   const noLayoutPages = ["/auth/login"];
@@ -22,3 +35,14 @@ export default function App({ Component, pageProps }) {
     </HeroUIProvider>
   );
 }
+
+//punto de entrada de la aplicación
+function MyApp({ Component, pageProps: { session, ...pageProps } }) {
+  return (
+    <SessionProvider session={session}>
+      <AppContent Component={Component} pageProps={pageProps} />
+    </SessionProvider>
+  );
+}
+
+export default MyApp;
