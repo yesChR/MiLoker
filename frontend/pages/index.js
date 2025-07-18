@@ -69,28 +69,14 @@ export default function Home() {
           </div>
           <span className="text-xs md:text-sm text-gray-400 mt-2 font-medium animate-fade-in-up delay-300">¡Explora, administra y disfruta la experiencia!</span>
         </div>
-        {/* Badge decorativo */}
-        <div className="mt-4 flex items-center gap-2 px-4 py-1 rounded-full bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold shadow-md animate-fade-in-up delay-300 select-none relative overflow-hidden"
-          style={{ position: 'relative' }}>
-          <svg width="20" height="20" fill="none" viewBox="0 0 20 20" className="inline-block mr-1">
-            <circle cx="10" cy="10" r="10" fill="#22c55e" />
-            <path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Mini-banner decorativo */}
+        <div className="mt-4 flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-primario to-azulOscuro text-white font-semibold shadow-md animate-fade-in-up delay-300 select-none relative overflow-hidden">
+          <svg width="22" height="22" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block mr-2 animate-bounce-slow">
+            <rect x="7" y="7" width="24" height="24" rx="4" fill="#fff" fillOpacity="0.18" />
+            <rect x="11" y="11" width="16" height="16" rx="2" fill="#fff" fillOpacity="0.5" />
+            <rect x="15" y="15" width="8" height="8" rx="1" fill="#2563eb" />
           </svg>
-          ¡Listo para usar!
-          <span
-            className="absolute left-0 top-0 h-full w-1/3 pointer-events-none"
-            style={{
-              background: 'linear-gradient(120deg,rgba(255,255,255,0.0) 0%,rgba(255,255,255,0.5) 50%,rgba(255,255,255,0.0) 100%)',
-              filter: 'blur(2px)',
-              animation: 'shine-badge 2.5s linear infinite',
-            }}
-          />
-          <style>{`
-            @keyframes shine-badge {
-              0% { left: -40%; }
-              100% { left: 110%; }
-            }
-          `}</style>
+          ¡Comienza tu experiencia MiLoker!
         </div>
       </div>
     </div>
