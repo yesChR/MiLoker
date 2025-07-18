@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { Card, CardBody, Input, Button, Form } from "@heroui/react";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "./icons/EyeSlashFilledIcon";
@@ -7,55 +7,39 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 
 const Login = () => {
-  const [email, setEmail] = useState(""); // Cambiado a email para consistencia
-  const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = React.useState(false);
-  const [loading, setLoading] = useState(false); // Estado faltante
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrors, setShowErrors] = useState(false);
   const router = useRouter();
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
 
+    // Obtener datos del formulario usando FormData como en el ejemplo
+    let formData = Object.fromEntries(new FormData(e.currentTarget));
 
-  const handleLogin = useCallback(
-    async (e) => {
-      e.preventDefault();
-      setShowErrors(true);
-      setLoading(true);
-      setErrorMessage(null);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Validación simple
-      const emailValid = email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
-      const passwordValid = password && password.length > 0;
-      if (!emailValid || !passwordValid) {
-        setLoading(false);
-        return;
+      if (result?.error) {
+        setErrorMessage("Credenciales inválidas");
+      } else if (result?.url) {
+        router.push("/");
       }
-
-      try {
-        const result = await signIn("credentials", {
-          redirect: false,
-          email: email,
-          password: password,
-        });
-
-        if (result?.error) {
-          setErrorMessage("Credenciales inválidas");
-        } else if (result?.url) {
-          router.push("/");
-        }
-      } catch (error) {
-        setErrorMessage("Ocurrió un error. Intente nuevamente.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [router, email, password]
-  );
-
-
+    } catch (error) {
+      setErrorMessage("Ocurrió un error. Intente nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-fondoLogin px-4 md:px-2">
@@ -85,20 +69,12 @@ const Login = () => {
                 label="Correo electrónico"
                 placeholder="juan@ejemplo.com"
                 variant="bordered"
-                className="focus:border-primario h-10 text-sm md:h-12 md:text-base"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                isInvalid={showErrors && (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))}
-                errorMessage={
-                  showErrors && !email
-                    ? "El correo es obligatorio"
-                    : showErrors && email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)
-                    ? "Correo inválido"
-                    : undefined
-                }
+                className="focus:border-primario"
+                errorMessage="El correo electrónico es obligatorio"
                 type="email"
                 autoFocus
                 color="primary"
+                size="sm"
               />
             </div>
             <div className="w-full md:w-3/4">
@@ -123,12 +99,10 @@ const Login = () => {
                 placeholder="********"
                 type={isVisible ? "text" : "password"}
                 variant="bordered"
-                className="md:h-12 md:text-base"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                isInvalid={showErrors && !password}
-                errorMessage={showErrors && !password ? "La contraseña es obligatoria" : undefined}
+                className="md:text-base"
+                errorMessage="La contraseña es obligatoria"
                 color="primary"
+                size="sm"
               />
             </div>
             <div className="w-full md:w-3/4 flex justify-end">
