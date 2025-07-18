@@ -1,17 +1,76 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useEffect, useRef } from "react";
+
+function ParticlesBackground() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    let animationFrameId;
+    const dpr = window.devicePixelRatio || 1;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+
+    // Partículas flotantes
+    const particles = Array.from({ length: 28 }).map(() => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: 8 + Math.random() * 16,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      color: `hsla(${Math.floor(Math.random() * 360)}, 80%, 70%, 0.13)`
+    }));
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, 2 * Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < -p.r) p.x = width + p.r;
+        if (p.x > width + p.r) p.x = -p.r;
+        if (p.y < -p.r) p.y = height + p.r;
+        if (p.y > height + p.r) p.y = -p.r;
+      }
+      animationFrameId = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-0 animate-fade-in"
+      style={{ position: "fixed", top: 0, left: 0, zIndex: 0 }}
+    />
+  );
+}
 
 export default function Home() {
+  
   const { data: session } = useSession();
   const userName = session?.user?.name;
-  const userImage = session?.user?.image;
+
+
   return (
     <div className="fixed inset-0 z-0 flex items-center justify-center bg-white overflow-y-hidden ml-56">
       {/* Fondo animado sutil */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="absolute top-10 left-1/3 w-72 h-72 bg-gradient-to-br from-primario/20 to-azulOscuro/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-10 right-1/4 w-60 h-60 bg-gradient-to-tr from-azulOscuro/20 to-primario/10 rounded-full blur-2xl animate-pulse-slow" />
-      </div>
+      <ParticlesBackground />
+
       <div
         className="relative z-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center p-6 md:p-12 max-w-xl w-full animate-fade-in-down border border-white/40 backdrop-blur-xl bg-white/80"
         style={{
@@ -22,20 +81,16 @@ export default function Home() {
       >
         {/* Avatar o logo */}
         <div className="mb-4 flex flex-col items-center justify-center">
-          {userImage ? (
-            <img src={userImage} alt={userName || 'Usuario'} className="w-24 h-24 rounded-full border-4 border-primario shadow-lg object-cover mb-2 animate-fade-in-up" />
-          ) : (
-            <Image
-              src="/Logo.png"
-              alt="Logo MiLoker"
-              width={90}
-              height={90}
-              className="mx-auto animate-bounce-slow transition-transform duration-200 hover:scale-110 hover:drop-shadow-lg cursor-pointer"
-            />
-          )}
+          <Image
+            src="/Logo.png"
+            alt="Logo MiLoker"
+            width={90}
+            height={90}
+            className="mx-auto animate-bounce-slow transition-transform duration-200 hover:scale-110 hover:drop-shadow-lg cursor-pointer"
+          />
         </div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-azulOscuro text-center drop-shadow-lg tracking-tight animate-fade-in-scale">
-          ¡Bienvenido!
+          ¡Bienvenido/a!
         </h1>
         <div className="text-2xl md:text-3xl font-extrabold text-primario text-center mb-1 animate-fade-in-scale whitespace-nowrap">
           {userName ? userName : 'MiLoker'}
