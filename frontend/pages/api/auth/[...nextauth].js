@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { loginService } from "../../../services/authService";
 
 export default NextAuth({
   providers: [
@@ -10,41 +11,16 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const url = process.env.NEXT_PUBLIC_API_URL;
         try {
-          console.log("Iniciando autenticación con la API...");
-          
-          const res = await fetch(`${url}/api/Usuarios/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              CT_Correo_usuario: credentials.email,
-              CT_Contrasenna: credentials.password
-            })
-          });
-
-          console.log("Respuesta API:", res);
-          
-          // Si la respuesta no es 200 OK, es un error de autenticación
-          if (!res.ok) {
-            console.log("Autenticación fallida");
-            return null;
-          }
-
-          const userData = await res.json();
-          console.log("Usuario autenticado:", userData);
-          
-          // IMPORTANTE: Devolver exactamente este formato para NextAuth
-          if (userData) {
-            return {
-              id: String(userData.cN_Id_usuario || userData.CN_Id_usuario),
-              name: userData.cT_Nombre_usuario || userData.CT_Nombre_usuario,
-              email: userData.cT_Correo_usuario || userData.CT_Correo_usuario,
-              role: userData.cN_Id_rol || userData.CN_Id_rol
-            };
-          }
-          
-          return null;
+          const user = await loginService(credentials.email, credentials.password);
+          if (!user) return null;
+          // Mapear el usuario al formato NextAuth
+          return {
+            id: String(user.id),
+            name: user.name,
+            email: user.email,
+            role: user.role
+          };
         } catch (error) {
           console.error("Error en la autenticación:", error);
           return null;
