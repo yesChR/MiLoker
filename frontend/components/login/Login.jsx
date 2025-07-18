@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Card, CardBody } from "@heroui/react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import LockAnimationSystem from "./login/LockAnimationSystem";
-import LoginForm from "./login/LoginForm";
-import { useLoginAnimations } from "../hooks/useLoginAnimations";
-import "../styles/login-animations.css";
+import LockAnimationSystem from "./LockAnimationSystem";
+import LoginForm from "./LoginForm";
+import { useLoginAnimations } from "../../hooks/useLoginAnimations";
+import "../../styles/login-animations.css";
 
 const Login = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -67,7 +67,7 @@ const Login = () => {
         />
 
         {/* Sección derecha con el formulario */}
-        <CardBody>
+        <CardBody className="w-full md:w-1/2 p-0">
           <LoginForm 
             isVisible={isVisible}
             toggleVisibility={toggleVisibility}
