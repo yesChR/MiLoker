@@ -17,6 +17,7 @@ const TiposSanciones = () => {
     const [accion, setAccion] = useState("");
     const [sanciones, setSanciones] = useState([]);
     const [drawerLoading, setDrawerLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Para el spinner de la tabla
     const formCrearRef = useRef();
     const formEditarRef = useRef();
 
@@ -47,15 +48,15 @@ const TiposSanciones = () => {
     }, []);
 
     const fetchSanciones = async () => {
-        try {
-            const data = await sancionService.getSanciones();
-            setSanciones(data.map((s, idx) => ({
-                ...s,
-                numero: idx + 1,
-            })));
-        } catch (error) {
-            console.error("Error al obtener sanciones", error);
+        setLoading(true);
+        const data = await sancionService.getSanciones();
+        if (data && data.error) {
+            setSanciones([]);
+            Toast.error("Error", data.message || "Error al obtener sanciones");
+        } else {
+            setSanciones(data);
         }
+        setLoading(false);
     };
 
     const handleEditar = (item) => {
@@ -84,45 +85,41 @@ const TiposSanciones = () => {
     // Crear sanción
     const handleCrearSancion = async () => {
         setDrawerLoading(true);
-        try {
-            await sancionService.createSancion({
-                gravedad: selectedItem.gravedad,
-                detalle: selectedItem.detalle,
-                estado: ESTADOS.ACTIVO // Siempre activo
-            });
+        const result = await sancionService.createSancion({
+            gravedad: selectedItem.gravedad,
+            detalle: selectedItem.detalle,
+            estado: ESTADOS.ACTIVO // Siempre activo
+        });
+        if (result && result.error) {
+            Toast.error("Error", result.message || "Error al crear sanción");
+        } else {
             Toast.success("Sanción creada exitosamente");
             onOpenChange();
             setSelectedItem(null);
             setAccion("");
             await fetchSanciones();
-        } catch (error) {
-            Toast.error("Error al crear sanción");
-            console.error("Error al crear sanción:", error);
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     // Editar sanción
     const handleEditarSancion = async () => {
         setDrawerLoading(true);
-        try {
-            await sancionService.updateSancion(selectedItem.id, {
-                gravedad: selectedItem.gravedad,
-                detalle: selectedItem.detalle,
-                estado: selectedItem.estado
-            });
+        const result = await sancionService.updateSancion(selectedItem.id, {
+            gravedad: selectedItem.gravedad,
+            detalle: selectedItem.detalle,
+            estado: selectedItem.estado
+        });
+        if (result && result.error) {
+            Toast.error("Error", result.message || "Error al editar sanción");
+        } else {
             Toast.success("Sanción editada exitosamente");
             onOpenChange();
             setSelectedItem(null);
             setAccion("");
             await fetchSanciones();
-        } catch (error) {
-            Toast.error("Error al editar sanción");
-            console.error("Error al editar sanción:", error);
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     // Limpiar selectedItem al abrir para crear
@@ -150,6 +147,7 @@ const TiposSanciones = () => {
                         onOpen={handleAbrirCrear}
                         setAccion={setAccion}
                         renderCell={renderCell}
+                        loading={loading}
                     />
                 </div>
                 <DrawerGeneral

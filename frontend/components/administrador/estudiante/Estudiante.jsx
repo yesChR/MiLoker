@@ -32,22 +32,24 @@ const Estudiante = () => {
     }, []);
 
     const loadEstudiantes = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
             const data = await getEstudiantes();
-            // Procesar datos para mostrar en la tabla
-            const estudiantesProcessed = data.map(estudiante => ({
-                ...estudiante,
-                especialidadNombre: estudiante.especialidad?.nombre || 'No asignada',
-                especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
-                    ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
-                    : estudiante.especialidad?.nombre || 'No asignada',
-                estadoTexto: estudiante.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
-            }));
-            setEstudiantes(estudiantesProcessed);
-        } catch (error) {
-            console.error('Error al cargar estudiantes:', error);
-            Toast.error('Error', 'Error al cargar los datos iniciales');
+            if (data && data.error) {
+                setEstudiantes([]);
+                Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
+            } else {
+                // Procesar datos para mostrar en la tabla
+                const estudiantesProcessed = data.map(estudiante => ({
+                    ...estudiante,
+                    especialidadNombre: estudiante.especialidad?.nombre || 'No asignada',
+                    especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
+                        ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
+                        : estudiante.especialidad?.nombre || 'No asignada',
+                    estadoTexto: estudiante.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
+                }));
+                setEstudiantes(estudiantesProcessed);
+            }
         } finally {
             setLoading(false);
         }
@@ -56,7 +58,12 @@ const Estudiante = () => {
     const loadEspecialidades = async () => {
         try {
             const data = await getEspecialidades();
-            setEspecialidades(data);
+            if (data && data.error) {
+                setEspecialidades([]);
+                Toast.error('Error', data.message || 'Error al cargar especialidades');
+            } else {
+                setEspecialidades(data);
+            }
         } catch (error) {
             console.error('Error al cargar especialidades:', error);
             Toast.error('Error', 'Error al cargar especialidades');
@@ -74,22 +81,25 @@ const Estudiante = () => {
         setDrawerLoading(true);
         try {
             const result = await cargarEstudiantesExcel(files);
-            await loadEstudiantes();
-            setSelectedItem(null);
-            
-            // Mostrar resultado detallado
-            if (result.errores > 0) {
-                Toast.warning(
-                    "Carga completada con errores", 
-                    `Se cargaron ${result.exitosos} estudiantes exitosamente, pero ${result.errores} tuvieron errores.`
-                );
+            if (result && result.error) {
+                Toast.error('Error', result.message || 'Error al cargar estudiantes desde Excel');
             } else {
-                Toast.success(
-                    "Estudiantes cargados", 
-                    `Se cargaron ${result.exitosos} estudiantes exitosamente desde ${result.totalArchivos || 1} archivo(s).`
-                );
+                await loadEstudiantes();
+                setSelectedItem(null);
+                // Mostrar resultado detallado
+                if (result.errores > 0) {
+                    Toast.warning(
+                        "Carga completada con errores", 
+                        `Se cargaron ${result.exitosos} estudiantes exitosamente, pero ${result.errores} tuvieron errores.`
+                    );
+                } else {
+                    Toast.success(
+                        "Estudiantes cargados", 
+                        `Se cargaron ${result.exitosos} estudiantes exitosamente desde ${result.totalArchivos || 1} archivo(s).`
+                    );
+                }
+                onOpenChange();
             }
-            onOpenChange();
         } catch (error) {
             console.error('Error al cargar estudiantes:', error);
             Toast.error('Error al cargar estudiantes', error.message);
@@ -120,11 +130,15 @@ const Estudiante = () => {
                 idEspecialidad: formData.idEspecialidad,
                 rol: formData.rol || ROLES.ESTUDIANTE // Rol de estudiante por defecto
             };
-            await updateEstudiante(formData.cedula, estudianteData);
-            Toast.success("Estudiante editado", "El estudiante fue editado exitosamente.");
-            await loadEstudiantes();
-            setSelectedItem(null);
-            onOpenChange();
+            const result = await updateEstudiante(formData.cedula, estudianteData);
+            if (result && result.error) {
+                Toast.error('Error', result.message || 'Error al editar el estudiante');
+            } else {
+                Toast.success("Estudiante editado", "El estudiante fue editado exitosamente.");
+                await loadEstudiantes();
+                setSelectedItem(null);
+                onOpenChange();
+            }
         } catch (error) {
             console.error('Error al editar estudiante:', error);
             Toast.error('Error', error.message || 'Error al editar el estudiante');

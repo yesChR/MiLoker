@@ -6,7 +6,7 @@ const handleResponse = async (response) => {
     
     if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
-        
+        let errorCode = response.status;
         try {
             if (contentType && contentType.includes("application/json")) {
                 const error = await response.json();
@@ -18,8 +18,8 @@ const handleResponse = async (response) => {
         } catch (parseError) {
             console.error('Error parsing response:', parseError);
         }
-        
-        throw new Error(errorMessage);
+        // En vez de lanzar excepción, retorna objeto de error
+        return { error: true, message: errorMessage, code: errorCode };
     }
     
     if (contentType && contentType.includes("application/json")) {
@@ -38,10 +38,11 @@ export const getAdministradores = async () => {
                 'Content-Type': 'application/json',
             },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener administradores:', error);
-        throw error;
+        // Si ocurre un error de red, retorna un objeto de error
+        return { error: true, message: 'Error de red al obtener administradores' };
     }
 };
 
@@ -55,11 +56,10 @@ export const createAdministrador = async (adminData) => {
             },
             body: JSON.stringify(adminData),
         });
-        
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error en createAdministrador servicio:', error);
-        throw error;
+        return { error: true, message: 'Error de red al crear administrador' };
     }
 };
 
@@ -73,10 +73,10 @@ export const updateAdministrador = async (cedula, adminData) => {
             },
             body: JSON.stringify(adminData),
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al editar administrador:', error);
-        throw error;
+        return { error: true, message: 'Error de red al editar administrador' };
     }
 };
 
@@ -89,9 +89,9 @@ export const disableAdministrador = async (cedula) => {
                 'Content-Type': 'application/json',
             },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al deshabilitar administrador:', error);
-        throw error;
+        return { error: true, message: 'Error de red al deshabilitar administrador' };
     }
 };

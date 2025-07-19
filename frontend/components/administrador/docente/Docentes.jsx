@@ -16,6 +16,15 @@ import FormEditar from "./FormEditar";
 const Docentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [drawerLoading, setDrawerLoading] = useState(false);
+    const formCrearRef = React.useRef(null);
+    const formEditarRef = React.useRef(null);
+    const [selectedItem, setSelectedItem] = useState({});//aqui almacena el elemento seleccionado del editable
+    const [especialidad, setEspecialidad] = useState("");
+    const [especialidades, setEspecialidades] = useState([]);
+    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
+    const [datosDocentes, setDatosDocentes] = useState([]);
+    const [loading, setLoading] = useState(true); // AGREGADO siguiendo Admin
+
     // Placeholder para evitar ReferenceError
     const handleFormCrearSubmit = () => {
         // Implementa aquí la lógica de creación si es necesario
@@ -46,12 +55,6 @@ const Docentes = () => {
             setDrawerLoading(false);
         }
     };
-    const formCrearRef = React.useRef(null);
-    const formEditarRef = React.useRef(null);
-    const [selectedItem, setSelectedItem] = useState({});//aqui almacena el elemento seleccionado del editable
-    const [especialidad, setEspecialidad] = useState("");
-    const [especialidades, setEspecialidades] = useState([]);
-    const [accion, setAccion] = useState(""); // Estado para determinar si es "Editar" o "Crear"
 
     // QUITADO columna especialidad
     const columnas = [
@@ -64,17 +67,22 @@ const Docentes = () => {
         { name: "Acciones", uid: "acciones" },
     ];
 
-    const [datosDocentes, setDatosDocentes] = useState([]);
-    const [loading, setLoading] = useState(true); // AGREGADO siguiendo Admin
-
     useEffect(() => {
         const cargarDatos = async () => {
-            await cargarEspecialidades();
+            setLoading(true);
+            const data = await getEspecialidades();
+            if (data && data.error) {
+                setEspecialidades([]);
+                Toast.error("Error", data.message || "Error al cargar especialidades");
+                setLoading(false);
+            } else {
+                setEspecialidades(data);
+            }
         };
         cargarDatos();
     }, []);
 
-    // Cargar docentes cuando se carguen las especialidades
+    // Cargar docentes cuando se carguen las especialidades (solo si hay especialidades y no hubo error)
     useEffect(() => {
         if (especialidades.length > 0) {
             cargarDocentes();
@@ -82,37 +90,30 @@ const Docentes = () => {
     }, [especialidades]);
 
     // AGREGADO siguiendo Admin
-    const cargarEspecialidades = async () => {
-        try {
-            const data = await getEspecialidades();
-            setEspecialidades(data);
-        } catch (error) {
-            console.error("Error al cargar especialidades:", error);
-            Toast.error("Error", "Error al cargar especialidades");
-        }
-    };
-
-    // AGREGADO siguiendo Admin
     const cargarDocentes = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
             const data = await getDocentes();
-            // Procesar datos para mostrar en la tabla
-            const docentesProcessed = data.map(docente => {
-                const especialidadObj = especialidades.find(e => e.idEspecialidad?.toString() === docente.idEspecialidad?.toString());
-                return {
-                    ...docente,
-                    especialidadNombre: especialidadObj ? especialidadObj.nombre : "Sin especialidad",
-                    especialidadCorta: especialidadObj && especialidadObj.nombre?.length > 15 
-                        ? especialidadObj.nombre.substring(0, 15) + '...' 
-                        : (especialidadObj ? especialidadObj.nombre : "Sin especialidad"),
-                    estadoTexto: docente.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
-                };
-            });
-            setDatosDocentes(docentesProcessed);
-        } catch (error) {
-            console.error("Error al cargar docentes:", error);
-            Toast.error("Error", "Error al cargar docentes");
+            if (data && data.error) {
+                setDatosDocentes([]);
+                Toast.error("Error", data.message || "Error al cargar docentes");
+            } else if (Array.isArray(data)) {
+                // Procesar datos para mostrar en la tabla
+                const docentesProcessed = data.map(docente => {
+                    const especialidadObj = especialidades.find(e => e.idEspecialidad?.toString() === docente.idEspecialidad?.toString());
+                    return {
+                        ...docente,
+                        especialidadNombre: especialidadObj ? especialidadObj.nombre : "Sin especialidad",
+                        especialidadCorta: especialidadObj && especialidadObj.nombre?.length > 15
+                            ? especialidadObj.nombre.substring(0, 15) + '...'
+                            : (especialidadObj ? especialidadObj.nombre : "Sin especialidad"),
+                        estadoTexto: docente.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
+                    };
+                });
+                setDatosDocentes(docentesProcessed);
+            } else {
+                setDatosDocentes([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -151,30 +152,32 @@ const Docentes = () => {
             return;
         }
         setDrawerLoading(true);
-        try {
-            const docenteData = {
-                cedula: selectedItem?.cedula,
-                nombre: selectedItem?.nombre,
-                apellidoUno: selectedItem?.apellidoUno,
-                apellidoDos: selectedItem?.apellidoDos,
-                correo: selectedItem?.correo,
-                telefono: selectedItem?.telefono,
-                estado: ESTADOS.ACTIVO, // Siempre activo al crear
-                rol: ROLES.PROFESOR,
-                idEspecialidad: especialidad ? Number(especialidad) : null
-            };
-            await createDocente(docenteData);
+        const docenteData = {
+            cedula: selectedItem?.cedula,
+            nombre: selectedItem?.nombre,
+            apellidoUno: selectedItem?.apellidoUno,
+            apellidoDos: selectedItem?.apellidoDos,
+            correo: selectedItem?.correo,
+            telefono: selectedItem?.telefono,
+            estado: ESTADOS.ACTIVO, // Siempre activo al crear
+            rol: ROLES.PROFESOR,
+            idEspecialidad: especialidad ? Number(especialidad) : null
+        };
+        const result = await createDocente(docenteData);
+        if (result && result.error) {
+            if (result.message && result.message.includes('ya existe')) {
+                Toast.error('Docente ya existe', result.message);
+            } else {
+                Toast.error('Error', result.message || 'Error al crear docente');
+            }
+        } else {
             await cargarDocentes();
             setSelectedItem({ idEspecialidad: "" });
             setEspecialidad("");
             Toast.success("Docente creado", "El docente fue creado exitosamente.");
             onOpenChange();
-        } catch (error) {
-            console.error("Error al crear docente:", error);
-            Toast.error("Error", error.message || "Error al crear docente");
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     // AGREGADO siguiendo Admin
@@ -185,28 +188,26 @@ const Docentes = () => {
             return;
         }
         setDrawerLoading(true);
-        try {
-            const docenteData = {
-                nombre: selectedItem?.nombre,
-                apellidoUno: selectedItem?.apellidoUno,
-                apellidoDos: selectedItem?.apellidoDos,
-                correo: selectedItem?.correo,
-                telefono: selectedItem?.telefono,
-                estado: selectedItem?.estado,
-                idEspecialidad: especialidad ? Number(especialidad) : null
-            };
-            await updateDocente(selectedItem.cedula, docenteData);
+        const docenteData = {
+            nombre: selectedItem?.nombre,
+            apellidoUno: selectedItem?.apellidoUno,
+            apellidoDos: selectedItem?.apellidoDos,
+            correo: selectedItem?.correo,
+            telefono: selectedItem?.telefono,
+            estado: selectedItem?.estado,
+            idEspecialidad: especialidad ? Number(especialidad) : null
+        };
+        const result = await updateDocente(selectedItem.cedula, docenteData);
+        if (result && result.error) {
+            Toast.error('Error', result.message || 'Error al editar docente');
+        } else {
             Toast.success("Docente editado", "El docente fue editado exitosamente.");
             await cargarDocentes();
             setSelectedItem(null);
             setEspecialidad("");
             onOpenChange();
-        } catch (error) {
-            console.error("Error al editar docente:", error);
-            Toast.error("Error", error.message || "Error al editar docente");
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     // CORREGIDO filtro por especialidad (solo ids como value, opcional labels)

@@ -37,32 +37,34 @@ const PeriodoSolicitud = () => {
         try {
             setLoadingData(true);
             const data = await getEstadoPeriodos();
-            setPeriodos(data);
-            
-            // Solo actualizar campos si hay períodos activos
-            if (data && data.length > 0) {
-                const periodoSolicitud = data.find(p => p.tipo === 2);
-                const periodoAsignacion = data.find(p => p.tipo === 1);
-                
-                if (periodoSolicitud) {
-                    setInicioSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaInicio).toISOString()));
-                    setFinSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaFin).toISOString()));
-                }
-                
-                if (periodoAsignacion) {
-                    setInicioAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaInicio).toISOString()));
-                    setFinAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaFin).toISOString()));
-                }
-            } else {
-                // Si no hay períodos activos, limpiar campos para permitir nueva creación
+            if (data && data.error) {
+                setPeriodos([]);
                 setInicioSolicitud(null);
                 setFinSolicitud(null);
                 setInicioAsignacion(null);
                 setFinAsignacion(null);
+                Toast.error("Error", data.message || "No se pudieron cargar los períodos");
+            } else {
+                setPeriodos(data);
+                // Solo actualizar campos si hay períodos activos
+                if (data && data.length > 0) {
+                    const periodoSolicitud = data.find(p => p.tipo === 2);
+                    const periodoAsignacion = data.find(p => p.tipo === 1);
+                    if (periodoSolicitud) {
+                        setInicioSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaInicio).toISOString()));
+                        setFinSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaFin).toISOString()));
+                    }
+                    if (periodoAsignacion) {
+                        setInicioAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaInicio).toISOString()));
+                        setFinAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaFin).toISOString()));
+                    }
+                } else {
+                    setInicioSolicitud(null);
+                    setFinSolicitud(null);
+                    setInicioAsignacion(null);
+                    setFinAsignacion(null);
+                }
             }
-        } catch (error) {
-            console.error("Error al cargar períodos:", error);
-            Toast.error("Error", "No se pudieron cargar los períodos");
         } finally {
             setLoadingData(false);
         }
@@ -71,9 +73,14 @@ const PeriodoSolicitud = () => {
     const cargarPeriodosParaTarjetas = async () => {
         try {
             const data = await getPeriodosParaTarjetas();
-            setPeriodosParaTarjetas(data);
+            if (data && data.error) {
+                setPeriodosParaTarjetas([]);
+                Toast.error("Error", data.message || "No se pudieron cargar los períodos para visualización");
+            } else {
+                setPeriodosParaTarjetas(data);
+            }
         } catch (error) {
-            console.error("Error al cargar períodos para tarjetas:", error);
+            setPeriodosParaTarjetas([]);
             Toast.error("Error", "No se pudieron cargar los períodos para visualización");
         }
     };
@@ -86,13 +93,14 @@ const PeriodoSolicitud = () => {
         setShowAlert(false);
         setLoading(true);
         try {
-            await restablecerAsignaciones();
-            Toast.success("Éxito", "Las asignaciones han sido restablecidas exitosamente");
-            await cargarEstadoPeriodos(); // Recargar datos para formulario
-            await cargarPeriodosParaTarjetas(); // Recargar datos para tarjetas
-        } catch (error) {
-            console.error("Error al restablecer:", error);
-            Toast.error("Error", error.message || "No se pudieron restablecer las asignaciones");
+            const result = await restablecerAsignaciones();
+            if (result && result.error) {
+                Toast.error("Error", result.message || "No se pudieron restablecer las asignaciones");
+            } else {
+                Toast.success("Éxito", "Las asignaciones han sido restablecidas exitosamente");
+                await cargarEstadoPeriodos(); // Recargar datos para formulario
+                await cargarPeriodosParaTarjetas(); // Recargar datos para tarjetas
+            }
         } finally {
             setLoading(false);
         }
@@ -104,36 +112,32 @@ const PeriodoSolicitud = () => {
 
     const handleActualizar = async (e) => {
         e.preventDefault();
-        
         // Validar que todas las fechas estén completas
         if (!inicioSolicitud || !finSolicitud || !inicioAsignacion || !finAsignacion) {
             Toast.error("Error", "Por favor completa todas las fechas antes de continuar");
             return;
         }
-        
         setLoading(true);
-        
         try {
             // Actualizar período de solicitud
-            await actualizarPeriodo({
+            const resultSolicitud = await actualizarPeriodo({
                 tipo: 2, // Solicitud
                 fechaInicio: convertirFechaParaBD(inicioSolicitud),
                 fechaFin: convertirFechaParaBD(finSolicitud)
             });
-
             // Actualizar período de asignación
-            await actualizarPeriodo({
+            const resultAsignacion = await actualizarPeriodo({
                 tipo: 1, // Asignación
                 fechaInicio: convertirFechaParaBD(inicioAsignacion),
                 fechaFin: convertirFechaParaBD(finAsignacion)
             });
-
-            Toast.success("Éxito", "Los períodos han sido actualizados exitosamente");
-            await cargarEstadoPeriodos();
-            await cargarPeriodosParaTarjetas();
-        } catch (error) {
-            console.error("Error al actualizar períodos:", error);
-            Toast.error("Error", error.message || "No se pudieron actualizar los períodos");
+            if ((resultSolicitud && resultSolicitud.error) || (resultAsignacion && resultAsignacion.error)) {
+                Toast.error("Error", (resultSolicitud && resultSolicitud.message) || (resultAsignacion && resultAsignacion.message) || "No se pudieron actualizar los períodos");
+            } else {
+                Toast.success("Éxito", "Los períodos han sido actualizados exitosamente");
+                await cargarEstadoPeriodos();
+                await cargarPeriodosParaTarjetas();
+            }
         } finally {
             setLoading(false);
         }

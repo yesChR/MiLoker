@@ -28,18 +28,21 @@ const Admin = () => {
     }, []);
 
     const loadAdministradores = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
             const data = await getAdministradores();
-            // Procesar datos para mostrar en la tabla
-            const administradoresProcessed = data.map(admin => ({
-                ...admin,
-                estadoTexto: admin.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
-            }));
-            setAdministradores(administradoresProcessed);
-        } catch (error) {
-            console.error('Error al cargar administradores:', error);
-            Toast.error('Error', 'Error al cargar los datos iniciales');
+            if (data && data.error) {
+                setAdministradores([]);
+                Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
+            } else if (Array.isArray(data)) {
+                const administradoresProcessed = data.map(admin => ({
+                    ...admin,
+                    estadoTexto: admin.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
+                }));
+                setAdministradores(administradoresProcessed);
+            } else {
+                setAdministradores([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -54,28 +57,30 @@ const Admin = () => {
 
     const handleFormCrearSubmit = async (formData) => {
         setDrawerLoading(true);
-        try {
-            const adminData = {
-                cedula: formData.cedula,
-                nombre: formData.nombre,
-                apellidoUno: formData.apellidoUno,
-                apellidoDos: formData.apellidoDos,
-                correo: formData.correo,
-                telefono: formData.telefono,
-                estado: ESTADOS.ACTIVO,
-                rol: ROLES.ADMINISTRADOR
-            };
-            await createAdministrador(adminData);
+        const adminData = {
+            cedula: formData.cedula,
+            nombre: formData.nombre,
+            apellidoUno: formData.apellidoUno,
+            apellidoDos: formData.apellidoDos,
+            correo: formData.correo,
+            telefono: formData.telefono,
+            estado: ESTADOS.ACTIVO,
+            rol: ROLES.ADMINISTRADOR
+        };
+        const result = await createAdministrador(adminData);
+        if (result && result.error) {
+            if (result.message && result.message.includes('ya existe')) {
+                Toast.error('Administrador ya existe', result.message);
+            } else {
+                Toast.error('Error', result.message || 'Error al crear el administrador');
+            }
+        } else {
             await loadAdministradores();
             setSelectedItem(null);
             Toast.success("Administrador creado", "El administrador fue creado exitosamente.");
             onOpenChange();
-        } catch (error) {
-            console.error('Error al crear administrador:', error);
-            Toast.error('Error al crear el administrador');
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     const handleEditarSubmit = async () => {
@@ -87,26 +92,24 @@ const Admin = () => {
 
     const handleFormEditarSubmit = async (formData) => {
         setDrawerLoading(true);
-        try {
-            const adminData = {
-                nombre: formData.nombre,
-                apellidoUno: formData.apellidoUno,
-                apellidoDos: formData.apellidoDos,
-                correo: formData.correo,
-                telefono: formData.telefono,
-                estado: formData.estado
-            };
-            await updateAdministrador(formData.cedula, adminData);
+        const adminData = {
+            nombre: formData.nombre,
+            apellidoUno: formData.apellidoUno,
+            apellidoDos: formData.apellidoDos,
+            correo: formData.correo,
+            telefono: formData.telefono,
+            estado: formData.estado
+        };
+        const result = await updateAdministrador(formData.cedula, adminData);
+        if (result && result.error) {
+            Toast.error('Error', result.message || 'Error al editar el administrador');
+        } else {
             Toast.success("Administrador editado", "El administrador fue editado exitosamente.");
             await loadAdministradores();
             setSelectedItem(null);
             onOpenChange();
-        } catch (error) {
-            console.error('Error al editar administrador:', error);
-            Toast.error('Error', error.message || 'Error al editar el administrador');
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     const columnas = [
@@ -207,16 +210,16 @@ const Admin = () => {
                     disableClose={drawerLoading}
                 >
                     {accion === 1 ? (
-                        <FormEditar 
+                        <FormEditar
                             ref={formEditarRef}
-                            selectedItem={selectedItem} 
+                            selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             onSubmit={handleFormEditarSubmit}
                         />
                     ) : (
-                        <FormCrear 
+                        <FormCrear
                             ref={formCrearRef}
-                            selectedItem={selectedItem} 
+                            selectedItem={selectedItem}
                             setSelectedItem={setSelectedItem}
                             onSubmit={handleFormCrearSubmit}
                         />

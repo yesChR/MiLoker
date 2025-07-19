@@ -6,7 +6,7 @@ const handleResponse = async (response) => {
     
     if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
-        
+        let errorCode = response.status;
         try {
             if (contentType && contentType.includes("application/json")) {
                 const error = await response.json();
@@ -18,8 +18,7 @@ const handleResponse = async (response) => {
         } catch (parseError) {
             console.error('Error parsing response:', parseError);
         }
-        
-        throw new Error(errorMessage);
+        return { error: true, message: errorMessage, code: errorCode };
     }
     
     if (contentType && contentType.includes("application/json")) {
@@ -36,10 +35,10 @@ export const getPeriodos = async () => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener períodos:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener períodos' };
     }
 };
 
@@ -50,10 +49,10 @@ export const getEstadoPeriodos = async () => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener estado de períodos:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener estado de períodos' };
     }
 };
 
@@ -64,10 +63,10 @@ export const getPeriodoActivo = async (tipo) => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener período activo:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener período activo' };
     }
 };
 
@@ -78,10 +77,10 @@ export const verificarPeriodoVigente = async (tipo) => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al verificar período vigente:', error);
-        throw error;
+        return { error: true, message: 'Error de red al verificar período vigente' };
     }
 };
 
@@ -93,10 +92,10 @@ export const actualizarPeriodo = async (periodoData) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(periodoData),
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al actualizar período:', error);
-        throw error;
+        return { error: true, message: 'Error de red al actualizar período' };
     }
 };
 
@@ -107,10 +106,10 @@ export const restablecerAsignaciones = async () => {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al restablecer asignaciones:', error);
-        throw error;
+        return { error: true, message: 'Error de red al restablecer asignaciones' };
     }
 };
 
@@ -121,10 +120,10 @@ export const getHistorialPeriodos = async (tipo) => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener historial de períodos:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener historial de períodos' };
     }
 };
 
@@ -135,10 +134,10 @@ export const getPeriodoPorId = async (idPeriodo) => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener período por ID:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener período por ID' };
     }
 };
 
@@ -149,10 +148,10 @@ export const getPeriodosParaTarjetas = async () => {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener períodos para tarjetas:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener períodos para tarjetas' };
     }
 };
 

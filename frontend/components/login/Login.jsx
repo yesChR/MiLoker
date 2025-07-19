@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardBody } from "@heroui/react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { loginService } from "../../services/authService";
 import LockAnimationSystem from "./LockAnimationSystem";
 import LoginForm from "./LoginForm";
 import { useLoginAnimations } from "../../hooks/useLoginAnimations";
@@ -28,19 +28,13 @@ const Login = () => {
     setLoading(true);
     setErrorMessage(null);
 
-    // Obtener datos del formulario usando FormData
     let formData = Object.fromEntries(new FormData(e.currentTarget));
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (result?.error) {
-        setErrorMessage("Credenciales inválidas");
-      } else if (result?.url) {
+      const result = await loginService(formData.email, formData.password);
+      if (result && result.error) {
+        setErrorMessage(result.message || "Credenciales inválidas");
+      } else if (result && result.user) {
         // Activar la animación del candado abriéndose
         triggerSuccessAnimation();
         
@@ -48,6 +42,8 @@ const Login = () => {
         setTimeout(() => {
           router.push("/");
         }, 2200); // Tiempo total optimizado: 1.2s abierto + 0.8s cerrando + 0.2s buffer
+      } else {
+        setErrorMessage("Ocurrió un error inesperado. Intente nuevamente.");
       }
     } catch (error) {
       setErrorMessage("Ocurrió un error. Intente nuevamente.");

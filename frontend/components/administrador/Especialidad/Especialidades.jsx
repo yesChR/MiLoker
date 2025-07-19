@@ -11,6 +11,17 @@ import FormCrear from "./FormCrear";
 import FormEditar from "./FormEditar";
 
 const Especialidades = () => {
+
+    const formCrearRef = React.useRef();
+    const formEditarRef = React.useRef();
+    const [showErrors, setShowErrors] = useState(false);
+    const [drawerLoading, setDrawerLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Para mostrar el spinner en la tabla
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [selectedItem, setSelectedItem] = useState(null); // Elemento seleccionado para editar/crear
+    const [accion, setAccion] = useState(""); // "Editar" o "Crear"
+    const [especialidades, setEspecialidades] = useState([]); // Datos reales del backend
+    
     // Funciones de submit reales para los formularios
     const handleFormCrearSubmit = async (formData) => {
         await handleCrearEspecialidad(formData);
@@ -18,20 +29,21 @@ const Especialidades = () => {
     const handleFormEditarSubmit = async (formData) => {
         await handleEditarEspecialidad(formData);
     };
-    const formCrearRef = React.useRef();
-    const formEditarRef = React.useRef();
-    const [showErrors, setShowErrors] = useState(false);
-    const [drawerLoading, setDrawerLoading] = useState(false);
 
     // Función para recargar especialidades después de crear/editar/eliminar
     const recargarEspecialidades = async () => {
-        try {
-            const { getEspecialidades } = await import("../../../services/especialidadService");
-            const especialidades = await getEspecialidades();
-            setEspecialidades(especialidades);
-        } catch (error) {
-            console.error("Error al recargar especialidades:", error);
+        setDrawerLoading(true);
+        setLoading(true);
+        const { getEspecialidades } = await import("../../../services/especialidadService");
+        const data = await getEspecialidades();
+        if (data && data.error) {
+            setEspecialidades([]);
+            Toast.error("Error", data.message || "Error al cargar especialidades");
+        } else {
+            setEspecialidades(data);
         }
+        setDrawerLoading(false);
+        setLoading(false);
     };
 
     // Crear especialidad
@@ -44,23 +56,22 @@ const Especialidades = () => {
         const nombreNormalizado = selectedItem.nombre.trim().toLowerCase();
         const existe = especialidades.some(e => e.nombre.trim().toLowerCase() === nombreNormalizado);
         if (existe) {
+            Toast.error("Error", "Ya existe una especialidad con ese nombre");
             return;
         }
         setDrawerLoading(true);
-        try {
-            const { createEspecialidad } = await import("../../../services/especialidadService");
-            await createEspecialidad({ nombre: selectedItem.nombre, estado: ESTADOS.ACTIVO });
+        const { createEspecialidad } = await import("../../../services/especialidadService");
+        const result = await createEspecialidad({ nombre: selectedItem.nombre, estado: ESTADOS.ACTIVO });
+        if (result && result.error) {
+            Toast.error("Error", result.message || "Error al crear especialidad");
+        } else {
             Toast.success("Especialidad creada exitosamente");
             onOpenChange();
             setSelectedItem(null);
             setAccion("");
             await recargarEspecialidades();
-        } catch (error) {
-            Toast.error("Error al crear especialidad");
-            console.error("Error al crear especialidad:", error);
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
 
     // Editar especialidad
@@ -76,43 +87,26 @@ const Especialidades = () => {
             (e.idEspecialidad || e.id || e._id) !== selectedItem.id
         );
         if (existe) {
+            Toast.error("Error", "Ya existe una especialidad con ese nombre");
             return;
         }
         setDrawerLoading(true);
-        try {
-            const { updateEspecialidad } = await import("../../../services/especialidadService");
-            // Log para depuración
-            console.log("Enviando a updateEspecialidad:", {
-                id: selectedItem.id,
-                nombre: selectedItem.nombre,
-                estado: selectedItem.estado
-            });
-            await updateEspecialidad(selectedItem.id, {
-                nombre: selectedItem.nombre,
-                estado: selectedItem.estado
-            });
+        const { updateEspecialidad } = await import("../../../services/especialidadService");
+        const result = await updateEspecialidad(selectedItem.id, {
+            nombre: selectedItem.nombre,
+            estado: selectedItem.estado
+        });
+        if (result && result.error) {
+            Toast.error("Error", result.message || "Error al editar especialidad");
+        } else {
             Toast.success("Especialidad editada exitosamente");
             onOpenChange();
             setSelectedItem(null);
             setAccion("");
             await recargarEspecialidades();
-        } catch (error) {
-            if (error?.response?.data?.message) {
-                Toast.error(error.response.data.message);
-                console.error("Error al editar especialidad:", error.response.data.message);
-            } else {
-                Toast.error("Error al editar especialidad");
-                console.error("Error al editar especialidad:", error);
-            }
-        } finally {
-            setDrawerLoading(false);
         }
+        setDrawerLoading(false);
     };
-
-    const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const [selectedItem, setSelectedItem] = useState(null); // Elemento seleccionado para editar/crear
-    const [accion, setAccion] = useState(""); // "Editar" o "Crear"
-    const [especialidades, setEspecialidades] = useState([]); // Datos reales del backend
 
     const columnasPrueba = [
         { name: "#", uid: "numero" },
@@ -129,13 +123,16 @@ const Especialidades = () => {
 
     useEffect(() => {
         const fetchEspecialidades = async () => {
-            try {
-                const { getEspecialidades } = await import("../../../services/especialidadService");
-                const especialidades = await getEspecialidades();
-                setEspecialidades(especialidades);
-            } catch (error) {
-                console.error("Error al obtener especialidades:", error);
+            setLoading(true);
+            const { getEspecialidades } = await import("../../../services/especialidadService");
+            const data = await getEspecialidades();
+            if (data && data.error) {
+                setEspecialidades([]);
+                Toast.error("Error", data.message || "Error al cargar especialidades");
+            } else {
+                setEspecialidades(data);
             }
+            setLoading(false);
         };
         fetchEspecialidades();
     }, []);
@@ -191,6 +188,7 @@ const Especialidades = () => {
                         filterOptions={filterOptions}
                         onOpen={handleAbrirCrear}
                         setAccion={setAccion}
+                        loading={loading}
                     />
                 </div>
                 <DrawerGeneral

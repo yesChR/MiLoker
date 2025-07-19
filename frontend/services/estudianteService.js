@@ -6,7 +6,7 @@ const handleResponse = async (response) => {
     
     if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
-        
+        let errorCode = response.status;
         try {
             if (contentType && contentType.includes("application/json")) {
                 const error = await response.json();
@@ -18,8 +18,7 @@ const handleResponse = async (response) => {
         } catch (parseError) {
             console.error('Error parsing response:', parseError);
         }
-        
-        throw new Error(errorMessage);
+        return { error: true, message: errorMessage, code: errorCode };
     }
     
     if (contentType && contentType.includes("application/json")) {
@@ -38,10 +37,10 @@ export const getEstudiantes = async () => {
                 'Content-Type': 'application/json',
             },
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al obtener estudiantes:', error);
-        throw error;
+        return { error: true, message: 'Error de red al obtener estudiantes' };
     }
 };
 
@@ -49,21 +48,17 @@ export const getEstudiantes = async () => {
 export const cargarEstudiantesExcel = async (files) => {
     try {
         const formData = new FormData();
-        
-        // Agregar todos los archivos al FormData usando el mismo nombre que espera multer.any()
         files.forEach((file) => {
-            formData.append('files', file); // Usar 'files' como nombre genérico para todos los archivos
+            formData.append('files', file);
         });
-
         const response = await fetch(`${API_URL}/administrativo/estudiante/cargar/estudiantes`, {
             method: 'POST',
-            body: formData, // No establecer Content-Type, el navegador lo hará automáticamente con boundary
+            body: formData,
         });
-        
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al cargar estudiantes desde Excel:', error);
-        throw error;
+        return { error: true, message: 'Error de red al cargar estudiantes desde Excel' };
     }
 };
 
@@ -77,9 +72,9 @@ export const updateEstudiante = async (cedula, estudianteData) => {
             },
             body: JSON.stringify(estudianteData),
         });
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        return result;
     } catch (error) {
-        console.error('Error al editar estudiante:', error);
-        throw error;
+        return { error: true, message: 'Error de red al editar estudiante' };
     }
 };
