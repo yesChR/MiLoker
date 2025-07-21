@@ -12,16 +12,15 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const router = useRouter();
-  
-  // Hook personalizado para las animaciones
   const { 
     isUnlocked, 
     showSuccess, 
     isClosing, 
     triggerSuccessAnimation 
   } = useLoginAnimations();
-
   const toggleVisibility = () => setIsVisible(!isVisible);
+  // Importar signIn de next-auth/react
+  const { signIn } = require("next-auth/react");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,21 +28,22 @@ const Login = () => {
     setErrorMessage(null);
 
     let formData = Object.fromEntries(new FormData(e.currentTarget));
-
     try {
-      const result = await loginService(formData.email, formData.password);
-      if (result && result.error) {
-        setErrorMessage(result.message || "Credenciales inválidas");
-      } else if (result && result.user) {
-        // Activar la animación del candado abriéndose
+      // Usar signIn de NextAuth
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password
+      });
+      if (result?.error) {
+        setErrorMessage("Credenciales inválidas");
+      } else if (result?.ok) {
         triggerSuccessAnimation();
-        
-        // Esperar un momento para mostrar la animación antes de redirigir
         setTimeout(() => {
           router.push("/");
-        }, 2200); // Tiempo total optimizado: 1.2s abierto + 0.8s cerrando + 0.2s buffer
+        }, 2200);
       } else {
-        setErrorMessage("Ocurrió un error inesperado. Intente nuevamente.");
+        setErrorMessage("Credenciales inválidas");
       }
     } catch (error) {
       setErrorMessage("Ocurrió un error. Intente nuevamente.");

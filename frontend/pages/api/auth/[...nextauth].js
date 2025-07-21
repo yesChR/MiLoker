@@ -12,9 +12,10 @@ export default NextAuth({
       },
       async authorize(credentials) {
         try {
-          const user = await loginService(credentials.email, credentials.password);
-          if (!user) return null;
+          const result = await loginService(credentials.email, credentials.password);
+          if (result?.error || !result?.user) return null;
           // Mapear el usuario al formato NextAuth
+          const user = result.user;
           return {
             id: String(user.id),
             name: user.name,
