@@ -8,25 +8,43 @@ function ParticlesBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    let animationFrameId;
     const dpr = window.devicePixelRatio || 1;
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
+    let animationFrameId;
+    let particles = [];
+    let width, height, minR, maxR, PARTICLE_COUNT;
 
-    // Partículas flotantes
-    const particles = Array.from({ length: 28 }).map(() => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      r: 8 + Math.random() * 16,
-      dx: (Math.random() - 0.5) * 0.3,
-      dy: (Math.random() - 0.5) * 0.3,
-      color: `hsla(${Math.floor(Math.random() * 360)}, 80%, 70%, 0.13)`
-    }));
+    function setupParticles() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+
+      if (width < 480) {
+        minR = 6; maxR = 12; PARTICLE_COUNT = 14;
+      } else if (width < 768) {
+        minR = 8; maxR = 16; PARTICLE_COUNT = 20;
+      } else if (width < 1200) {
+        minR = 10; maxR = 18; PARTICLE_COUNT = 36;
+      } else {
+        minR = 12; maxR = 22; PARTICLE_COUNT = 40;
+      }
+
+      particles = Array.from({ length: PARTICLE_COUNT }).map(() => {
+        const r = minR + Math.random() * (maxR - minR);
+        return {
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r,
+          dx: (Math.random() - 0.5) * 0.25,
+          dy: (Math.random() - 0.5) * 0.25,
+          color: `hsla(${Math.floor(Math.random() * 360)}, 80%, 70%, 0.13)`
+        };
+      });
+    }
 
     function draw() {
       ctx.clearRect(0, 0, width, height);
@@ -38,8 +56,11 @@ function ParticlesBackground() {
         ctx.shadowBlur = 16;
         ctx.fill();
         ctx.shadowBlur = 0;
+
         p.x += p.dx;
         p.y += p.dy;
+
+        // Reposicionar si sale de pantalla
         if (p.x < -p.r) p.x = width + p.r;
         if (p.x > width + p.r) p.x = -p.r;
         if (p.y < -p.r) p.y = height + p.r;
@@ -47,8 +68,22 @@ function ParticlesBackground() {
       }
       animationFrameId = requestAnimationFrame(draw);
     }
+
+    function handleResize() {
+      cancelAnimationFrame(animationFrameId);
+      setupParticles();
+      draw();
+    }
+
+    setupParticles();
     draw();
-    return () => cancelAnimationFrame(animationFrameId);
+    window.addEventListener("resize", handleResize);
+
+    // Limpieza
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
@@ -60,14 +95,14 @@ function ParticlesBackground() {
   );
 }
 
+
 export default function Home() {
   
   const { data: session } = useSession();
   const userName = session?.user?.name;
 
-
   return (
-    <div className="fixed inset-0 z-0 flex items-center justify-center bg-white overflow-y-hidden ml-56">
+    <div className="fixed inset-0 w-full h-full bg-white flex items-center justify-center z-0 overflow-hidden">
       {/* Fondo animado sutil */}
       <ParticlesBackground />
 
@@ -77,6 +112,8 @@ export default function Home() {
           background: 'linear-gradient(120deg,rgba(255,255,255,0.96) 80%,rgba(96,165,250,0.08) 100%)',
           boxShadow: '0 8px 40px 0 rgba(31, 38, 135, 0.12), 0 2px 16px 0 #2563eb18',
           border: '1.5px solid rgba(255,255,255,0.5)',
+          maxHeight: 'calc(100vh - 32px)',
+          overflow: 'hidden',
         }}
       >
         {/* Avatar o logo */}
