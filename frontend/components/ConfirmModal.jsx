@@ -105,14 +105,14 @@ const ConfirmModal = ({
 
   // Componente para los botones
   const ButtonSection = () => (
-    <div className={`flex gap-3 ${centered ? 'justify-center' : 'justify-end'}`}>
+    <div className={`flex gap-2 ${centered ? 'justify-center' : 'justify-end'}`}>
       {cancelText && (
         <Button 
           color="default" 
           variant="bordered"
           onPress={onClose}
-          className="px-6 py-2 font-medium hover:bg-gray-50 border-2 transition-all duration-200 hover:scale-105 active:scale-95"
-          size="lg"
+          className="px-4 py-2 font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md text-sm"
+          size="sm"
         >
           {cancelText}
         </Button>
@@ -120,8 +120,13 @@ const ConfirmModal = ({
       <Button 
         color={confirmColor} 
         onPress={handleConfirm}
-        className={`px-6 py-2 font-medium shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${currentTheme.gradient}`}
-        size="lg"
+        className="px-4 py-2 font-medium text-white rounded-md text-sm"
+        size="sm"
+        style={{
+          backgroundColor: confirmColor === 'success' ? '#22c55e' : 
+                         confirmColor === 'danger' ? '#ef4444' : 
+                         confirmColor === 'primary' ? '#3b82f6' : '#6b7280'
+        }}
       >
         {confirmText}
       </Button>
@@ -175,7 +180,7 @@ const ConfirmModal = ({
           <ContentSection />
         </ModalBody>
         
-        <ModalFooter className="border-t border-divider/30">
+        <ModalFooter className="">
           <ButtonSection />
         </ModalFooter>
       </ModalContent>

@@ -14,14 +14,26 @@ export default NextAuth({
         try {
           const result = await loginService(credentials.email, credentials.password);
           if (result?.error || !result?.user) return null;
+          
           // Mapear el usuario al formato NextAuth
           const user = result.user;
-          return {
+          
+          // Debug: Ver qué datos vienen del backend
+          console.log("🔍 Datos del backend:", user);
+          console.log("🎯 idEspecialidad recibida:", user.idEspecialidad);
+          
+          const userToReturn = {
             id: String(user.id),
             name: user.name,
             email: user.email,
-            role: user.role
+            role: user.role,
+            idEspecialidad: user.idEspecialidad
           };
+          
+          // Debug: Ver qué datos se van a retornar
+          console.log("✅ Usuario a retornar:", userToReturn);
+          
+          return userToReturn;
         } catch (error) {
           console.error("Error en la autenticación:", error);
           return null;
@@ -45,6 +57,7 @@ export default NextAuth({
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
+        token.idEspecialidad = user.idEspecialidad;
       }
       return token;
     },
@@ -57,7 +70,7 @@ export default NextAuth({
       session.user.name = token.name;
       session.user.email = token.email;
       session.user.role = token.role;
-      
+      session.user.idEspecialidad = token.idEspecialidad;
       return session;
     }
   },

@@ -1,4 +1,4 @@
-import SolicitudCasillero from "@/components/estudiante/SolicitudCasillero";
+import SolicitudCasillero from "@/components/estudiante/solicitudCasillero/SolicitudCasillero";
 
 const SolicitudCasilleroPage = () => {
     return (
