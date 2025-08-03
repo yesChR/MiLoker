@@ -75,25 +75,67 @@ export const crearSolicitud = async (req, res) => {
     const { cedula, fechaRevision, estado, idPeriodo, idEspecialidad, opciones = [] } = req.body;
     const fechaSolicitud = new Date();
     try {
-       const existeSolicitud = await Solicitud.findOne({ where: { cedulaEstudiante: cedula } });
+        // Verificar que el estudiante existe
+        const estudianteExiste = await Estudiante.findOne({ 
+            where: { cedula: cedula } 
+        });
+        
+        if (!estudianteExiste) {
+            return res.status(404).json({ 
+                error: "El estudiante con la cédula proporcionada no existe en el sistema" 
+            });
+        }
+
+        // Verificar que todos los casilleros existen
+        const casilleroIds = opciones.map(opcion => opcion.idCasillero);
+        const casillerosExistentes = await Casillero.findAll({
+            where: { idCasillero: casilleroIds }
+        });
+
+        if (casillerosExistentes.length !== casilleroIds.length) {
+            const casillerosEncontrados = casillerosExistentes.map(c => c.idCasillero);
+            const casillerosNoEncontrados = casilleroIds.filter(id => !casillerosEncontrados.includes(id));
+            
+            return res.status(404).json({ 
+                error: "Algunos casilleros no existen en el sistema",
+                casillerosNoEncontrados: casillerosNoEncontrados
+            });
+        }
+
+        // Verificar si ya existe una solicitud para este estudiante en este período
+        const existeSolicitud = await Solicitud.findOne({ 
+            where: { 
+                cedulaEstudiante: cedula,
+                idPeriodo: idPeriodo 
+            } 
+        });
+        
         if (existeSolicitud === null) {
-            const nuevaSolicitud = await Solicitud.create({ cedulaEstudiante: cedula, fechaSolicitud, fechaRevision, estado, idPeriodo, idEspecialidad });
+            const nuevaSolicitud = await Solicitud.create({ 
+                cedulaEstudiante: cedula, 
+                fechaSolicitud, 
+                fechaRevision, 
+                estado, 
+                idPeriodo, 
+                idEspecialidad 
+            });
+            
             // Crear registros en solicitudXcasillero para cada opción
             for (const opcion of opciones) {
-                // opcion debe tener al menos idCasillero, detalle y estado
                 await SolicitudXCasillero.create({
-                    idSolicitud: nuevaSolicitud.idSolicitud, // o el campo PK real de Solicitud
+                    idSolicitud: nuevaSolicitud.idSolicitud,
                     idCasillero: opcion.idCasillero,
                     detalle: opcion.detalle || null,
-                    estado: opcion.estado || 1 // o el valor por defecto que uses
+                    estado: opcion.estado || 1
                 });
             }
 
             res.status(201).json({ message: "Solicitud creada exitosamente" });
         } else {
-            res.status(409).json({ error: "La solicitud ya existe" });
+            res.status(409).json({ error: "Ya existe una solicitud para este período" });
         }
     } catch (error) {
+        console.log({ error: error.message});
         res.status(500).json({ error: "Error interno en el servidor", detalle: error.message });
     }
 };

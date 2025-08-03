@@ -28,11 +28,16 @@ export const crearArmario = async (req, res) => {
     const idEstadoCasillero = 1; // Estado por defecto para los casilleros
 
     try {
-        // Validar que no exista un armario con el mismo idArmario
-        const armarioExistente = await Armario.findOne({ where: { idArmario } });
+        // Validar que no exista un armario con el mismo idArmario en la misma especialidad
+        const armarioExistente = await Armario.findOne({ 
+            where: { 
+                idArmario,
+                idEspecialidad 
+            } 
+        });
         if (armarioExistente) {
             return res.status(400).json({
-                error: "Ya existe un armario con ese idArmario"
+                error: "Ya existe un armario con ese idArmario en esta especialidad"
             });
         }
 

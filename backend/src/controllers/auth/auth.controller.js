@@ -25,6 +25,8 @@ export const loginUsuario = async(req, res) => {
 
         // Obtener el nombre real según el rol
         let nombreCompleto = '';
+        let idEspecialidad = null;
+
         if (user.rol === ROLES.ADMINISTRADOR) {
             const admin = await Administrador.findOne({ where: { cedula: user.cedula } });
             if (admin) {
@@ -34,15 +36,18 @@ export const loginUsuario = async(req, res) => {
             const prof = await Profesor.findOne({ where: { cedula: user.cedula } });
             if (prof) {
                 nombreCompleto = `${prof.nombre} ${prof.apellidoUno} ${prof.apellidoDos}`;
+                idEspecialidad = prof.idEspecialidad;
             }
         } else if (user.rol === ROLES.ESTUDIANTE) {
             const est = await Estudiante.findOne({ where: { cedula: user.cedula } });
             if (est) {
                 nombreCompleto = `${est.nombre} ${est.apellidoUno} ${est.apellidoDos}`;
+                idEspecialidad = est.idEspecialidad;
             }
         }
         // Si no se encontró nombre real, usar nombreUsuario
         if (!nombreCompleto) nombreCompleto = user.nombreUsuario;
+        
 
         // Devuelve el usuario en formato exitoso
         return res.status(200).json({
@@ -52,7 +57,8 @@ export const loginUsuario = async(req, res) => {
                 id: String(user.cedula),
                 name: nombreCompleto,
                 email: user.nombreUsuario,
-                role: user.rol
+                role: user.rol,
+                idEspecialidad: idEspecialidad
             }
         });
     } catch (error) {

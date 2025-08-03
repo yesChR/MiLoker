@@ -1,6 +1,5 @@
 import { Periodo } from "../../models/periodo.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
-import { Solicitud } from "../../models/solicitud.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS } from "../../common/estados.js";
 
@@ -99,13 +98,12 @@ export const obtenerPeriodoActivo = async (req, res) => {
     const { tipo } = req.params;
     
     try {
-        const ahora = new Date();
+        // Buscar período activo del tipo solicitado
+        // No validamos fechas ya que se maneja externamente que solo haya uno activo por tipo
         const periodo = await Periodo.findOne({
             where: {
                 tipo: parseInt(tipo),
-                estado: ESTADOS.ACTIVO,
-                fechaInicio: { [sequelize.Sequelize.Op.lte]: ahora },
-                fechaFin: { [sequelize.Sequelize.Op.gte]: ahora }
+                estado: ESTADOS.ACTIVO
             }
         });
 
