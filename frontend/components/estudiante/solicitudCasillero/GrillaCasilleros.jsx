@@ -16,13 +16,32 @@ const GrillaCasilleros = ({
         );
     }
 
+    // Función para obtener la clase de grid correcta basada en el número de columnas
+    const getGridCols = (columnas) => {
+        const gridColsMap = {
+            1: "grid-cols-1",
+            2: "grid-cols-2", 
+            3: "grid-cols-3",
+            4: "grid-cols-4",
+            5: "grid-cols-5",
+            6: "grid-cols-6",
+            7: "grid-cols-7",
+            8: "grid-cols-8",
+            9: "grid-cols-9",
+            10: "grid-cols-10",
+            11: "grid-cols-11",
+            12: "grid-cols-12"
+        };
+        return gridColsMap[columnas] || "grid-cols-4"; // Default a 4 columnas
+    };
+
     return (
         <div className="border border-gray-300 p-4 rounded-lg shadow-lg bg-white">
             <div className="bg-primary text-white p-4 text-xl rounded-md text-center font-bold shadow-lg mb-4">
                 Armario {armario.id}
             </div>
             
-            <div className={`grid grid-cols-${armario.columnas} gap-3`}>
+            <div className={`grid ${getGridCols(armario.columnas)} gap-3`}>
                 {armario.casilleros.map((casillero) => {
                     const isSelected = selectedCasilleros.some(
                         (item) => item.id === casillero.id && item.armarioId === armario.idArmario
