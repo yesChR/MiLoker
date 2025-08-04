@@ -1,0 +1,6 @@
+export const ESTADOS_CASILLERO = {
+    DISPONIBLE: 1,
+    OCUPADO: 2,
+    DAÑADO: 3,
+    EN_MANTENIMIENTO: 4
+};
