@@ -8,6 +8,80 @@ import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { actualizarEstadoUsuarioEstudiante } from "../../controllers/usuario/usuario.controller.js";
 import { ESTADOS } from "../../common/estados.js";
 
+export const visualizar = async (req, res) => {
+    const cedula = req.params.cedula;
+    
+    if (!cedula) {
+        return res.status(400).json({ error: "Debe proporcionar una cédula como parámetro" });
+    }
+    
+    try {
+        // Buscar el estudiante con sus datos completos
+        const estudiante = await Estudiante.findOne({
+            where: { cedula },
+            include: [
+                {
+                    model: Usuario,
+                    as: 'usuario', // Usar el alias definido en la asociación
+                    attributes: ['nombreUsuario', 'estado'],
+                    required: false
+                },
+                {
+                    model: EstudianteXEncargado,
+                    include: [
+                        {
+                            model: Encargado,
+                            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'parentesco', 'correo', 'telefono']
+                        }
+                    ],
+                    required: false
+                }
+            ]
+        });
+
+        if (!estudiante) {
+            return res.status(404).json({ 
+                error: "Estudiante no encontrado",
+                message: "No se encontró ningún estudiante con la cédula proporcionada"
+            });
+        }
+
+        // Formatear la respuesta de manera segura
+        const encargados = estudiante.estudianteXencargados && Array.isArray(estudiante.estudianteXencargados) ? 
+            estudiante.estudianteXencargados.map(rel => rel.encargado).filter(enc => enc !== null) : [];
+
+        const respuesta = {
+            estudiante: {
+                cedula: estudiante.cedula || '',
+                nombre: estudiante.nombre || '',
+                apellidoUno: estudiante.apellidoUno || '',
+                apellidoDos: estudiante.apellidoDos || '',
+                correo: estudiante.correo || '',
+                telefono: estudiante.telefono || '',
+                fechaNacimiento: estudiante.fechaNacimiento || null,
+                seccion: estudiante.seccion || '',
+                estado: estudiante.estado || ''
+            },
+            usuario: estudiante.usuario ? {
+                nombreUsuario: estudiante.usuario.nombreUsuario || '',
+                estado: estudiante.usuario.estado || ''
+            } : null,
+            encargados: encargados || []
+        };
+
+        return res.status(200).json(respuesta);
+    } catch (error) {
+        console.error("Error al obtener datos del estudiante:", error);
+        
+        // Enviar respuesta de error estructurada
+        return res.status(500).json({ 
+            error: "Error interno del servidor", 
+            message: "Error al procesar la solicitud",
+            detalle: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
 export const habilitarUsuarioEstudiante = async (req, res) => {
     const cedula = req.params.cedula;
     const encargados = req.body.encargados;
@@ -26,7 +100,6 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
         // Buscar si el estudiante existe
         const estudiante = await Estudiante.findOne({
             where: { cedula },
-            attributes: ['correo'],
             transaction: t
         });
 
@@ -49,6 +122,11 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             transaction: t 
         });
 
+        // Actualizar también el estado del estudiante a activo
+        await estudiante.update({ 
+            estado: ESTADOS.ACTIVO 
+        }, { transaction: t });
+
         // Procesar encargados
         for (const encargado of encargados) {
             const { cedula: cedulaEncargado } = encargado;
@@ -60,7 +138,18 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             });
 
             if (!encargadoExistente) {
+                // Crear nuevo encargado si no existe
                 encargadoExistente = await Encargado.create(encargado, { transaction: t });
+            } else {
+                // Actualizar datos del encargado existente
+                await encargadoExistente.update({
+                    nombre: encargado.nombre,
+                    apellidoUno: encargado.apellidoUno,
+                    apellidoDos: encargado.apellidoDos,
+                    parentesco: encargado.parentesco,
+                    correo: encargado.correo,
+                    telefono: encargado.telefono
+                }, { transaction: t });
             }
 
             // Verificar si ya existe la relación
@@ -69,6 +158,7 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
                     cedulaEstudiante: cedula,
                     cedulaEncargado: cedulaEncargado
                 },
+
                 transaction: t
             });
 
