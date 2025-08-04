@@ -113,7 +113,7 @@ export const editarCasillero = async (req, res) => {
             return res.status(404).json({
                 error: "Casillero no encontrado"
             });
-        }
+        } 
 
         await Casillero.update(
             { idEstadoCasillero, detalle },
