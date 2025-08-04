@@ -8,6 +8,85 @@ import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { actualizarEstadoUsuarioEstudiante } from "../../controllers/usuario/usuario.controller.js";
 import { ESTADOS } from "../../common/estados.js";
 
+// Función auxiliar para validar los datos de entrada
+const validarDatosEntrada = (cedula, encargados) => {
+    if (!cedula) {
+        return { error: "Debe proporcionar una cédula como query param", status: 400 };
+    }
+
+    if (!Array.isArray(encargados) || encargados.length === 0) {
+        return { error: "Debe incluir al menos un encargado", status: 400 };
+    }
+
+    if (encargados.length > 2) {
+        return { error: "No se pueden registrar más de 2 encargados por estudiante", status: 400 };
+    }
+
+    return null; // Sin errores
+};
+
+// Función auxiliar para gestionar encargados
+const gestionarEncargados = async (cedula, encargados, transaction) => {
+    // 1. Obtener encargados actuales del estudiante
+    const encargadosActuales = await EstudianteXEncargado.findAll({
+        where: { cedulaEstudiante: cedula },
+        attributes: ['cedulaEncargado'],
+        transaction
+    });
+
+    const cedulasActuales = encargadosActuales.map(rel => rel.cedulaEncargado);
+    const cedulasNuevas = encargados.map(enc => enc.cedula);
+
+    // 2. Identificar cambios necesarios
+    const cedulasAEliminar = cedulasActuales.filter(cedula => !cedulasNuevas.includes(cedula));
+    const cedulasAAgregar = cedulasNuevas.filter(cedula => !cedulasActuales.includes(cedula));
+
+    // 3. Eliminar solo las relaciones que ya no deben existir
+    if (cedulasAEliminar.length > 0) {
+        await EstudianteXEncargado.destroy({
+            where: { 
+                cedulaEstudiante: cedula,
+                cedulaEncargado: cedulasAEliminar
+            },
+            transaction
+        });
+    }
+
+    // 4. Procesar todos los encargados (agregar + actualizar)
+    for (const encargado of encargados) {
+        const { cedula: cedulaEncargado } = encargado;
+
+        // Verificar si ya existe el encargado en la tabla Encargado
+        let encargadoExistente = await Encargado.findOne({ 
+            where: { cedula: cedulaEncargado }, 
+            transaction 
+        });
+
+        if (!encargadoExistente) {
+            // Crear nuevo encargado si no existe
+            encargadoExistente = await Encargado.create(encargado, { transaction });
+        } else {
+            // Actualizar datos del encargado existente
+            await encargadoExistente.update({
+                nombre: encargado.nombre,
+                apellidoUno: encargado.apellidoUno,
+                apellidoDos: encargado.apellidoDos,
+                parentesco: encargado.parentesco,
+                correo: encargado.correo,
+                telefono: encargado.telefono
+            }, { transaction });
+        }
+
+        // 5. Crear relación solo si es nueva
+        if (cedulasAAgregar.includes(cedulaEncargado)) {
+            await EstudianteXEncargado.create({
+                cedulaEstudiante: cedula,
+                cedulaEncargado: cedulaEncargado
+            }, { transaction });
+        }
+    }
+};
+
 export const visualizar = async (req, res) => {
     const cedula = req.params.cedula;
     
@@ -86,12 +165,10 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
     const cedula = req.params.cedula;
     const encargados = req.body.encargados;
 
-    if (!cedula) {
-        return res.status(400).json({ error: "Debe proporcionar una cédula como query param" });
-    }
-
-    if (!Array.isArray(encargados) || encargados.length === 0) {
-        return res.status(400).json({ error: "Debe incluir al menos un encargado" });
+    // Validar datos de entrada usando función auxiliar
+    const errorValidacion = validarDatosEntrada(cedula, encargados);
+    if (errorValidacion) {
+        return res.status(errorValidacion.status).json({ error: errorValidacion.error });
     }
 
     const t = await sequelize.transaction();
@@ -115,78 +192,61 @@ export const habilitarUsuarioEstudiante = async (req, res) => {
             return res.status(404).json({ error: "El estudiante no tiene un usuario registrado" });
         }
 
-        // Cambiar el estado del usuario a activo
-        const { contraseñaGenerada } = await actualizarEstadoUsuarioEstudiante({ 
-            cedula, 
-            estado: ESTADOS.ACTIVO, 
-            transaction: t 
-        });
+        // Verificar si el usuario ya estaba activo para determinar si enviar correo
+        const usuarioYaActivo = usuario.estado === ESTADOS.ACTIVO;
+        const estudianteYaActivo = estudiante.estado === ESTADOS.ACTIVO;
+        const yaEstabaHabilitado = usuarioYaActivo && estudianteYaActivo;
 
-        // Actualizar también el estado del estudiante a activo
-        await estudiante.update({ 
-            estado: ESTADOS.ACTIVO 
-        }, { transaction: t });
+        let contraseñaGenerada = null;
 
-        // Procesar encargados
-        for (const encargado of encargados) {
-            const { cedula: cedulaEncargado } = encargado;
-
-            // Verificar si ya existe el encargado
-            let encargadoExistente = await Encargado.findOne({ 
-                where: { cedula: cedulaEncargado }, 
+        // Solo cambiar estado y generar contraseña si no estaba activo
+        if (!yaEstabaHabilitado) {
+            // Cambiar el estado del usuario a activo y generar nueva contraseña
+            const resultado = await actualizarEstadoUsuarioEstudiante({ 
+                cedula, 
+                estado: ESTADOS.ACTIVO, 
                 transaction: t 
             });
+            contraseñaGenerada = resultado.contraseñaGenerada;
 
-            if (!encargadoExistente) {
-                // Crear nuevo encargado si no existe
-                encargadoExistente = await Encargado.create(encargado, { transaction: t });
-            } else {
-                // Actualizar datos del encargado existente
-                await encargadoExistente.update({
-                    nombre: encargado.nombre,
-                    apellidoUno: encargado.apellidoUno,
-                    apellidoDos: encargado.apellidoDos,
-                    parentesco: encargado.parentesco,
-                    correo: encargado.correo,
-                    telefono: encargado.telefono
-                }, { transaction: t });
-            }
-
-            // Verificar si ya existe la relación
-            const yaRelacion = await EstudianteXEncargado.findOne({
-                where: {
-                    cedulaEstudiante: cedula,
-                    cedulaEncargado: cedulaEncargado
-                },
-
-                transaction: t
-            });
-
-            if (!yaRelacion) {
-                await EstudianteXEncargado.create({
-                    cedulaEstudiante: cedula,
-                    cedulaEncargado: cedulaEncargado
-                }, { transaction: t });
-            }
+            // Actualizar también el estado del estudiante a activo
+            await estudiante.update({ 
+                estado: ESTADOS.ACTIVO 
+            }, { transaction: t });
         }
 
-        // Enviar correo de bienvenida
-        await enviarCorreo({
-            to: estudiante.correo,
-            subject: "Tu cuenta ha sido creada",
-            text: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
-            html: plantillaNuevaCuenta({
-                titulo: "Bienvenido a MiLoker",
-                mensaje: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu cuenta ha sido creada exitosamente. Aquí tienes tus credenciales de acceso:`,
-                datos: [
-                    { label: "Usuario", valor: usuario.nombreUsuario },
-                    { label: "Contraseña", valor: contraseñaGenerada }
-                ]
-            })
-        });
+        // Gestionar encargados usando función auxiliar
+        await gestionarEncargados(cedula, encargados, t);
+
+        // Enviar correo SOLO si el usuario no estaba habilitado anteriormente
+        if (!yaEstabaHabilitado && contraseñaGenerada) {
+            await enviarCorreo({
+                to: estudiante.correo,
+                subject: "Tu cuenta ha sido creada",
+                text: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu contraseña es: ${contraseñaGenerada}`,
+                html: plantillaNuevaCuenta({
+                    titulo: "Bienvenido a MiLoker",
+                    mensaje: `Hola ${estudiante.nombre} ${estudiante.apellidoUno}, tu cuenta ha sido creada exitosamente. Aquí tienes tus credenciales de acceso:`,
+                    datos: [
+                        { label: "Usuario", valor: usuario.nombreUsuario },
+                        { label: "Contraseña", valor: contraseñaGenerada }
+                    ]
+                })
+            });
+        }
 
         await t.commit();
-        res.status(200).json({ message: "Usuario habilitado y encargados asociados correctamente" });
+        
+        // Respuesta diferenciada según la acción realizada
+        const mensaje = yaEstabaHabilitado 
+            ? "Encargados actualizados correctamente" 
+            : "Usuario habilitado y encargados asociados correctamente";
+            
+        res.status(200).json({ 
+            message: mensaje,
+            usuarioHabilitado: !yaEstabaHabilitado,
+            correoEnviado: !yaEstabaHabilitado && contraseñaGenerada !== null
+        });
     } catch (error) {
         await t.rollback();
         console.error(error);
