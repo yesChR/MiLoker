@@ -7,10 +7,12 @@ const handleResponse = async (response) => {
     if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
         let errorCode = response.status;
+        let errorData = null;
+        
         try {
             if (contentType && contentType.includes("application/json")) {
-                const error = await response.json();
-                errorMessage = error.error || error.message || errorMessage;
+                errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
             } else {
                 const text = await response.text();
                 errorMessage = text || errorMessage;
@@ -19,8 +21,14 @@ const handleResponse = async (response) => {
             console.error('Error parsing response:', parseError);
         }
         
+        // Para errores 404, devolver null en lugar de lanzar excepción
+        if (errorCode === 404) {
+            return null;
+        }
+        
         const error = new Error(errorMessage);
         error.status = errorCode;
+        error.data = errorData;
         throw error;
     }
     
@@ -41,9 +49,17 @@ export const obtenerDatosEstudiantePorCedula = async (cedula) => {
             },
         });
 
-        return await handleResponse(response);
+        const result = await handleResponse(response);
+        
+        // Si handleResponse devuelve null (404), significa que no se encontró
+        if (result === null) {
+            return { error: 'Estudiante no encontrado', status: 404 };
+        }
+        
+        return result;
     } catch (error) {
         console.error('Error al obtener datos del estudiante:', error);
+        // Re-lanzar el error para que sea manejado por el componente
         throw error;
     }
 };

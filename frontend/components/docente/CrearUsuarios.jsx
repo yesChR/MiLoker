@@ -6,6 +6,7 @@ import { LuSendHorizontal } from "react-icons/lu";
 import { useState } from "react";
 import { obtenerDatosEstudiantePorCedula, habilitarUsuarioEstudiante } from "../../services/usuarioDocenteService";
 import Toast from "../CustomAlert";
+import { PiBroomLight } from "react-icons/pi";
 
 const CrearUsuarios = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -53,13 +54,48 @@ const CrearUsuarios = () => {
             return;
         }
 
+        // Guardar la cédula antes de limpiar
+        const cedulaBusqueda = datosEstudiante.cedula.trim();
+        
+        // Limpiar formulario antes de buscar
+        limpiarFormulario();
+
         setIsLoading(true);
         try {
-            const response = await obtenerDatosEstudiantePorCedula(datosEstudiante.cedula);
+            const response = await obtenerDatosEstudiantePorCedula(cedulaBusqueda);
+
+            // Verificar si hubo un error (estudiante no encontrado)
+            if (response && response.error) {
+                Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
+                setDatosEncontrados(false);
+                return;
+            }
+
+            // Verificar si la respuesta es válida y contiene datos del estudiante
+            if (!response) {
+                Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
+                setDatosEncontrados(false);
+                return;
+            }
+
+            // Verificar si existe el objeto estudiante en la respuesta
+            if (!response.estudiante) {
+                Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
+                setDatosEncontrados(false);
+                return;
+            }
+
+            // Verificar si el estudiante tiene datos básicos
+            if (!response.estudiante.cedula && !response.estudiante.nombre) {
+                Toast.error('Datos incompletos', 'Los datos del estudiante están incompletos');
+                setDatosEncontrados(false);
+                return;
+            }
 
             // Cargar datos del estudiante
             setDatosEstudiante(prev => ({
                 ...prev,
+                cedula: cedulaBusqueda, // Mantener la cédula buscada
                 nombre: response.estudiante.nombre || '',
                 apellidoUno: response.estudiante.apellidoUno || '',
                 apellidoDos: response.estudiante.apellidoDos || '',
@@ -94,13 +130,66 @@ const CrearUsuarios = () => {
                         telefono: segundo.telefono || ''
                     });
                 }
+            } else {
+                // Limpiar encargados si no hay datos
+                setPrimerEncargado({
+                    cedula: '',
+                    nombre: '',
+                    apellidoUno: '',
+                    apellidoDos: '',
+                    parentesco: '',
+                    correo: '',
+                    telefono: ''
+                });
+                setSegundoEncargado({
+                    cedula: '',
+                    nombre: '',
+                    apellidoUno: '',
+                    apellidoDos: '',
+                    parentesco: '',
+                    correo: '',
+                    telefono: ''
+                });
             }
 
             setDatosEncontrados(true);
             Toast.success('Éxito', 'Datos del estudiante cargados exitosamente');
 
         } catch (error) {
-            Toast.error('Error', 'Error al buscar el estudiante');
+            console.error('Error al buscar estudiante:', error);
+            
+            // Manejar cualquier error que pueda ocurrir
+            if (error && error.status) {
+                switch (error.status) {
+                    case 400:
+                        Toast.error('Cédula inválida', error.message || 'La cédula ingresada no es válida');
+                        break;
+                    case 404:
+                        Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
+                        break;
+                    case 500:
+                    case 502:
+                    case 503:
+                        Toast.error('Error del servidor', 'Error interno del servidor. Intente nuevamente en unos momentos');
+                        break;
+                    default:
+                        Toast.error('Error', error.message || 'Error al buscar el estudiante');
+                }
+            } else if (error && error.message) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('Network Error')) {
+                    Toast.error('Error de conexión', 'No se pudo conectar con el servidor. Verifique su conexión a internet');
+                } else if (error.message.includes('timeout')) {
+                    Toast.error('Error de conexión', 'El servidor tardó demasiado en responder');
+                } else {
+                    Toast.error('Error', error.message);
+                }
+            } else {
+                // Error completamente desconocido
+                Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
+            }
+            
+            // Limpiar datos si hubo error
+            setDatosEncontrados(false);
         } finally {
             setIsLoading(false);
         }
@@ -176,9 +265,9 @@ const CrearUsuarios = () => {
         }
     };
 
-    const limpiarFormulario = () => {
+    const limpiarFormulario = (mantenerCedula = false) => {
         setDatosEstudiante({
-            cedula: '',
+            cedula: mantenerCedula ? datosEstudiante.cedula : '',
             nombre: '',
             apellidoUno: '',
             apellidoDos: '',
@@ -221,20 +310,20 @@ const CrearUsuarios = () => {
     const hasSecondGuardianData = Object.values(segundoEncargado).some(value => value && value.trim());
 
     return (
-        <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
             <div className="w-full">
                 <CabezeraDinamica
                     title="Crear Usuarios"
                     breadcrumb="Inicio • Crear usuarios"
                 />
             </div>
-            <div className="mx-auto w-full max-w-4xl">
-                <form onSubmit={handleSubmit} className="border-2 border-gray-200 rounded-lg p-4 bg-white w-md">
+            <div className="mx-auto w-full max-w-5xl">
+                <form onSubmit={handleSubmit} className="border-2 border-gray-200 rounded-lg p-3 sm:p-4 bg-white w-full">
                     <div>
                         <h2 className="text-md font-semibold text-gray-600">Datos del estudiante:</h2>
                         <p className="text-sm text-muted-foreground text-danger">* Digite la cédula del estudiante para cargar los datos</p>
-                        <div className="grid grid-cols-4 gap-2 mt-2">
-                            <div className="relative">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
+                            <div className="relative sm:col-span-2 lg:col-span-1">
                                 <Input
                                     isRequired
                                     label="Cédula"
@@ -284,7 +373,7 @@ const CrearUsuarios = () => {
                                 isRequired
                             />
                         </div>
-                        <div className="grid grid-cols-4 gap-2 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
                             <Input
                                 label="Fecha de Nacimiento"
                                 placeholder="09/07/2008"
@@ -330,7 +419,7 @@ const CrearUsuarios = () => {
                     <div>
                         <h2 className="text-md font-semibold text-gray-600">Datos del primer encargado:</h2>
                         {showErrors}
-                        <div className="grid grid-cols-4 gap-4 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2">
                             <Input
                                 label="Cédula"
                                 placeholder="701110111"
@@ -380,7 +469,7 @@ const CrearUsuarios = () => {
                                 errorMessage="El segundo apellido es obligatorio"
                             />
                         </div>
-                        <div className="grid grid-cols-4 gap-4 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-2">
                             <Input
                                 label="Parentesco"
                                 placeholder="Madre"
@@ -425,7 +514,7 @@ const CrearUsuarios = () => {
                     <div>
                         <h2 className="text-md font-semibold text-gray-600">Datos del segundo encargado (opcional):</h2>
                         <p className="text-sm text-danger">* Si registra el segundo encargado, complete todos los campos</p>
-                        <div className="grid grid-cols-4 gap-4 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2">
                             <Input
                                 label="Cédula"
                                 placeholder="701110112"
@@ -471,7 +560,7 @@ const CrearUsuarios = () => {
                                 errorMessage="El segundo apellido es obligatorio"
                             />
                         </div>
-                        <div className="grid grid-cols-4 gap-4 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-2">
                             <Input
                                 label="Parentesco"
                                 placeholder="Padre"
@@ -510,10 +599,19 @@ const CrearUsuarios = () => {
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-between items-center mt-6">
+                        <Button
+                            type="button"
+                            variant="bordered"
+                            color="default"
+                            className="px-6"
+                            onClick={() => limpiarFormulario()}
+                        >
+                            Limpiar <PiBroomLight />
+                        </Button>
                         <Button
                             type="submit"
-                            className="px-6 bg-primario text-white mt-2"
+                            className="px-6 bg-primario text-white w-full sm:w-auto ml-4"
                             endContent={<LuSendHorizontal />}
                             isLoading={isLoading}
                             disabled={!datosEncontrados}

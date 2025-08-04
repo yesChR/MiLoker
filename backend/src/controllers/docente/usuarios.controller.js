@@ -40,36 +40,45 @@ export const visualizar = async (req, res) => {
         });
 
         if (!estudiante) {
-            return res.status(404).json({ error: "Estudiante no encontrado" });
+            return res.status(404).json({ 
+                error: "Estudiante no encontrado",
+                message: "No se encontró ningún estudiante con la cédula proporcionada"
+            });
         }
 
-        // Formatear la respuesta
-        const encargados = estudiante.estudianteXencargados ? 
-            estudiante.estudianteXencargados.map(rel => rel.encargado) : [];
+        // Formatear la respuesta de manera segura
+        const encargados = estudiante.estudianteXencargados && Array.isArray(estudiante.estudianteXencargados) ? 
+            estudiante.estudianteXencargados.map(rel => rel.encargado).filter(enc => enc !== null) : [];
 
         const respuesta = {
             estudiante: {
-                cedula: estudiante.cedula,
-                nombre: estudiante.nombre,
-                apellidoUno: estudiante.apellidoUno,
-                apellidoDos: estudiante.apellidoDos,
-                correo: estudiante.correo,
-                telefono: estudiante.telefono,
-                fechaNacimiento: estudiante.fechaNacimiento,
-                seccion: estudiante.seccion,
-                estado: estudiante.estado
+                cedula: estudiante.cedula || '',
+                nombre: estudiante.nombre || '',
+                apellidoUno: estudiante.apellidoUno || '',
+                apellidoDos: estudiante.apellidoDos || '',
+                correo: estudiante.correo || '',
+                telefono: estudiante.telefono || '',
+                fechaNacimiento: estudiante.fechaNacimiento || null,
+                seccion: estudiante.seccion || '',
+                estado: estudiante.estado || ''
             },
             usuario: estudiante.usuario ? {
-                nombreUsuario: estudiante.usuario.nombreUsuario,
-                estado: estudiante.usuario.estado
+                nombreUsuario: estudiante.usuario.nombreUsuario || '',
+                estado: estudiante.usuario.estado || ''
             } : null,
-            encargados: encargados
+            encargados: encargados || []
         };
 
         return res.status(200).json(respuesta);
     } catch (error) {
         console.error("Error al obtener datos del estudiante:", error);
-        return res.status(500).json({ error: "Error interno del servidor", detalle: error.message });
+        
+        // Enviar respuesta de error estructurada
+        return res.status(500).json({ 
+            error: "Error interno del servidor", 
+            message: "Error al procesar la solicitud",
+            detalle: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
