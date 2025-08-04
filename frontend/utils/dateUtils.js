@@ -124,3 +124,43 @@ export const isValidDate = (dateValue) => {
     
     return false;
 };
+
+// Función para formatear fecha a formato corto (DD/MM/YYYY)
+export const formatDateShort = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+        let date;
+        
+        // Si es un objeto Date (instancia de Date)
+        if (dateString instanceof Date) {
+            date = dateString;
+        } 
+        // Si es una string
+        else if (typeof dateString === 'string') {
+            date = new Date(dateString);
+        }
+        // Si es un objeto CalendarDate
+        else if (typeof dateString === 'object' && dateString.year) {
+            date = new Date(dateString.year, dateString.month - 1, dateString.day);
+        }
+        else {
+            return 'N/A';
+        }
+        
+        // Verificar que la fecha sea válida
+        if (isNaN(date.getTime())) {
+            return 'N/A';
+        }
+        
+        // Formatear a DD/MM/YYYY
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return `${day}/${month}/${year}`;
+    } catch (error) {
+        console.warn('Error al formatear fecha corta:', error);
+        return 'N/A';
+    }
+};

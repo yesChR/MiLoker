@@ -111,3 +111,53 @@ export async function obtenerTodasLasSolicitudes() {
     return { error: true, message: 'Error de red al obtener las solicitudes' };
   }
 }
+
+// Obtener solicitudes por estado del periodo activo
+export async function obtenerSolicitudesPorEstado(estado) {
+  try {
+    const res = await fetch(`${API_URL}/solicitud/por-estado/${estado}`);
+    
+    const data = await handleResponse(res);
+    
+    if (data && data.error) {
+      return { error: true, message: data.message || "Error al obtener las solicitudes por estado" };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { error: true, message: 'Error de red al obtener las solicitudes por estado' };
+  }
+}
+
+// Procesar solicitud (aprobar casillero específico o rechazar toda la solicitud)
+export async function procesarSolicitud(idSolicitud, idCasilleroAprobado = null, justificacion = '') {
+  try {
+    const body = {};
+
+    // Si hay un casillero específico, es una aprobación
+    if (idCasilleroAprobado && idCasilleroAprobado !== 'ninguna') {
+      body.idCasilleroAprobado = idCasilleroAprobado;
+      body.justificacion = justificacion || 'Solicitud aprobada';
+    } 
+    // Si no hay casillero o es 'ninguna', es un rechazo
+    else {
+      body.justificacion = justificacion;
+    }
+
+    const res = await fetch(`${API_URL}/solicitud/procesar/${idSolicitud}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    
+    const data = await handleResponse(res);
+    
+    if (data && data.error) {
+      return { error: true, message: data.message || "Error al procesar la solicitud" };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { error: true, message: 'Error de red al procesar la solicitud' };
+  }
+}

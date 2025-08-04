@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import CabezeraDinamica from "../Layout/CabeceraDinamica";
-import TablaDinamica from "../Tabla";
+import CabezeraDinamica from "../../Layout/CabeceraDinamica";
+import TablaDinamica from "../../Tabla";
 import { PiNotePencilFill } from "react-icons/pi";
 import { useDisclosure } from "@heroui/react";
-import DrawerGeneral from "../DrawerGeneral";
+import DrawerGeneral from "../../DrawerGeneral";
 import "react-multi-carousel/lib/styles.css";
 import FormularioAlertaIncidente from "./FormularioAlertaIncidente";
 
