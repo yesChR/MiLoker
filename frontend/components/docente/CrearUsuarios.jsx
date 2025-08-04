@@ -56,7 +56,7 @@ const CrearUsuarios = () => {
 
         // Guardar la cédula antes de limpiar
         const cedulaBusqueda = datosEstudiante.cedula.trim();
-        
+
         // Limpiar formulario antes de buscar
         limpiarFormulario();
 
@@ -157,7 +157,7 @@ const CrearUsuarios = () => {
 
         } catch (error) {
             console.error('Error al buscar estudiante:', error);
-            
+
             // Manejar cualquier error que pueda ocurrir
             if (error && error.status) {
                 switch (error.status) {
@@ -187,7 +187,7 @@ const CrearUsuarios = () => {
                 // Error completamente desconocido
                 Toast.error('Estudiante no encontrado', 'No se encontró ningún estudiante con la cédula ingresada');
             }
-            
+
             // Limpiar datos si hubo error
             setDatosEncontrados(false);
         } finally {
@@ -220,7 +220,7 @@ const CrearUsuarios = () => {
 
         // Validar segundo encargado solo si empezó a completar datos
         const hasSecondGuardianData = Object.values(segundoEncargado).some(value => value && value.trim());
-        
+
         if (hasSecondGuardianData) {
             const secondRequiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'parentesco', 'correo', 'telefono'];
             const emptySecondFields = secondRequiredFields.filter(field => {
@@ -240,13 +240,13 @@ const CrearUsuarios = () => {
 
             // Definir campos requeridos del segundo encargado
             const secondRequiredFields = ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'parentesco', 'correo', 'telefono'];
-            
+
             // Agregar segundo encargado solo si tiene todos los datos completos
             const hasCompleteSecondGuardian = secondRequiredFields.every(field => {
                 const value = segundoEncargado?.[field];
                 return value && value.trim();
             });
-            
+
             if (hasCompleteSecondGuardian) {
                 encargados.push(segundoEncargado);
             }
@@ -330,6 +330,8 @@ const CrearUsuarios = () => {
                                     placeholder="101110111"
                                     variant="bordered"
                                     color="primary"
+                                    size="sm"
+                                    radius="md"
                                     value={datosEstudiante.cedula}
                                     onChange={(e) => setDatosEstudiante(prev => ({ ...prev, cedula: e.target.value }))}
                                 />
@@ -337,7 +339,7 @@ const CrearUsuarios = () => {
                                     type="button"
                                     onClick={buscarEstudiante}
                                     disabled={isLoading}
-                                    className="absolute right-0 top-1/2 -translate-y-1/2 text-white transition-transform duration-200 hover:bg-primario hover:scale-105 w-[52px] h-[56px] bg-primario rounded-lg flex items-center justify-center disabled:opacity-50"
+                                    className="absolute right-0 top-1/2 -translate-y-1/2 text-white transition-transform duration-200 hover:bg-primario hover:scale-105 w-[46px] h-[48px] bg-primario rounded-lg flex items-center justify-center disabled:opacity-50"
                                 >
                                     <SearchIcon />
                                 </button>
@@ -347,6 +349,8 @@ const CrearUsuarios = () => {
                                 placeholder="María"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.nombre}
                                 onChange={(e) => setDatosEstudiante(prev => ({ ...prev, nombre: e.target.value }))}
                                 isReadOnly
@@ -357,6 +361,8 @@ const CrearUsuarios = () => {
                                 placeholder="Calderón"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.apellidoUno}
                                 onChange={(e) => setDatosEstudiante(prev => ({ ...prev, apellidoUno: e.target.value }))}
                                 isReadOnly
@@ -367,6 +373,8 @@ const CrearUsuarios = () => {
                                 placeholder="Pérez"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.apellidoDos}
                                 onChange={(e) => setDatosEstudiante(prev => ({ ...prev, apellidoDos: e.target.value }))}
                                 isReadOnly
@@ -379,6 +387,8 @@ const CrearUsuarios = () => {
                                 placeholder="09/07/2008"
                                 variant="bordered"
                                 color="primary"
+                                                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.fechaNacimiento ? new Date(datosEstudiante.fechaNacimiento).toLocaleDateString('es-ES') : ''}
                                 isReadOnly
                                 isRequired
@@ -387,9 +397,9 @@ const CrearUsuarios = () => {
                                 label="Teléfono"
                                 placeholder="67895432"
                                 variant="bordered"
-                                color="primary"
+                                color="primary"                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.telefono}
-                                onChange={(e) => setDatosEstudiante(prev => ({ ...prev, telefono: e.target.value }))}
                                 isReadOnly
                                 isRequired
                             />
@@ -398,6 +408,8 @@ const CrearUsuarios = () => {
                                 placeholder="ejemplo@dominio.com"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.correo}
                                 onChange={(e) => setDatosEstudiante(prev => ({ ...prev, correo: e.target.value }))}
                                 isReadOnly
@@ -408,6 +420,8 @@ const CrearUsuarios = () => {
                                 placeholder="11-1"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={datosEstudiante.seccion}
                                 onChange={(e) => setDatosEstudiante(prev => ({ ...prev, seccion: e.target.value }))}
                                 isReadOnly
@@ -425,6 +439,8 @@ const CrearUsuarios = () => {
                                 placeholder="701110111"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.cedula}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, cedula: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.cedula')}
@@ -437,6 +453,8 @@ const CrearUsuarios = () => {
                                 placeholder="Ana"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.nombre}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, nombre: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.nombre')}
@@ -449,6 +467,8 @@ const CrearUsuarios = () => {
                                 placeholder="Gómez"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.apellidoUno}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, apellidoUno: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.apellidoUno')}
@@ -461,6 +481,8 @@ const CrearUsuarios = () => {
                                 placeholder="Rodríguez"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.apellidoDos}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, apellidoDos: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.apellidoDos')}
@@ -475,6 +497,8 @@ const CrearUsuarios = () => {
                                 placeholder="Madre"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.parentesco}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, parentesco: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.parentesco')}
@@ -488,6 +512,8 @@ const CrearUsuarios = () => {
                                 variant="bordered"
                                 color="primary"
                                 type="email"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.correo}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, correo: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.correo')}
@@ -501,6 +527,8 @@ const CrearUsuarios = () => {
                                 variant="bordered"
                                 color="primary"
                                 type="tel"
+                                size="sm"
+                                radius="md"
                                 value={primerEncargado.telefono}
                                 onChange={(e) => setPrimerEncargado(prev => ({ ...prev, telefono: e.target.value }))}
                                 onBlur={() => handleFieldBlur('primerEncargado.telefono')}
@@ -520,6 +548,8 @@ const CrearUsuarios = () => {
                                 placeholder="701110112"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.cedula}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, cedula: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.cedula')}
@@ -531,6 +561,8 @@ const CrearUsuarios = () => {
                                 placeholder="Juan"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.nombre}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, nombre: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.nombre')}
@@ -542,6 +574,8 @@ const CrearUsuarios = () => {
                                 placeholder="Gómez"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.apellidoUno}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, apellidoUno: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.apellidoUno')}
@@ -553,6 +587,8 @@ const CrearUsuarios = () => {
                                 placeholder="Pérez"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.apellidoDos}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, apellidoDos: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.apellidoDos')}
@@ -566,6 +602,8 @@ const CrearUsuarios = () => {
                                 placeholder="Padre"
                                 variant="bordered"
                                 color="primary"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.parentesco}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, parentesco: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.parentesco')}
@@ -578,6 +616,8 @@ const CrearUsuarios = () => {
                                 variant="bordered"
                                 color="primary"
                                 type="email"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.correo}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, correo: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.correo')}
@@ -590,6 +630,8 @@ const CrearUsuarios = () => {
                                 variant="bordered"
                                 color="primary"
                                 type="tel"
+                                size="sm"
+                                radius="md"
                                 value={segundoEncargado.telefono}
                                 onChange={(e) => setSegundoEncargado(prev => ({ ...prev, telefono: e.target.value }))}
                                 onBlur={() => handleFieldBlur('segundoEncargado.telefono')}
