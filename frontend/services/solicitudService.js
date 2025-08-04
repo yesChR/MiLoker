@@ -56,7 +56,24 @@ export async function crearSolicitud(solicitudData) {
   }
 }
 
-// Obtener solicitudes por cédula
+// Obtener estado de solicitud optimizado (desde período activo)
+export async function obtenerEstadoSolicitud(cedula) {
+  try {
+    const res = await fetch(`${API_URL}/solicitud/estado/${cedula}`);
+    
+    const data = await handleResponse(res);
+    
+    if (data && data.error) {
+      return { error: true, message: data.message || "Error al obtener el estado de la solicitud" };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    return { error: true, message: 'Error de red al obtener el estado de la solicitud' };
+  }
+}
+
+// Obtener solicitudes por cédula (todas las solicitudes históricas)
 export async function obtenerSolicitudesPorCedula(cedula) {
   try {
     const res = await fetch(`${API_URL}/solicitud/visualizar/${cedula}`);
@@ -65,6 +82,11 @@ export async function obtenerSolicitudesPorCedula(cedula) {
     
     if (data && data.error) {
       return { error: true, message: data.message || "Error al obtener las solicitudes" };
+    }
+    
+    // Ordenar por fecha de solicitud para obtener la más reciente primero
+    if (Array.isArray(data)) {
+      data.sort((a, b) => new Date(b.fechaSolicitud) - new Date(a.fechaSolicitud));
     }
     
     return { success: true, data };

@@ -18,10 +18,6 @@ export default NextAuth({
           // Mapear el usuario al formato NextAuth
           const user = result.user;
           
-          // Debug: Ver qué datos vienen del backend
-          console.log("🔍 Datos del backend:", user);
-          console.log("🎯 idEspecialidad recibida:", user.idEspecialidad);
-          
           const userToReturn = {
             id: String(user.id),
             name: user.name,
@@ -29,9 +25,6 @@ export default NextAuth({
             role: user.role,
             idEspecialidad: user.idEspecialidad
           };
-          
-          // Debug: Ver qué datos se van a retornar
-          console.log("✅ Usuario a retornar:", userToReturn);
           
           return userToReturn;
         } catch (error) {

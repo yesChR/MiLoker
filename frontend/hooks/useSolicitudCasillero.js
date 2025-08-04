@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { crearSolicitud } from "../services/solicitudService";
 import { getPeriodoActivo } from "../services/periodoService";
 import { Toast } from "../components/CustomAlert";
+import { ESTADOS_SOLICITUD } from "@/components/common/estadosSolicutudes";
 
 export const useSolicitudCasillero = () => {
     const { data: session, status } = useSession();
@@ -71,13 +72,13 @@ export const useSolicitudCasillero = () => {
             // Preparar datos para enviar al backend
             const solicitudData = {
                 cedula: session.user.id,
-                estado: 1,
+                estado: ESTADOS_SOLICITUD.EN_REVISION,
                 idPeriodo: periodoResult.idPeriodo,
                 idEspecialidad: especialidadId,
                 opciones: selectedCasilleros.map((casillero, index) => ({
                     idCasillero: casillero.id,
                     detalle: index === 0 ? "Opción 1" : "Opción 2",
-                    estado: 1
+                    estado: ESTADOS_SOLICITUD.EN_REVISION
                 }))
             };
 

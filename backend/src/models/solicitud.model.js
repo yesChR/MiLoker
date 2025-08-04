@@ -25,7 +25,11 @@ export const Solicitud = sequelize.define("solicitud", {
     estado: {
         type: DataTypes.INTEGER,
         allowNull: false
-    }
+    },
+    justificacion: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
 }, {
     tableName: 'solicitud',
     timestamps: false
