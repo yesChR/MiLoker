@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import Solicitudes from "@/components/docente/Solicitudes";
+import Solicitudes from "@/components/docente/solicitudesCasilleros/Solicitudes";
 
 const SolicitudesPage = () => {
     const router = useRouter();

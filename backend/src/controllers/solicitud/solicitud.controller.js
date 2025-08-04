@@ -2,6 +2,8 @@ import { Solicitud } from "../../models/solicitud.model.js";
 import { SolicitudXCasillero } from "../../models/solicitudXcasillero.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
+import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
+import { EstadoCasillero } from "../../models/estadoCasillero.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { Armario } from "../../models/armario.model.js";
 import { ESTADOS_SOLICITUD } from "../../common/estadosSolicutudes.js";
@@ -255,5 +257,296 @@ export const crearSolicitud = async (req, res) => {
     } catch (error) {
         console.log({ error: error.message});
         res.status(500).json({ error: "Error interno en el servidor", detalle: error.message });
+    }
+};
+
+// Obtener solicitudes por estado para el periodo activo de solicitudes
+export const obtenerSolicitudesPorEstado = async (req, res) => {
+    try {
+        const { estado } = req.params;
+        
+        // Validar que el estado sea válido
+        const estadosValidos = Object.values(ESTADOS_SOLICITUD);
+        if (!estadosValidos.includes(parseInt(estado))) {
+            return res.status(400).json({ 
+                error: "Estado de solicitud inválido",
+                estadosValidos: ESTADOS_SOLICITUD
+            });
+        }
+
+        // Obtener el período de solicitud activo (tipo 2)
+        const periodoSolicitudActivo = await Periodo.findOne({
+            where: {
+                tipo: 2, // Período de solicitud
+                estado: ESTADOS.ACTIVO
+            }
+        });
+
+        if (!periodoSolicitudActivo) {
+            return res.status(404).json({ 
+                error: "No hay un período de solicitud activo en este momento" 
+            });
+        }
+
+        // Obtener solicitudes del estado específico para el período activo
+        const solicitudes = await Solicitud.findAll({
+            where: { 
+                estado: parseInt(estado),
+                idPeriodo: periodoSolicitudActivo.idPeriodo
+            },
+            include: [
+                {
+                    model: Estudiante,
+                    as: "estudiante",
+                    attributes: ["cedula", "nombre", "apellidoUno", "apellidoDos", "seccion"]
+                },
+                {
+                    model: SolicitudXCasillero,
+                    as: "solicitudXcasilleros",
+                    attributes: ["id", "detalle", "estado", "idSolicitud", "idCasillero"],
+                    include: [
+                        {
+                            model: Casillero,
+                            as: "casillero",
+                            attributes: ["idCasillero", "numCasillero", "detalle"],
+                            include: [
+                                {
+                                    model: Armario,
+                                    as: "armario",
+                                    attributes: ["idArmario", "numColumnas", "numFilas"]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    model: Periodo,
+                    as: "periodo",
+                    attributes: ["idPeriodo", "tipo", "fechaInicio", "fechaFin"]
+                }
+            ],
+            order: [['fechaSolicitud', 'DESC']]
+        });
+
+        // Formatear datos para el frontend
+        const solicitudesFormateadas = solicitudes.map(solicitud => {
+            const casilleros = solicitud.solicitudXcasilleros.map(sxc => ({
+                id: sxc.casillero.idCasillero,
+                numCasillero: sxc.casillero.numCasillero,
+                detalle: sxc.casillero.detalle,
+                armario: {
+                    idArmario: sxc.casillero.armario.idArmario,
+                    numColumnas: sxc.casillero.armario.numColumnas,
+                    numFilas: sxc.casillero.armario.numFilas
+                },
+                detalleOpcion: sxc.detalle,
+                estadoOpcion: sxc.estado
+            }));
+
+            return {
+                id: solicitud.idSolicitud,
+                cedula: solicitud.estudiante.cedula,
+                nombre: `${solicitud.estudiante.nombre} ${solicitud.estudiante.apellidoUno} ${solicitud.estudiante.apellidoDos}`,
+                seccion: solicitud.estudiante.seccion,
+                opcion1: `${casilleros[0].armario?.idArmario}-${casilleros[0].numCasillero}`,
+                opcion2: `${casilleros[1].armario?.idArmario}-${casilleros[1].numCasillero}`,
+                fechaSolicitud: solicitud.fechaSolicitud,
+                fechaRevision: solicitud.fechaRevision,
+                estado: solicitud.estado,
+                justificacion: solicitud.justificacion,
+                casilleros: casilleros,
+                periodo: {
+                    id: solicitud.periodo.idPeriodo,
+                    fechaInicio: solicitud.periodo.fechaInicio,
+                    fechaFin: solicitud.periodo.fechaFin
+                }
+            };
+        });
+
+        res.status(200).json({
+            solicitudes: solicitudesFormateadas,
+            periodo: {
+                id: periodoSolicitudActivo.idPeriodo,
+                fechaInicio: periodoSolicitudActivo.fechaInicio,
+                fechaFin: periodoSolicitudActivo.fechaFin
+            },
+            total: solicitudesFormateadas.length
+        });
+
+    } catch (error) {
+        console.error('Error al obtener solicitudes por estado:', error);
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
+    }
+};
+
+// Procesar solicitud (aprobar casillero específico o rechazar toda la solicitud)
+export const procesarSolicitud = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    
+    try {
+        const { idSolicitud } = req.params;
+        const { idCasilleroAprobado, justificacion } = req.body;
+        
+        // Validar parámetros
+        if (!idSolicitud) {
+            await transaction.rollback();
+            return res.status(400).json({ 
+                error: "ID de solicitud es requerido" 
+            });
+        }
+
+        // Inferir la decisión basándose en los parámetros recibidos
+        const esAprobacion = idCasilleroAprobado && idCasilleroAprobado !== 'ninguna';
+        const esRechazo = !idCasilleroAprobado || idCasilleroAprobado === 'ninguna';
+
+        // Verificar que la solicitud existe y está en revisión
+        const solicitud = await Solicitud.findOne({
+            where: { 
+                idSolicitud: idSolicitud,
+                estado: ESTADOS_SOLICITUD.EN_REVISION
+            },
+            include: [
+                {
+                    model: SolicitudXCasillero,
+                    as: "solicitudXcasilleros"
+                }
+            ],
+            transaction
+        });
+
+        if (!solicitud) {
+            await transaction.rollback();
+            return res.status(404).json({ 
+                error: "Solicitud no encontrada o no está en revisión" 
+            });
+        }
+
+        const fechaRevision = new Date();
+
+        if (esAprobacion) {
+            // Verificar que el casillero está en las opciones de la solicitud
+            const casilleroEnOpciones = solicitud.solicitudXcasilleros.find(
+                sxc => sxc.idCasillero === parseInt(idCasilleroAprobado)
+            );
+
+            if (!casilleroEnOpciones) {
+                await transaction.rollback();
+                return res.status(400).json({ 
+                    error: "El casillero seleccionado no está en las opciones de la solicitud" 
+                });
+            }
+
+            // Actualizar solicitud principal como aprobada
+            await Solicitud.update({
+                estado: ESTADOS_SOLICITUD.ACEPTADA,
+                fechaRevision: fechaRevision,
+                justificacion: justificacion || 'Solicitud aprobada'
+            }, {
+                where: { idSolicitud: idSolicitud },
+                transaction
+            });
+
+            // Actualizar solicitudXcasillero: aprobar el seleccionado, rechazar los demás
+            for (const sxc of solicitud.solicitudXcasilleros) {
+                const nuevoEstado = sxc.idCasillero === parseInt(idCasilleroAprobado) 
+                    ? ESTADOS_SOLICITUD.ACEPTADA 
+                    : ESTADOS_SOLICITUD.RECHAZADA;
+
+                await SolicitudXCasillero.update({
+                    estado: nuevoEstado
+                }, {
+                    where: { id: sxc.id },
+                    transaction
+                });
+
+                // Si este casillero fue aprobado, crear el registro en EstudianteXCasillero
+                if (sxc.idCasillero === parseInt(idCasilleroAprobado)) {
+                    // Verificar si ya existe una asignación de este casillero al estudiante
+                    const asignacionExistente = await EstudianteXCasillero.findOne({
+                        where: {
+                            cedulaEstudiante: solicitud.cedulaEstudiante,
+                            idCasillero: parseInt(idCasilleroAprobado)
+                        },
+                        transaction
+                    });
+
+                    // Solo crear si no existe una asignación previa
+                    if (!asignacionExistente) {
+                        // Verificar que el casillero no esté ya asignado a otro estudiante
+                        const casilleroYaAsignado = await EstudianteXCasillero.findOne({
+                            where: {
+                                idCasillero: parseInt(idCasilleroAprobado)
+                            },
+                            transaction
+                        });
+
+                        if (casilleroYaAsignado && casilleroYaAsignado.cedulaEstudiante !== solicitud.cedulaEstudiante) {
+                            await transaction.rollback();
+                            return res.status(409).json({ 
+                                error: "El casillero ya está asignado a otro estudiante" 
+                            });
+                        }
+
+                        // Crear la asignación del casillero al estudiante
+                        await EstudianteXCasillero.create({
+                            cedulaEstudiante: solicitud.cedulaEstudiante,
+                            idCasillero: parseInt(idCasilleroAprobado)
+                        }, { transaction });
+                    }
+                }
+            }
+
+        } else if (esRechazo) {
+            // Validar que se proporcionó justificación para el rechazo
+            if (!justificacion || justificacion.trim() === '') {
+                await transaction.rollback();
+                return res.status(400).json({ 
+                    error: "La justificación es requerida para rechazar una solicitud" 
+                });
+            }
+
+            // Actualizar solicitud principal como rechazada
+            await Solicitud.update({
+                estado: ESTADOS_SOLICITUD.RECHAZADA,
+                fechaRevision: fechaRevision,
+                justificacion: justificacion
+            }, {
+                where: { idSolicitud: idSolicitud },
+                transaction
+            });
+
+            // Rechazar todas las opciones de casilleros
+            await SolicitudXCasillero.update({
+                estado: ESTADOS_SOLICITUD.RECHAZADA
+            }, {
+                where: { idSolicitud: idSolicitud },
+                transaction
+            });
+
+        } else {
+            await transaction.rollback();
+            return res.status(400).json({ 
+                error: "Datos inválidos para procesar la solicitud" 
+            });
+        }
+
+        await transaction.commit();
+
+        res.status(200).json({ 
+            message: esAprobacion 
+                ? "Solicitud aprobada y casillero asignado exitosamente" 
+                : "Solicitud rechazada exitosamente"
+        });
+
+    } catch (error) {
+        await transaction.rollback();
+        console.error('Error al procesar solicitud:', error);
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
     }
 };
