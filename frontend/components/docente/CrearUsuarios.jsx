@@ -7,6 +7,7 @@ import { useState } from "react";
 import { obtenerDatosEstudiantePorCedula, habilitarUsuarioEstudiante } from "../../services/usuarioDocenteService";
 import Toast from "../CustomAlert";
 import { PiBroomLight } from "react-icons/pi";
+import { formatDateForInput, formatDateForDisplay } from "../../utils/dateUtils";
 
 const CrearUsuarios = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -397,9 +398,9 @@ const CrearUsuarios = () => {
                                 placeholder="09/07/2008"
                                 variant="bordered"
                                 color="primary"
-                                                                size="sm"
+                                size="sm"
                                 radius="md"
-                                value={datosEstudiante.fechaNacimiento ? new Date(datosEstudiante.fechaNacimiento).toLocaleDateString('es-ES') : ''}
+                                value={datosEstudiante.fechaNacimiento ? formatDateForDisplay(datosEstudiante.fechaNacimiento) : ''}
                                 isReadOnly
                                 isRequired
                             />
@@ -407,7 +408,7 @@ const CrearUsuarios = () => {
                                 label="Teléfono"
                                 placeholder="67895432"
                                 variant="bordered"
-                                color="primary"                                size="sm"
+                                color="primary" size="sm"
                                 radius="md"
                                 value={datosEstudiante.telefono}
                                 isReadOnly
@@ -662,11 +663,10 @@ const CrearUsuarios = () => {
                         </Button>
                         <Button
                             type="submit"
-                            className={`px-6 text-white w-full sm:w-auto ml-4 ${
-                                !isFormReadyToSubmit 
-                                    ? 'bg-gray-400 cursor-not-allowed opacity-50' 
-                                    : 'bg-primario hover:bg-primario'
-                            }`}
+                            className={`px-6 text-white w-full sm:w-auto ml-4 ${!isFormReadyToSubmit
+                                ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                                : 'bg-primario hover:bg-primario'
+                                }`}
                             endContent={<LuSendHorizontal />}
                             disabled={!isFormReadyToSubmit}
                         >
