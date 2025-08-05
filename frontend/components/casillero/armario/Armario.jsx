@@ -43,17 +43,7 @@ const Armario = () => {
     const cargarDatosIniciales = async () => {
         setLoading(true);
         try {
-            // Cargar especialidades
-            const especialidadesResult = await getEspecialidades();
-            
-            if (especialidadesResult?.error) {
-                Toast.error("Error", especialidadesResult.message);
-                setEspecialidades([]);
-            } else {
-                setEspecialidades(especialidadesResult || []);
-            }
-
-            // Cargar estados de casillero
+            // Cargar estados de casillero primero
             const estadosResult = await obtenerEstadosCasillero();
             
             if (estadosResult?.error) {
@@ -63,20 +53,39 @@ const Armario = () => {
                 setEstadosCasillero(estadosResult || []);
             }
 
-            // Cargar todos los armarios
-            const armariosResult = await obtenerTodosLosArmarios();
+            // Cargar especialidades
+            const especialidadesResult = await getEspecialidades();
             
-            if (armariosResult?.error) {
-                Toast.error("Error", armariosResult.message);
-                setArmariosData([]);
+            if (especialidadesResult?.error) {
+                Toast.error("Error", especialidadesResult.message);
+                setEspecialidades([]);
+                setLoading(false);
             } else {
-                const armariosTransformados = transformarDatosArmarios(armariosResult);
-                setArmariosData(armariosTransformados);
+                setEspecialidades(especialidadesResult || []);
+                // Seleccionar automáticamente la primera especialidad si no hay ninguna seleccionada
+                if (!especialidadSeleccionada && especialidadesResult && especialidadesResult.length > 0) {
+                    const primeraEspecialidad = especialidadesResult[0].idEspecialidad.toString();
+                    setEspecialidadSeleccionada(primeraEspecialidad);
+                    // El useEffect se encargará de cargar los armarios de esta especialidad
+                } else {
+                    // Solo si no hay especialidades, cargar todos los armarios
+                    if (especialidadesResult.length === 0) {
+                        const armariosResult = await obtenerTodosLosArmarios();
+                        
+                        if (armariosResult?.error) {
+                            Toast.error("Error", armariosResult.message);
+                            setArmariosData([]);
+                        } else {
+                            const armariosTransformados = transformarDatosArmarios(armariosResult);
+                            setArmariosData(armariosTransformados);
+                        }
+                    }
+                }
+                setLoading(false);
             }
         } catch (error) {
             Toast.error("Error", 'Error al cargar los datos');
             console.error('Error en cargarDatosIniciales:', error);
-        } finally {
             setLoading(false);
         }
     };
@@ -106,6 +115,7 @@ const Armario = () => {
     useEffect(() => {
         if (especialidadSeleccionada) {
             cargarArmariosPorEspecialidad(especialidadSeleccionada);
+            setCurrentPage(1); // Resetear a la primera página cuando cambie la especialidad
         } else {
             // Si no hay especialidad seleccionada, mostrar todos los armarios
             if (armariosData.length === 0) {
