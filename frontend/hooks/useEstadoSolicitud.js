@@ -12,10 +12,9 @@ export const useEstadoSolicitud = () => {
 
     // Mapeo de estados numéricos a sus valores textuales
     const estadoMap = {
-        [ESTADOS_SOLICITUD.EN_REVISION]: "revision",
+        [ESTADOS_SOLICITUD.EN_ESPERA]: "espera",
         [ESTADOS_SOLICITUD.ACEPTADA]: "aceptada", 
-        [ESTADOS_SOLICITUD.RECHAZADA]: "rechazada",
-        [ESTADOS_SOLICITUD.EN_ESPERA]: "espera"
+        [ESTADOS_SOLICITUD.RECHAZADA]: "rechazada"
     };
 
     const cargarDatosSolicitud = async () => {
@@ -58,14 +57,13 @@ export const useEstadoSolicitud = () => {
         if (!solicitudData) return 0;
         
         switch (solicitudData.estado) {
-            case ESTADOS_SOLICITUD.EN_REVISION:
-                return 2; // En revisión (paso 2)
+            case ESTADOS_SOLICITUD.EN_ESPERA:
+                return 2; // En espera (paso 2)
             case ESTADOS_SOLICITUD.ACEPTADA:
             case ESTADOS_SOLICITUD.RECHAZADA:
-            case ESTADOS_SOLICITUD.EN_ESPERA:
                 return 3; // Resultado final (paso 3)
             default:
-                return 2; // Por defecto en revisión
+                return 2; // Por defecto en espera
         }
     };
 

@@ -15,6 +15,7 @@ import estadoCasillero from "./routes/casillero/estadoCasillero.routes.js";
 import solicitud from "./routes/solicitud/solicitud.routes.js";
 import usuarios from "./routes/docente/usuarios.routes.js";
 import alertas from "./routes/docente/alertas.routes.js";
+import docenteRoutes from "./routes/docente/docente.routes.js";
 
 const app = express();
 import cors from 'cors';
@@ -46,5 +47,6 @@ app.use("/estadoCasillero", estadoCasillero);
 app.use("/solicitud", solicitud);
 app.use("/usuarios", usuarios);
 app.use("/alertas", alertas);
+app.use("/docente", docenteRoutes);
 
 export default app;

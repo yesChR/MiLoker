@@ -1,13 +1,21 @@
 import React from "react";
+import { Button } from "@heroui/react";
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 
-const ErrorState = ({ error }) => {
+const ErrorSolicitudes = ({ error, onReintentar, estado }) => {
+    const estados = {
+        1: "En revisión",
+        2: "Aprobadas", 
+        3: "Rechazadas",
+        4: "En espera",
+    };
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
             <div className="w-full">
                 <CabezeraDinamica
-                    title="Estado de solicitudes"
-                    breadcrumb="Inicio • Estado de solicitudes"
+                    title="Solicitudes"
+                    breadcrumb={`Inicio • Docente • Solicitudes • ${estados[estado] || 'Error'}`}
                 />
             </div>
             <div className="w-full max-w-4xl p-6 bg-white shadow-lg rounded-lg border border-red-200">
@@ -21,11 +29,10 @@ const ErrorState = ({ error }) => {
                     {/* Mensaje de error */}
                     <div className="text-center mb-6">
                         <h3 className="text-xl font-semibold text-red-700 mb-2">
-                            {error || "No se encontraron solicitudes"}
+                            Error al cargar las solicitudes
                         </h3>
                         <p className="text-gray-500 text-xs">
-                           {error ? "Intenta recargar la página o contacta con el administrador."
-                            : "Aún no has realizado ninguna solicitud de casillero."}
+                            Intenta recargar la página o contacta al administrador si el problema persiste.
                         </p>
                     </div>
                 </div>
@@ -34,4 +41,4 @@ const ErrorState = ({ error }) => {
     );
 };
 
-export default ErrorState;
+export default ErrorSolicitudes;

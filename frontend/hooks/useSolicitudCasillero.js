@@ -72,13 +72,13 @@ export const useSolicitudCasillero = () => {
             // Preparar datos para enviar al backend
             const solicitudData = {
                 cedula: session.user.id,
-                estado: ESTADOS_SOLICITUD.EN_REVISION,
+                estado: ESTADOS_SOLICITUD.EN_ESPERA,
                 idPeriodo: periodoResult.idPeriodo,
                 idEspecialidad: especialidadId,
                 opciones: selectedCasilleros.map((casillero, index) => ({
                     idCasillero: casillero.id,
                     detalle: index === 0 ? "Opción 1" : "Opción 2",
-                    estado: ESTADOS_SOLICITUD.EN_REVISION
+                    estado: ESTADOS_SOLICITUD.EN_ESPERA
                 }))
             };
 
