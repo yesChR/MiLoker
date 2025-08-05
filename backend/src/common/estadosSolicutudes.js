@@ -1,6 +1,5 @@
 export const ESTADOS_SOLICITUD = {
-    EN_REVISION: 1,
+    EN_ESPERA: 1,
     ACEPTADA: 2,
-    RECHAZADA: 3,
-    EN_ESPERA: 4
+    RECHAZADA: 3
 };

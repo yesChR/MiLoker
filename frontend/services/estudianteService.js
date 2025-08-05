@@ -28,6 +28,23 @@ const handleResponse = async (response) => {
     return await response.text();
 };
 
+// Obtener historial completo de un estudiante
+export const obtenerHistorialEstudiante = async (cedulaEstudiante) => {
+    try {
+        const response = await fetch(`${API_URL}/docente/estudiante/historial/${cedulaEstudiante}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        return await handleResponse(response);
+    } catch (error) {
+        console.error('Error al obtener historial del estudiante:', error);
+        return { error: true, message: error.message };
+    }
+};
+
 // Obtener todos los estudiantes
 export const getEstudiantes = async () => {
     try {

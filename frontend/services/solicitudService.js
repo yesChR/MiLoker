@@ -113,9 +113,16 @@ export async function obtenerTodasLasSolicitudes() {
 }
 
 // Obtener solicitudes por estado del periodo activo
-export async function obtenerSolicitudesPorEstado(estado) {
+export async function obtenerSolicitudesPorEstado(estado, idEspecialidad = null) {
   try {
-    const res = await fetch(`${API_URL}/solicitud/por-estado/${estado}`);
+    let url = `${API_URL}/solicitud/por-estado/${estado}`;
+    
+    // Agregar especialidad como query parameter si se proporciona
+    if (idEspecialidad) {
+      url += `?idEspecialidad=${idEspecialidad}`;
+    }
+    
+    const res = await fetch(url);
     
     const data = await handleResponse(res);
     

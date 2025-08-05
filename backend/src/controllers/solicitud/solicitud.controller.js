@@ -3,11 +3,11 @@ import { SolicitudXCasillero } from "../../models/solicitudXcasillero.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
-import { EstadoCasillero } from "../../models/estadoCasillero.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { Armario } from "../../models/armario.model.js";
 import { ESTADOS_SOLICITUD } from "../../common/estadosSolicutudes.js";
 import { ESTADOS } from "../../common/estados.js";
+import { ESTADOS_CASILLERO } from "../../common/estadoCasillero.js";
 import { sequelize } from "../../bd_config/conexion.js";
 
 export const visualizar = async (req, res) => {
@@ -77,8 +77,6 @@ export const visualizarPorCedula = async (req, res) => {
     }
 };
 
-
-// Nuevo endpoint optimizado para obtener el estado de solicitud de un estudiante
 export const obtenerEstadoSolicitud = async (req, res) => {
     try {
         const { cedula } = req.params;
@@ -190,7 +188,6 @@ export const obtenerEstadoSolicitud = async (req, res) => {
     }
 };
 
-
 export const crearSolicitud = async (req, res) => {
     const { cedula, fechaRevision, estado, idPeriodo, idEspecialidad, opciones = [] } = req.body;
     const fechaSolicitud = new Date();
@@ -235,7 +232,7 @@ export const crearSolicitud = async (req, res) => {
                 cedulaEstudiante: cedula, 
                 fechaSolicitud, 
                 fechaRevision, 
-                estado, 
+                estado: estado || ESTADOS_SOLICITUD.EN_ESPERA, // Asegurar que siempre tenga un estado válido
                 idPeriodo, 
                 idEspecialidad 
             });
@@ -246,7 +243,7 @@ export const crearSolicitud = async (req, res) => {
                     idSolicitud: nuevaSolicitud.idSolicitud,
                     idCasillero: opcion.idCasillero,
                     detalle: opcion.detalle || null,
-                    estado: opcion.estado || ESTADOS_SOLICITUD.EN_REVISION
+                    estado: opcion.estado || ESTADOS_SOLICITUD.EN_ESPERA
                 });
             }
 
@@ -264,6 +261,7 @@ export const crearSolicitud = async (req, res) => {
 export const obtenerSolicitudesPorEstado = async (req, res) => {
     try {
         const { estado } = req.params;
+        const { idEspecialidad } = req.query; // Recibir especialidad como query parameter
         
         // Validar que el estado sea válido
         const estadosValidos = Object.values(ESTADOS_SOLICITUD);
@@ -288,12 +286,20 @@ export const obtenerSolicitudesPorEstado = async (req, res) => {
             });
         }
 
+        // Construir condiciones de búsqueda
+        const whereConditions = { 
+            estado: parseInt(estado),
+            idPeriodo: periodoSolicitudActivo.idPeriodo
+        };
+
+        // Si se proporciona especialidad, filtrar por ella
+        if (idEspecialidad) {
+            whereConditions.idEspecialidad = parseInt(idEspecialidad);
+        }
+
         // Obtener solicitudes del estado específico para el período activo
         const solicitudes = await Solicitud.findAll({
-            where: { 
-                estado: parseInt(estado),
-                idPeriodo: periodoSolicitudActivo.idPeriodo
-            },
+            where: whereConditions,
             include: [
                 {
                     model: Estudiante,
@@ -354,6 +360,7 @@ export const obtenerSolicitudesPorEstado = async (req, res) => {
                 fechaRevision: solicitud.fechaRevision,
                 estado: solicitud.estado,
                 justificacion: solicitud.justificacion,
+                idEspecialidad: solicitud.idEspecialidad, // Agregar especialidad para filtrar por docente
                 casilleros: casilleros,
                 periodo: {
                     id: solicitud.periodo.idPeriodo,
@@ -382,6 +389,160 @@ export const obtenerSolicitudesPorEstado = async (req, res) => {
     }
 };
 
+// Funciones auxiliares para procesar solicitudes
+const validarParametrosSolicitud = (idSolicitud) => {
+    if (!idSolicitud) {
+        throw new Error("ID de solicitud es requerido");
+    }
+};
+
+const validarCasilleroEnOpciones = (solicitud, idCasilleroAprobado) => {
+    const casilleroEnOpciones = solicitud.solicitudXcasilleros.find(
+        sxc => sxc.idCasillero === parseInt(idCasilleroAprobado)
+    );
+    
+    if (!casilleroEnOpciones) {
+        throw new Error("El casillero seleccionado no está en las opciones de la solicitud");
+    }
+    
+    return casilleroEnOpciones;
+};
+
+const validarCasilleroNoAsignado = async (idCasilleroAprobado, transaction) => {
+    const casilleroYaAsignado = await EstudianteXCasillero.findOne({
+        where: {
+            idCasillero: parseInt(idCasilleroAprobado)
+        },
+        include: [
+            {
+                model: Estudiante,
+                as: "estudiante",
+                attributes: ["cedula", "nombre", "apellidoUno", "apellidoDos"]
+            }
+        ],
+        transaction
+    });
+
+    if (casilleroYaAsignado) {
+        const estudianteAsignado = casilleroYaAsignado.estudiante;
+        const error = new Error("El casillero ya está asignado a otro estudiante");
+        error.statusCode = 409;
+        error.detalles = {
+            casillero: parseInt(idCasilleroAprobado),
+            estudianteAsignado: {
+                cedula: estudianteAsignado.cedula,
+                nombre: `${estudianteAsignado.nombre} ${estudianteAsignado.apellidoUno} ${estudianteAsignado.apellidoDos}`
+            }
+        };
+        throw error;
+    }
+};
+
+const validarCasilleroDisponible = async (idCasilleroAprobado, transaction) => {
+    const casilleroDisponible = await Casillero.findOne({
+        where: {
+            idCasillero: parseInt(idCasilleroAprobado),
+            idEstadoCasillero: ESTADOS_CASILLERO.DISPONIBLE
+        },
+        transaction
+    });
+
+    if (!casilleroDisponible) {
+        const error = new Error("El casillero seleccionado no está disponible para asignación");
+        error.statusCode = 400;
+        error.detalles = {
+            casillero: parseInt(idCasilleroAprobado),
+            razon: "El casillero puede estar ocupado, en mantenimiento o dañado"
+        };
+        throw error;
+    }
+};
+
+const procesarAprobacionSolicitud = async (solicitud, idSolicitud, idCasilleroAprobado, justificacion, fechaRevision, transaction) => {
+    // Actualizar solicitud principal como aprobada
+    await Solicitud.update({
+        estado: ESTADOS_SOLICITUD.ACEPTADA,
+        fechaRevision: fechaRevision,
+        justificacion: justificacion || 'Solicitud aprobada'
+    }, {
+        where: { idSolicitud: idSolicitud },
+        transaction
+    });
+
+    // Actualizar solicitudXcasillero: aprobar el seleccionado, rechazar los demás
+    for (const sxc of solicitud.solicitudXcasilleros) {
+        const nuevoEstado = sxc.idCasillero === parseInt(idCasilleroAprobado) 
+            ? ESTADOS_SOLICITUD.ACEPTADA 
+            : ESTADOS_SOLICITUD.RECHAZADA;
+
+        await SolicitudXCasillero.update({
+            estado: nuevoEstado
+        }, {
+            where: { id: sxc.id },
+            transaction
+        });
+
+        // Si este casillero fue aprobado, crear la asignación
+        if (sxc.idCasillero === parseInt(idCasilleroAprobado)) {
+            await crearAsignacionCasillero(solicitud.cedulaEstudiante, idCasilleroAprobado, transaction);
+        }
+    }
+};
+
+const crearAsignacionCasillero = async (cedulaEstudiante, idCasilleroAprobado, transaction) => {
+    // Verificar si el estudiante ya tiene asignado este casillero específico
+    const asignacionExistente = await EstudianteXCasillero.findOne({
+        where: {
+            cedulaEstudiante: cedulaEstudiante,
+            idCasillero: parseInt(idCasilleroAprobado)
+        },
+        transaction
+    });
+
+    // Solo crear si no existe una asignación previa
+    if (!asignacionExistente) {
+        // Crear la asignación del casillero al estudiante
+        await EstudianteXCasillero.create({
+            cedulaEstudiante: cedulaEstudiante,
+            idCasillero: parseInt(idCasilleroAprobado),
+            fechaAsignacion: new Date()
+        }, { transaction });
+
+        // Actualizar el estado del casillero a "Ocupado"
+        await Casillero.update({
+            idEstadoCasillero: ESTADOS_CASILLERO.OCUPADO
+        }, {
+            where: { idCasillero: parseInt(idCasilleroAprobado) },
+            transaction
+        });
+    }
+};
+
+const procesarRechazoSolicitud = async (idSolicitud, justificacion, fechaRevision, transaction) => {
+    // Validar justificación
+    if (!justificacion || justificacion.trim() === '') {
+        throw new Error("La justificación es requerida para rechazar una solicitud");
+    }
+
+    // Actualizar solicitud principal como rechazada
+    await Solicitud.update({
+        estado: ESTADOS_SOLICITUD.RECHAZADA,
+        fechaRevision: fechaRevision,
+        justificacion: justificacion
+    }, {
+        where: { idSolicitud: idSolicitud },
+        transaction
+    });
+
+    // Rechazar todas las opciones de casilleros
+    await SolicitudXCasillero.update({
+        estado: ESTADOS_SOLICITUD.RECHAZADA
+    }, {
+        where: { idSolicitud: idSolicitud },
+        transaction
+    });
+};
+
 // Procesar solicitud (aprobar casillero específico o rechazar toda la solicitud)
 export const procesarSolicitud = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -390,23 +551,18 @@ export const procesarSolicitud = async (req, res) => {
         const { idSolicitud } = req.params;
         const { idCasilleroAprobado, justificacion } = req.body;
         
-        // Validar parámetros
-        if (!idSolicitud) {
-            await transaction.rollback();
-            return res.status(400).json({ 
-                error: "ID de solicitud es requerido" 
-            });
-        }
+        // Validar parámetros básicos
+        validarParametrosSolicitud(idSolicitud);
 
         // Inferir la decisión basándose en los parámetros recibidos
         const esAprobacion = idCasilleroAprobado && idCasilleroAprobado !== 'ninguna';
         const esRechazo = !idCasilleroAprobado || idCasilleroAprobado === 'ninguna';
 
-        // Verificar que la solicitud existe y está en revisión
+        // Verificar que la solicitud existe y está en espera
         const solicitud = await Solicitud.findOne({
             where: { 
                 idSolicitud: idSolicitud,
-                estado: ESTADOS_SOLICITUD.EN_REVISION
+                estado: ESTADOS_SOLICITUD.EN_ESPERA
             },
             include: [
                 {
@@ -427,105 +583,18 @@ export const procesarSolicitud = async (req, res) => {
         const fechaRevision = new Date();
 
         if (esAprobacion) {
-            // Verificar que el casillero está en las opciones de la solicitud
-            const casilleroEnOpciones = solicitud.solicitudXcasilleros.find(
-                sxc => sxc.idCasillero === parseInt(idCasilleroAprobado)
-            );
+            // Validaciones para aprobación
+            validarCasilleroEnOpciones(solicitud, idCasilleroAprobado);
+            await validarCasilleroNoAsignado(idCasilleroAprobado, transaction);
+            await validarCasilleroDisponible(idCasilleroAprobado, transaction);
 
-            if (!casilleroEnOpciones) {
-                await transaction.rollback();
-                return res.status(400).json({ 
-                    error: "El casillero seleccionado no está en las opciones de la solicitud" 
-                });
-            }
-
-            // Actualizar solicitud principal como aprobada
-            await Solicitud.update({
-                estado: ESTADOS_SOLICITUD.ACEPTADA,
-                fechaRevision: fechaRevision,
-                justificacion: justificacion || 'Solicitud aprobada'
-            }, {
-                where: { idSolicitud: idSolicitud },
-                transaction
-            });
-
-            // Actualizar solicitudXcasillero: aprobar el seleccionado, rechazar los demás
-            for (const sxc of solicitud.solicitudXcasilleros) {
-                const nuevoEstado = sxc.idCasillero === parseInt(idCasilleroAprobado) 
-                    ? ESTADOS_SOLICITUD.ACEPTADA 
-                    : ESTADOS_SOLICITUD.RECHAZADA;
-
-                await SolicitudXCasillero.update({
-                    estado: nuevoEstado
-                }, {
-                    where: { id: sxc.id },
-                    transaction
-                });
-
-                // Si este casillero fue aprobado, crear el registro en EstudianteXCasillero
-                if (sxc.idCasillero === parseInt(idCasilleroAprobado)) {
-                    // Verificar si ya existe una asignación de este casillero al estudiante
-                    const asignacionExistente = await EstudianteXCasillero.findOne({
-                        where: {
-                            cedulaEstudiante: solicitud.cedulaEstudiante,
-                            idCasillero: parseInt(idCasilleroAprobado)
-                        },
-                        transaction
-                    });
-
-                    // Solo crear si no existe una asignación previa
-                    if (!asignacionExistente) {
-                        // Verificar que el casillero no esté ya asignado a otro estudiante
-                        const casilleroYaAsignado = await EstudianteXCasillero.findOne({
-                            where: {
-                                idCasillero: parseInt(idCasilleroAprobado)
-                            },
-                            transaction
-                        });
-
-                        if (casilleroYaAsignado && casilleroYaAsignado.cedulaEstudiante !== solicitud.cedulaEstudiante) {
-                            await transaction.rollback();
-                            return res.status(409).json({ 
-                                error: "El casillero ya está asignado a otro estudiante" 
-                            });
-                        }
-
-                        // Crear la asignación del casillero al estudiante
-                        await EstudianteXCasillero.create({
-                            cedulaEstudiante: solicitud.cedulaEstudiante,
-                            idCasillero: parseInt(idCasilleroAprobado)
-                        }, { transaction });
-                    }
-                }
-            }
-
+            // Procesar aprobación
+            await procesarAprobacionSolicitud(solicitud, idSolicitud, idCasilleroAprobado, justificacion, fechaRevision, transaction);
+            
         } else if (esRechazo) {
-            // Validar que se proporcionó justificación para el rechazo
-            if (!justificacion || justificacion.trim() === '') {
-                await transaction.rollback();
-                return res.status(400).json({ 
-                    error: "La justificación es requerida para rechazar una solicitud" 
-                });
-            }
-
-            // Actualizar solicitud principal como rechazada
-            await Solicitud.update({
-                estado: ESTADOS_SOLICITUD.RECHAZADA,
-                fechaRevision: fechaRevision,
-                justificacion: justificacion
-            }, {
-                where: { idSolicitud: idSolicitud },
-                transaction
-            });
-
-            // Rechazar todas las opciones de casilleros
-            await SolicitudXCasillero.update({
-                estado: ESTADOS_SOLICITUD.RECHAZADA
-            }, {
-                where: { idSolicitud: idSolicitud },
-                transaction
-            });
-
+            // Procesar rechazo
+            await procesarRechazoSolicitud(idSolicitud, justificacion, fechaRevision, transaction);
+            
         } else {
             await transaction.rollback();
             return res.status(400).json({ 
@@ -544,6 +613,15 @@ export const procesarSolicitud = async (req, res) => {
     } catch (error) {
         await transaction.rollback();
         console.error('Error al procesar solicitud:', error);
+        
+        // Manejar errores específicos con códigos de estado
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({
+                error: error.message,
+                ...(error.detalles && { detalles: error.detalles })
+            });
+        }
+        
         res.status(500).json({
             error: "Error interno del servidor",
             message: error.message
