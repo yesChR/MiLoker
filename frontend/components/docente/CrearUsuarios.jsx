@@ -57,8 +57,8 @@ const CrearUsuarios = () => {
         // Guardar la cédula antes de limpiar
         const cedulaBusqueda = datosEstudiante.cedula.trim();
 
-        // Limpiar formulario antes de buscar
-        limpiarFormulario();
+        // Limpiar formulario antes de buscar, manteniendo la cédula
+        limpiarFormulario(true);
 
         setIsLoading(true);
         try {
@@ -309,6 +309,16 @@ const CrearUsuarios = () => {
     // Función helper para verificar si el segundo encargado tiene algún dato
     const hasSecondGuardianData = Object.values(segundoEncargado).some(value => value && value.trim());
 
+    // El botón solo se bloquea si no se han cargado los datos del estudiante
+    const isFormReadyToSubmit = datosEncontrados;
+
+    // Debug: Ver estado del formulario en consola
+    console.log('🔍 Estado del formulario:', {
+        datosEncontrados,
+        isFormReadyToSubmit,
+        primerEncargado
+    });
+
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
             <div className="w-full">
@@ -432,7 +442,6 @@ const CrearUsuarios = () => {
                     </div>
                     <div>
                         <h2 className="text-md font-semibold text-gray-600">Datos del primer encargado:</h2>
-                        {showErrors}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2">
                             <Input
                                 label="Cédula"
@@ -653,12 +662,15 @@ const CrearUsuarios = () => {
                         </Button>
                         <Button
                             type="submit"
-                            className="px-6 bg-primario text-white w-full sm:w-auto ml-4"
+                            className={`px-6 text-white w-full sm:w-auto ml-4 ${
+                                !isFormReadyToSubmit 
+                                    ? 'bg-gray-400 cursor-not-allowed opacity-50' 
+                                    : 'bg-primario hover:bg-primario'
+                            }`}
                             endContent={<LuSendHorizontal />}
-                            isLoading={isLoading}
-                            disabled={!datosEncontrados}
+                            disabled={!isFormReadyToSubmit}
                         >
-                            {isLoading ? 'Enviando...' : 'Enviar'}
+                            Enviar
                         </Button>
                     </div>
                 </form>
