@@ -13,6 +13,21 @@ export function UserButton() {
     const [isLoading, setIsLoading] = useState(false);
     const cambiarContraseñaRef = useRef();
 
+    const formatearNombre = (nombreCompleto) => {
+        if (!nombreCompleto) return "Usuario";
+        
+        const partes = nombreCompleto.trim().split(' ');
+        if (partes.length >= 3) {
+            // Mostrar primer nombre (posición 0) y primer apellido (posición 2)
+            return `${partes[0]} ${partes[2]}`;
+        } else if (partes.length === 2) {
+            // Si solo hay 2 palabras, mostrar ambas
+            return `${partes[0]} ${partes[1]}`;
+        }
+        // Si solo hay una palabra, mostrarla
+        return partes[0];
+    };
+
     const getRoleStyles = (role) => {
         switch (role) {
             case ROLES.ADMINISTRADOR:
@@ -129,7 +144,7 @@ export function UserButton() {
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="font-semibold text-gray-800">
-                                            {name}
+                                            {formatearNombre(name)}
                                         </p>
                                         <p className="text-xs text-gray-500">
                                             {email}
