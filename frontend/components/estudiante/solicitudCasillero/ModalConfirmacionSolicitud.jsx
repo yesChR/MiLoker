@@ -40,15 +40,15 @@ const ModalConfirmacionSolicitud = ({
                                     className={cn(
                                         "flex items-center justify-center p-2 rounded-md border transition-all duration-200",
                                         index === 0 
-                                            ? "bg-green-50 border-green-200 text-green-700" 
-                                            : "bg-pink-50 border-pink-200 text-pink-700"
+                                            ? "bg-purple-50 border-purple-200 text-purple-700" 
+                                            : "bg-orange-50 border-orange-200 text-orange-700"
                                     )}
                                 >
                                     {/* Icono y número de opción */}
                                     <div className="flex items-center space-x-2">
                                         <div className={cn(
                                             "w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs",
-                                            index === 0 ? "bg-green-500" : "bg-pink-500"
+                                            index === 0 ? "bg-purple-500" : "bg-orange-500"
                                         )}>
                                             {index + 1}
                                         </div>
