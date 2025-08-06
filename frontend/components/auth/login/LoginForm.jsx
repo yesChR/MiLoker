@@ -92,7 +92,7 @@ const LoginForm = ({ isVisible, toggleVisibility, handleLogin, loading, errorMes
 
                 {/* Enlace de recuperación */}
                 <div className="w-full md:w-3/4 flex justify-end">
-                    <a href="/forgot-password" className="text-sm md:text-base text-primario hover:underline">
+                    <a href="/auth/recuperar-contrasenna" className="text-sm md:text-base text-primario hover:underline">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>

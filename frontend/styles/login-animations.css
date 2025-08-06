@@ -98,3 +98,12 @@
 .animated-background-hidden {
   opacity: 0;
 }
+
+/* Delays adicionales para efectos más suaves */
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}

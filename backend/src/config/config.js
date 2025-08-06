@@ -12,4 +12,5 @@ export default {
     dbport: process.env.DB_PORT || '',
     dbhost: process.env.DB_HOST || '',
     authjwtsecret: process.env.DB_HOST || '',
+    JWT_SECRET: process.env.JWT_SECRET || 'mi-secreto-jwt-por-defecto-cambiar-en-produccion',
 }

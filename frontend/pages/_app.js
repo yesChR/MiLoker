@@ -13,14 +13,14 @@ function AppContent({ Component, pageProps }) {
 
   // Verifica si el usuario está logueado
   useEffect(() => {
-    if (status === "unauthenticated" && router.pathname !== "/auth/login") {
+    if (status === "unauthenticated" && router.pathname !== "/auth/login" && router.pathname !== "/auth/recuperar-contrasenna") {
       Toast.error("Tu sesión ha expirado");
       router.push("/auth/login");
     }
   }, [status, router]);
 
   // Rutas sin Layout
-  const noLayoutPages = ["/auth/login"];
+  const noLayoutPages = ["/auth/login", "/auth/recuperar-contrasenna"];
 
   return (
     <HeroUIProvider locale="es-ES">
