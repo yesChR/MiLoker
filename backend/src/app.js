@@ -25,8 +25,13 @@ import cors from 'cors';
 // Configuración
 app.set("port", config.port);
 
-// Middleware
-app.use(cors());
+// Configurar CORS
+const allowedOrigins = ["http://localhost:4000"];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 app.use(express.json());
 
 // Rutas (Agregar todas las rutas que existan en Routes)
