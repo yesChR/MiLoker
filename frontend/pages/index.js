@@ -101,6 +101,12 @@ export default function Home() {
   const { data: session } = useSession();
   const userName = session?.user?.name;
 
+  // Función para obtener solo el primer nombre
+  const obtenerPrimerNombre = (nombreCompleto) => {
+    if (!nombreCompleto) return null;
+    return nombreCompleto.split(' ')[0];
+  };
+
   return (
     <div className="fixed inset-0 w-full h-full bg-white flex items-center justify-center z-0 overflow-hidden">
       {/* Fondo animado sutil */}
@@ -130,7 +136,7 @@ export default function Home() {
           ¡Bienvenido/a!
         </h1>
         <div className="text-2xl md:text-3xl font-extrabold text-primario text-center mb-1 animate-fade-in-scale whitespace-nowrap">
-          {userName ? userName : 'MiLoker'}
+          {userName ? obtenerPrimerNombre(userName) : 'MiLoker'}
         </div>
         {/* Separador decorativo animado */}
         <div className="w-28 h-1 mx-auto my-2 bg-gradient-to-r from-primario via-azulOscuro to-primario rounded-full animate-gradient-x shadow-md" />
