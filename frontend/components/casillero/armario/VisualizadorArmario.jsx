@@ -10,16 +10,15 @@ const VisualizadorArmario = ({ armario, onCasilleroClick, estadosCasillero }) =>
         const estadoNum = parseInt(estado);
         switch (estadoNum) {
             case ESTADOS_CASILLERO.DISPONIBLE:
-                return "bg-green-500 hover:bg-green-600 text-white"; // Celeste (mantenido)
+                return "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white"; 
             case ESTADOS_CASILLERO.OCUPADO:
-                return "bg-pink-500 hover:bg-pink-600 text-white";
+                return "bg-danger hover:bg-red-700 text-white";
             case ESTADOS_CASILLERO.EN_MANTENIMIENTO:
-                return "bg-yellow-500 hover:bg-yellow-600 text-white"; // Amarillo claro con texto oscuro
+                return "bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white"; 
             case ESTADOS_CASILLERO.DAÑADO:
-                return "bg-orange-500 hover:bg-orange-600 text-white"; // Gris (mantenido)
-            // Rojo para dañado
+                return "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700 text-white"; 
             default:
-                return "bg-gray-400 hover:bg-gray-500 text-white";
+                return "bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white";
         }
     };
 
@@ -29,15 +28,15 @@ const VisualizadorArmario = ({ armario, onCasilleroClick, estadosCasillero }) =>
         const estadoNum = parseInt(estado);
         switch (estadoNum) {
             case ESTADOS_CASILLERO.DISPONIBLE:
-                return "bg-green-500"; // Celeste (mantenido)
+                return "bg-gradient-to-br from-blue-400 to-blue-600"; 
             case ESTADOS_CASILLERO.OCUPADO:
-                return "bg-pink-500"; // Rojo para dañado
+                return "bg-danger"; 
             case ESTADOS_CASILLERO.EN_MANTENIMIENTO:
-                return "bg-yellow-500"; // Amarillo claro
+                return "bg-gradient-to-br from-yellow-400 to-orange-500"; 
             case ESTADOS_CASILLERO.DAÑADO:
-                return "bg-orange-500"; // Gris (mantenido)
+                return "bg-gradient-to-br from-purple-400 to-purple-600"; 
             default:
-                return "bg-gray-400";
+                return "bg-gradient-to-br from-gray-400 to-gray-600";
         }
     };
 
@@ -51,7 +50,7 @@ const VisualizadorArmario = ({ armario, onCasilleroClick, estadosCasillero }) =>
 
     return (
         <div className="border border-gray-300 p-4 rounded-lg shadow-lg bg-white">
-            <div className="bg-primary text-white p-4 text-xl rounded-md text-center font-bold shadow-lg mb-4">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 text-xl rounded-md text-center font-bold shadow-lg mb-4">
                 Armario {armario.id}
             </div>
 

@@ -17,6 +17,7 @@ import usuarios from "./routes/docente/usuarios.routes.js";
 import alertas from "./routes/docente/alertas.routes.js";
 import docenteRoutes from "./routes/docente/docente.routes.js";
 import renunciaRoutes from "./routes/estudiante/renuncia.routes.js";
+import milokerRoutes from "./routes/estudiante/miloker.routes.js";
 
 const app = express();
 import cors from 'cors';
@@ -50,5 +51,6 @@ app.use("/usuarios", usuarios);
 app.use("/alertas", alertas);
 app.use("/docente", docenteRoutes);
 app.use("/estudiante", renunciaRoutes);
+app.use("/api/estudiante", milokerRoutes);
 
 export default app;
