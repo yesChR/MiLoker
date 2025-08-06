@@ -70,4 +70,64 @@ export const loginUsuario = async(req, res) => {
     }
 }
 
+export const cambiarContraseña = async (req, res) => {
+    const { contraseñaActual, nuevaContraseña, cedulaUsuario } = req.body;
+    
+    if (!contraseñaActual || !nuevaContraseña || !cedulaUsuario) {
+        return res.status(400).json({ 
+            error: 'Contraseña actual, nueva contraseña y cédula son requeridos' 
+        });
+    }
+
+    if (nuevaContraseña.length < 6) {
+        return res.status(400).json({ 
+            error: 'La nueva contraseña debe tener al menos 6 caracteres' 
+        });
+    }
+
+    try {
+        // Buscar el usuario por cédula
+        const user = await Usuario.findOne({ where: { cedula: cedulaUsuario } });
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Verificar la contraseña actual
+        const passwordMatch = await bcrypt.compare(contraseñaActual, user.contraseña);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
+        }
+
+        // Verificar que la nueva contraseña sea diferente
+        const isSamePassword = await bcrypt.compare(nuevaContraseña, user.contraseña);
+        if (isSamePassword) {
+            return res.status(400).json({ 
+                error: 'La nueva contraseña debe ser diferente a la actual' 
+            });
+        }
+
+        // Encriptar la nueva contraseña
+        const saltRounds = 10;
+        const hashedNewPassword = await bcrypt.hash(nuevaContraseña, saltRounds);
+
+        // Actualizar la contraseña en la base de datos
+        await Usuario.update(
+            { contraseña: hashedNewPassword },
+            { where: { cedula: cedulaUsuario } }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Contraseña cambiada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error en cambiarContraseña:', error);
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            message: 'Ocurrió un error durante el cambio de contraseña'
+        });
+    }
+}
+
 

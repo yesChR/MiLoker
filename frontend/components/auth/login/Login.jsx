@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Card, CardBody } from "@heroui/react";
 import { useRouter } from "next/router";
-import { loginService } from "../../services/authService";
+import { loginService } from "../../../services/authService";
 import LockAnimationSystem from "./LockAnimationSystem";
 import LoginForm from "./LoginForm";
-import { useLoginAnimations } from "../../hooks/useLoginAnimations";
-import "../../styles/login-animations.css";
+import { useLoginAnimations } from "../../../hooks/useLoginAnimations";
+import "../../../styles/login-animations.css";
+import { signIn } from "next-auth/react";
 
 const Login = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -19,8 +20,6 @@ const Login = () => {
     triggerSuccessAnimation 
   } = useLoginAnimations();
   const toggleVisibility = () => setIsVisible(!isVisible);
-  // Importar signIn de next-auth/react
-  const { signIn } = require("next-auth/react");
 
   const handleLogin = async (e) => {
     e.preventDefault();
