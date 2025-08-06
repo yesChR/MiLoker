@@ -36,7 +36,7 @@ const SolicitudCasillero = () => {
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-6">
             <div className="w-full">
                 <CabezeraDinamica
-                    title="Casilleros"
+                    title="Solicitud Casillero"
                     breadcrumb="Inicio • Solicitud Casillero"
                 />
             </div>

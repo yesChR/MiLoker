@@ -37,7 +37,7 @@ const GrillaCasilleros = ({
 
     return (
         <div className="border border-gray-300 p-4 rounded-lg shadow-lg bg-white">
-            <div className="bg-primary text-white p-4 text-xl rounded-md text-center font-bold shadow-lg mb-4">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-4 text-xl rounded-md text-center font-bold shadow-lg mb-4">
                 Armario {armario.id}
             </div>
             
@@ -59,10 +59,10 @@ const GrillaCasilleros = ({
                                 casillero.estado === 1
                                     ? isSelected
                                         ? selectedIndex === 0
-                                            ? "bg-green-500 hover:bg-green-600" // Opción 1: Verde
-                                            : "bg-pink-500 hover:bg-pink-600" // Opción 2: Rosa
-                                        : "bg-celeste hover:bg-celeste-dark" // Disponible
-                                    : "bg-gray-400 hover:bg-gray-600" // Ocupado
+                                            ? "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700" // Opción 1: Morado como en VisualizadorArmario
+                                            : "bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600" // Opción 2: Naranja como en VisualizadorArmario
+                                        : "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700" // Disponible - azul como en VisualizadorArmario
+                                    : "bg-danger hover:bg-red-700" // Ocupado - danger como en VisualizadorArmario
                             )}
                             onPress={() => onCasilleroClick(casillero)}
                         >
@@ -75,19 +75,19 @@ const GrillaCasilleros = ({
             {/* Leyenda de colores */}
             <div className="flex justify-center items-center mt-4 space-x-4">
                 <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 bg-celeste rounded-full"></span>
+                    <span className="w-4 h-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
                     <span className="text-gray-600 text-sm">Libre</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 bg-gray-400 rounded-full"></span>
+                    <span className="w-4 h-4 bg-danger rounded-full"></span>
                     <span className="text-gray-600 text-sm">Ocupado</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 bg-green-500 rounded-full"></span>
+                    <span className="w-4 h-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full"></span>
                     <span className="text-gray-600 text-sm">Opción 1</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <span className="w-4 h-4 bg-pink-500 rounded-full"></span>
+                    <span className="w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full"></span>
                     <span className="text-gray-600 text-sm">Opción 2</span>
                 </div>
             </div>

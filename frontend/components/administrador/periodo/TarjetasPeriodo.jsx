@@ -45,9 +45,11 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
         // Colores según el tipo y estado
         let color;
         if (noEsValido) {
-            color = 'bg-red-100 border-2 border-red-300'; // Estilo especial para no válido
+            color = 'bg-gradient-to-br from-red-400 to-red-600 text-white border-2 border-red-300'; // Gradiente rojo para no válido
         } else {
-            color = tipo === 2 ? 'bg-green-300' : 'bg-yellow-200'; // Solicitud verde, Asignación amarillo
+            color = tipo === 2 
+                ? 'bg-gradient-to-br from-green-400 to-green-600 text-white' // Solicitud verde gradiente
+                : 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'; // Asignación amarillo-naranja gradiente
         }
 
         return {
@@ -62,22 +64,24 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
 
     const tarjetas = [
         {
-            titulo: "Período de solicitud",
+            titulo: "Periodo de solicitud",
             ...obtenerDatosTarjeta(2),
-            icono: <BiCalendar className="w-6 h-6 text-gray-700" />,
+            icono: <BiCalendar className="w-6 h-6 text-white" />,
         },
         {
-            titulo: "Período de asignación",
+            titulo: "Periodo de asignación",
             ...obtenerDatosTarjeta(1),
-            icono: <BiCalendar className="w-6 h-6 text-yellow-700" />,
+            icono: <BiCalendar className="w-6 h-6 text-white" />,
         },
         {
             titulo: "Restablecer",
             descripcion: hayPeriodosActivos 
                 ? "Se eliminará la asignación de casilleros" 
                 : "No hay períodos activos para restablecer",
-            color: hayPeriodosActivos ? "bg-red-200" : "bg-gray-300",
-            icono: <FiRefreshCw className={`w-6 h-6 ${hayPeriodosActivos ? 'text-red-700' : 'text-gray-500'}`} />,
+            color: hayPeriodosActivos 
+                ? "bg-danger text-white" 
+                : "bg-gradient-to-br from-gray-400 to-gray-600 text-white",
+            icono: <FiRefreshCw className={`w-6 h-6 ${hayPeriodosActivos ? 'text-white' : 'text-gray-200'}`} />,
             deshabilitado: !hayPeriodosActivos
         },
     ];
@@ -89,7 +93,7 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
                     key={index}
                     className={`flex flex-col items-center justify-center py-6 rounded-lg shadow-md ${tarjeta.color} w-full sm:w-[325px] h-[120px] ${
                         tarjeta.titulo === "Restablecer" && !tarjeta.deshabilitado
-                            ? "cursor-pointer hover:shadow-lg hover:bg-red-300 transition-transform duration-200 hover:scale-105"
+                            ? "cursor-pointer hover:shadow-lg hover:bg-red-700 transition-all duration-200 hover:scale-105"
                             : tarjeta.titulo === "Restablecer" && tarjeta.deshabilitado
                             ? "cursor-not-allowed opacity-60"
                             : ""
@@ -109,25 +113,25 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
                         )}
                     </div>
                     <h3 className={`text-lg font-semibold mb-2 ${
-                        tarjeta.vencido ? 'text-red-700' : 
-                        tarjeta.deshabilitado ? 'text-gray-500' : 
-                        'text-gray-800'
+                        tarjeta.vencido ? 'text-red-200' : 
+                        tarjeta.deshabilitado ? 'text-gray-300' : 
+                        'text-white'
                     }`}>
                         {tarjeta.titulo}
                     </h3>
                     {tarjeta.fechaInicio && tarjeta.fechaFin ? (
                         <div className="text-center">
-                            <p className={`text-sm ${tarjeta.vencido ? 'text-red-600 line-through' : 'text-gray-600'}`}>
+                            <p className={`text-sm ${tarjeta.vencido ? 'text-red-200 line-through' : 'text-gray-100'}`}>
                                 {tarjeta.fechaInicio} a {tarjeta.fechaFin}
                             </p>
                             {tarjeta.vencido && (
-                                <p className="text-xs text-red-500 font-semibold mt-1 mb-2">
-                                    ⚠️ Este período {tarjeta.estadoTexto === "INACTIVO" ? "está inactivo" : "ha expirado"}
+                                <p className="text-xs text-red-200 font-semibold mt-1 mb-2">
+                                    ⚠️ Este periodo {tarjeta.estadoTexto === "INACTIVO" ? "está inactivo" : "ha expirado"}
                                 </p>
                             )}
                         </div>
                     ) : (
-                        <p className={`text-sm ${tarjeta.deshabilitado ? 'text-gray-500' : 'text-gray-600'}`}>
+                        <p className={`text-sm ${tarjeta.deshabilitado ? 'text-gray-300' : 'text-gray-100'}`}>
                             {tarjeta.descripcion}
                         </p>
                     )}
