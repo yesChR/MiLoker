@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input, Button, Form } from "@heroui/react";
-import { EyeFilledIcon } from "../icons/EyeFilledIcon";
-import { EyeSlashFilledIcon } from "../icons/EyeSlashFilledIcon";
+import { EyeFilledIcon } from "../../icons/EyeFilledIcon";
+import { EyeSlashFilledIcon } from "../../icons/EyeSlashFilledIcon";
 
 const LoginForm = ({ isVisible, toggleVisibility, handleLogin, loading, errorMessage }) => {
 

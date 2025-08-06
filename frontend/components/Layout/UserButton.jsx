@@ -1,13 +1,17 @@
-import { Avatar } from "@heroui/react";
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@heroui/react";
 import { useRouter } from "next/router";
-import { useCallback } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ROLES } from "../common/roles";
+import DrawerGeneral from "../DrawerGeneral";
+import CambiarContraseña from "@/components/auth/cambioContraseña/CambiarContraseña";
 
 export function UserButton() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const cambiarContraseñaRef = useRef();
 
     const getRoleStyles = (role) => {
         switch (role) {
@@ -54,6 +58,20 @@ export function UserButton() {
             router.push('/auth/login');
         }
     }, [router]);
+
+    const handleOpenChangePassword = () => {
+        setIsDrawerOpen(true);
+    };
+
+    const handleCloseDrawer = () => {
+        setIsDrawerOpen(false);
+        setIsLoading(false);
+    };
+
+    const handlePasswordChangeSuccess = () => {
+        setIsDrawerOpen(false);
+        setIsLoading(false);
+    };
 
     // Mostrar loading o datos por defecto mientras carga la sesión
     if (status === "loading") {
@@ -132,6 +150,7 @@ export function UserButton() {
                             <DropdownItem
                                 key="settings"
                                 className="py-2 hover:bg-gray-50"
+                                onPress={handleOpenChangePassword}
                             >
                                 <span className="text-gray-700">Cambiar contraseña</span>
                             </DropdownItem>
@@ -147,6 +166,41 @@ export function UserButton() {
                     </Dropdown>
                 </div>
             </div>
+            
+            {/* Drawer para cambiar contraseña */}
+            <DrawerGeneral
+                isOpen={isDrawerOpen}
+                onOpenChange={(open) => {
+                    if (!isLoading && open === false) setIsDrawerOpen(open);
+                }}
+                titulo="Cambiar Contraseña"
+                size="md"
+                mostrarBotones={true}
+                textoBotonPrimario="Cambiar Contraseña"
+                textoBotonSecundario="Cancelar"
+                onBotonPrimario={async () => {
+                    if (isLoading) return;
+                    setIsLoading(true);
+                    const valid = await cambiarContraseñaRef.current?.validateAndSubmit?.();
+                    if (!valid) {
+                        setIsLoading(false);
+                    }
+                }}
+                onBotonSecundario={() => {
+                    if (!isLoading) {
+                        handleCloseDrawer();
+                    }
+                }}
+                loadingBotonPrimario={isLoading}
+                loadingBotonSecundario={isLoading}
+                disableClose={isLoading}
+            >
+                <CambiarContraseña
+                    ref={cambiarContraseñaRef}
+                    cedulaUsuario={id}
+                    onSuccess={handlePasswordChangeSuccess}
+                />
+            </DrawerGeneral>
         </div>
     );
 }

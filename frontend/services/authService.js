@@ -44,3 +44,32 @@ export async function loginService(email, password) {
     return { error: true, message: 'Error de red al iniciar sesión' };
   }
 }
+
+export async function cambiarContraseñaService(contraseñaActual, nuevaContraseña, cedulaUsuario) {
+  try {
+    const res = await fetch(`${API_URL}/auth/cambiar-contrasenna`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        contraseñaActual, 
+        nuevaContraseña, 
+        cedulaUsuario 
+      })
+    });
+    
+    const data = await handleResponse(res);
+    
+    if (data && data.error) {
+      return { error: data.error, message: data.message };
+    }
+    
+    if (!data.success) {
+      return { error: data.error || "Error al cambiar contraseña", message: data.message };
+    }
+    
+    return { success: true, message: data.message || "Contraseña cambiada exitosamente" };
+  } catch (error) {
+    console.error('Error en cambiarContraseñaService:', error);
+    return { error: true, message: 'Error de red al cambiar contraseña' };
+  }
+}

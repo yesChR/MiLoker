@@ -1,5 +1,5 @@
 import React from 'react';
-import { LockClosedIcon, LockOpenIcon } from '../icons/LockIcons';
+import { LockClosedIcon, LockOpenIcon } from '../../icons/LockIcons';
 
 const LockAnimationSystem = ({ isUnlocked, showSuccess, isClosing }) => {
   return (
