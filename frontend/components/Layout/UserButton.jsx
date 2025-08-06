@@ -16,16 +16,20 @@ export function UserButton() {
     const formatearNombre = (nombreCompleto) => {
         if (!nombreCompleto) return "Usuario";
         
+        const capitalizarPalabra = (palabra) => {
+            return palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase();
+        };
+        
         const partes = nombreCompleto.trim().split(' ');
         if (partes.length >= 3) {
             // Mostrar primer nombre (posición 0) y primer apellido (posición 2)
-            return `${partes[0]} ${partes[2]}`;
+            return `${capitalizarPalabra(partes[0])} ${capitalizarPalabra(partes[2])}`;
         } else if (partes.length === 2) {
             // Si solo hay 2 palabras, mostrar ambas
-            return `${partes[0]} ${partes[1]}`;
+            return `${capitalizarPalabra(partes[0])} ${capitalizarPalabra(partes[1])}`;
         }
         // Si solo hay una palabra, mostrarla
-        return partes[0];
+        return capitalizarPalabra(partes[0]);
     };
 
     const getRoleStyles = (role) => {
@@ -46,9 +50,9 @@ export function UserButton() {
                 };
             case ROLES.ESTUDIANTE:
                 return {
-                    borderColor: 'border-success-400',
-                    textColor: 'text-success-600',
-                    bgColor: 'bg-success-50',
+                    borderColor: 'border-blue-400',
+                    textColor: 'text-blue-600',
+                    bgColor: 'bg-blue-50',
                     label: 'Estudiante'
                 };
             default:
