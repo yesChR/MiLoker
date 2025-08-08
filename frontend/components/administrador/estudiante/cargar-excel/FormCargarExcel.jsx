@@ -119,4 +119,6 @@ const FormCargarExcel = forwardRef(({ selectedItem, setSelectedItem, onSubmit },
     );
 });
 
+FormCargarExcel.displayName = "FormCargarExcel";
+
 export default FormCargarExcel;

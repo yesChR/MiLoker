@@ -290,4 +290,6 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
     );
 });
 
+FormEditar.displayName = "FormEditar";
+
 export default FormEditar;

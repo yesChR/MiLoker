@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Input, Button, Form } from "@heroui/react";
 import { EyeFilledIcon } from "../../icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "../../icons/EyeSlashFilledIcon";
@@ -92,9 +93,9 @@ const LoginForm = ({ isVisible, toggleVisibility, handleLogin, loading, errorMes
 
                 {/* Enlace de recuperación */}
                 <div className="w-full md:w-3/4 flex justify-end">
-                    <a href="/auth/recuperar-contrasenna" className="text-sm md:text-base text-primario hover:underline">
+                    <Link href="/auth/recuperar-contrasenna" className="text-sm md:text-base text-primario hover:underline">
                         ¿Olvidaste tu contraseña?
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Botón de envío */}

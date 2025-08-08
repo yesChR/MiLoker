@@ -122,7 +122,7 @@ const CambiarContraseña = forwardRef(({ cedulaUsuario, onSuccess }, ref) => {
                 return false;
             }
         }
-    }), [formData, cedulaUsuario, onSuccess]);
+    }), [formData, cedulaUsuario, onSuccess, validateForm]);
 
     const togglePasswordVisibility = (field) => {
         setShowPasswords(prev => ({

@@ -107,4 +107,6 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, especialidades }
     );
 });
 
+FormEditar.displayName = "FormEditar";
+
 export default FormEditar;

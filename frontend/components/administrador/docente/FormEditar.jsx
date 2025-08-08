@@ -240,4 +240,6 @@ const FormEditar = forwardRef(({
     );
 });
 
+FormEditar.displayName = "FormEditar";
+
 export default FormEditar;

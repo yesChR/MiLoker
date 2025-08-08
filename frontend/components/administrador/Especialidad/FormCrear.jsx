@@ -55,4 +55,6 @@ const FormCrear = forwardRef(({ selectedItem, setSelectedItem, especialidades },
     );
 });
 
+FormCrear.displayName = "FormCrear";
+
 export default FormCrear;

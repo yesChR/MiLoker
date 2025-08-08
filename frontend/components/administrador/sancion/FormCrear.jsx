@@ -80,4 +80,6 @@ const FormCrear = forwardRef(({ selectedItem, setSelectedItem, sanciones }, ref)
     );
 });
 
+FormCrear.displayName = "FormCrear";
+
 export default FormCrear;
