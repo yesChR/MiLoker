@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@heroui/react";
 import cn from "classnames";
 import { ESTADOS_CASILLERO } from "../../common/estadoCasillero";
+import EmptyCasilleros from "./EmptyCasilleros";
 
 const VisualizadorArmario = ({ armario, onCasilleroClick, estadosCasillero }) => {
     // Función para obtener colores de los casilleros
@@ -42,9 +43,7 @@ const VisualizadorArmario = ({ armario, onCasilleroClick, estadosCasillero }) =>
 
     if (!armario) {
         return (
-            <div className="text-center text-gray-500 text-lg mt-10">
-                No hay armarios disponibles para esta especialidad.
-            </div>
+            <EmptyCasilleros />
         );
     }
 

@@ -106,7 +106,8 @@ const Armario = () => {
                 idCasillero: casillero?.idCasillero || 0,
                 estado: casillero?.idEstadoCasillero || 1,
                 descripcion: casillero?.detalle || '',
-                estadoNombre: casillero?.estadoCasillero?.nombre || ''
+                estadoNombre: casillero?.estadoCasillero?.nombre || '',
+                casillerosXestudiantes: casillero?.casillerosXestudiantes || []
             }))
         }));
     };
@@ -315,7 +316,7 @@ const Armario = () => {
             {/* Drawer */}
             <DrawerGeneral
                 titulo={isEditing ? "Editar Casillero" : "Agregar Armario"}
-                size={"xs"}
+                size={"sm"}
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
                 textoBotonPrimario={isEditing ? "Editar" : "Agregar"}

@@ -15,9 +15,11 @@ export function plantillaNuevaCuenta({ titulo, mensaje, datos = [] }) {
                 <h3 style="color: #2a7ae2; margin: 0 0 15px 0; font-size: 18px;">📋 Detalles de tu cuenta:</h3>
                 <ul style="list-style: none; padding: 0; margin: 0;">
                     ${datos.map(d => `
-                        <li style="margin: 8px 0; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
-                            <strong style="color: #495057;">${d.label}:</strong> 
-                            <span style="background: #2a7ae2; color: white; padding: 4px 8px; border-radius: 6px; margin-left: 10px; font-family: 'Courier New', monospace;">${d.valor}</span>
+                        <li style="margin: 15px 0; padding: 15px 0; border-bottom: 1px solid #e9ecef;">
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #495057; font-size: 14px;">${d.label}:</strong>
+                            </div>
+                            <div style="background: #e8f4fd; color: #1a365d; padding: 10px 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; border: 2px solid #2a7ae2; word-break: break-all;">${d.valor || 'No disponible'}</div>
                         </li>
                     `).join('')}
                 </ul>

@@ -1,6 +1,8 @@
 import { Armario } from "../../models/armario.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { EstadoCasillero } from "../../models/estadoCasillero.model.js";
+import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
+import { Estudiante } from "../../models/estudiante.model.js";
 
 // Obtener armarios con sus casilleros por especialidad
 export const obtenerArmariosPorEspecialidad = async (req, res) => {
@@ -20,6 +22,19 @@ export const obtenerArmariosPorEspecialidad = async (req, res) => {
                             model: EstadoCasillero,
                             as: "estadoCasillero",
                             attributes: ["nombre"]
+                        },
+                        {
+                            model: EstudianteXCasillero,
+                            as: "casillerosXestudiantes",
+                            attributes: ["cedulaEstudiante"],
+                            include: [
+                                {
+                                    model: Estudiante,
+                                    as: "estudiante",
+                                    attributes: ["nombre", "apellidoUno", "apellidoDos", "cedula", "seccion", "telefono", "correo"]
+                                }
+                            ],
+                            required: false // LEFT JOIN para incluir casilleros sin estudiantes
                         }
                     ]
                 }
@@ -64,6 +79,19 @@ export const obtenerTodosLosArmarios = async (req, res) => {
                             model: EstadoCasillero,
                             as: "estadoCasillero",
                             attributes: ["nombre"]
+                        },
+                        {
+                            model: EstudianteXCasillero,
+                            as: "casillerosXestudiantes",
+                            attributes: ["cedulaEstudiante"],
+                            include: [
+                                {
+                                    model: Estudiante,
+                                    as: "estudiante",
+                                    attributes: ["nombres", "apellidos", "cedula"]
+                                }
+                            ],
+                            required: false // LEFT JOIN para incluir casilleros sin estudiantes
                         }
                     ]
                 }

@@ -1,18 +1,20 @@
 import React, { useState, useImperativeHandle, forwardRef } from "react";
 import { Input, Select, SelectItem } from "@heroui/react";
+import EstudianteAsignado from "./EstudianteAsignado";
 
 const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmit, estadosCasillero, loading }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
-    
+
+    console.log("FormEditarCasillero - selectedItem:", selectedItem);
     const validateAndSubmit = () => {
         // Activar la visualización de errores
         setShowErrors(true);
-        
+
         // Para casilleros, el detalle es opcional, solo validamos que existan los datos básicos
         if (!selectedItem?.id && !selectedItem?.idCasillero) {
             return false;
         }
-        
+
         // Llamar la función onSubmit si se proporciona
         if (onSubmit) {
             const formData = {
@@ -29,11 +31,22 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
     useImperativeHandle(ref, () => ({
         validateAndSubmit
     }));
-    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         validateAndSubmit();
     };
+
+    // Función para capitalizar textos
+    const capitalizarTexto = (texto) => {
+        if (!texto) return '';
+        return texto
+            .toLowerCase()
+            .split(' ')
+            .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+            .join(' ');
+    };
+
 
     return (
         <form
@@ -50,7 +63,7 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
                 color="primary"
                 isRequired
             />
-            
+
             <Select
                 label="Estado"
                 placeholder="Seleccione..."
@@ -60,9 +73,9 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
                 selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
                 onSelectionChange={(keys) => {
                     const selected = Array.from(keys)[0];
-                    setSelectedItem(prev => ({ 
-                        ...prev, 
-                        estado: selected ? parseInt(selected) : 1 
+                    setSelectedItem(prev => ({
+                        ...prev,
+                        estado: selected ? parseInt(selected) : 1
                     }));
                 }}
                 isDisabled={loading}
@@ -70,15 +83,15 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
                 errorMessage="El estado es obligatorio"
             >
                 {estadosCasillero.map((estado) => (
-                    <SelectItem 
-                        key={estado.idEstadoCasillero} 
+                    <SelectItem
+                        key={estado.idEstadoCasillero}
                         value={estado.idEstadoCasillero.toString()}
                     >
                         {estado.nombre}
                     </SelectItem>
                 ))}
             </Select>
-            
+
             <div className="relative w-full">
                 <textarea
                     placeholder="Escriba aquí..."
@@ -91,6 +104,9 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
                     Detalle
                 </label>
             </div>
+
+            {/* Componente para mostrar información del estudiante asignado */}
+            <EstudianteAsignado casillerosXestudiantes={selectedItem?.casillerosXestudiantes} />
         </form>
     );
 });
