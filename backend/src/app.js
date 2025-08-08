@@ -26,10 +26,15 @@ import cors from 'cors';
 app.set("port", config.port);
 
 // Configurar CORS
-const allowedOrigins = ["http://localhost:4000"];
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://192.168.1.254:3000',
+];
+
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
 }));
 
 app.use(express.json());
