@@ -27,8 +27,8 @@ app.set("port", config.port);
 
 // Configurar CORS
 const allowedOrigins = [
-    'http://localhost:3000',
-    'http://192.168.1.254:3000',
+    config.frontend_url,
+    config.frontend_local_url,
 ];
 
 app.use(cors({
