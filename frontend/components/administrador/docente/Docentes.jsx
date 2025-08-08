@@ -82,13 +82,6 @@ const Docentes = () => {
         cargarDatos();
     }, []);
 
-    // Cargar docentes cuando se carguen las especialidades (solo si hay especialidades y no hubo error)
-    useEffect(() => {
-        if (especialidades.length > 0) {
-            cargarDocentes();
-        }
-    }, [especialidades]);
-
     // AGREGADO siguiendo Admin
     const cargarDocentes = async () => {
         setLoading(true);
@@ -118,6 +111,13 @@ const Docentes = () => {
             setLoading(false);
         }
     };
+
+    // Cargar docentes cuando se carguen las especialidades (solo si hay especialidades y no hubo error)
+    useEffect(() => {
+        if (especialidades.length > 0) {
+            cargarDocentes();
+        }
+    }, [especialidades]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // AGREGADO siguiendo Admin
     const handleEditar = (item) => {

@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "@/styles/login-animations.css";
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
 import Layout from "@/components/Layout/Layout";
 import { useRouter } from "next/router";

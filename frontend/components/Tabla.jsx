@@ -55,21 +55,14 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     );
 
 
-    const abrirDrawer = (accion = 0) => {
+    const abrirDrawer = useCallback((accion = 0) => {
         if (setAccion !== null) {
             if (accion !== 0) {
                 setAccion(accion);
             }
         }
         onOpen();
-    };
-
-    const estadosColors = {
-        1: "danger",   // Inactivo
-        2: "success",  // Activo
-        "Inactivo": "danger",
-        "Activo": "success"
-    };
+    }, [setAccion, onOpen]);
 
     const getEstadoLabel = (estado) => {
         const labels = {
@@ -78,38 +71,6 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
         };
         return labels[estado] || estado;
     };
-
-    const filteredData = useMemo(() => {
-        return data.filter((item) => {
-            const searchMatch = columns.some((column) =>
-                String(item[column.uid] || "")
-                    .toLowerCase()
-                    .includes(filterValue.toLowerCase())
-            );
-
-            const filtersMatch = Object.entries(selectedFilters).every(([field, values]) => {
-                if (!values || values.length === 0) return true;
-                // Si el filtro es de estado, comparar por label
-                if (field === "estado") {
-                    const itemLabel = getEstadoLabel(item[field]);
-                    return values.some((value) =>
-                        String(itemLabel).toLowerCase() === String(value).toLowerCase()
-                    );
-                }
-                return values.some((value) =>
-                    String(item[field] || "").toLowerCase() === String(value).toLowerCase()
-                );
-            });
-
-            return searchMatch && filtersMatch;
-        });
-    }, [filterValue, selectedFilters, data, columns]);
-
-    const datosPaginados = useMemo(() => {
-        const start = (currentPage - 1) * numElementos;
-        const end = start + numElementos;
-        return filteredData.slice(start, end);
-    }, [filteredData, currentPage, numElementos]);
 
     // Función para capitalizar texto correctamente
     const capitalizarTexto = (texto) => {
@@ -121,6 +82,13 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
     };
 
     const renderCell = useCallback((item, index, columnKey) => {
+        const estadosColors = {
+            1: "danger",   // Inactivo
+            2: "success",  // Activo
+            "Inactivo": "danger",
+            "Activo": "success"
+        };
+        
         let cellValue = item[columnKey];
         switch (columnKey) {
             case "nombreCompleto":
@@ -269,7 +237,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
             default:
                 return cellValue;
         }
-    }, [acciones, mostrarAcciones, estadosColors]);
+    }, [acciones, mostrarAcciones]);
 
     const topContent = useMemo(() => {
         return (
@@ -344,7 +312,37 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                 </div>
             </div>
         );
-    }, [filterValue, visibleColumns, columns, ocultarAgregar, abrirDrawer]);
+    }, [filterValue, visibleColumns, columns, ocultarAgregar, abrirDrawer, filterOptions, selectedFilters]);
+
+    // Datos filtrados
+    const filteredData = useMemo(() => {
+        let filtered = data || [];
+
+        // Aplicar filtro de búsqueda por texto
+        if (filterValue) {
+            filtered = filtered.filter((item) =>
+                columns.some((column) => {
+                    const value = item[column.uid];
+                    return value && value.toString().toLowerCase().includes(filterValue.toLowerCase());
+                })
+            );
+        }
+
+        // Aplicar filtros por categorías
+        Object.entries(selectedFilters).forEach(([field, values]) => {
+            if (values.length > 0) {
+                filtered = filtered.filter((item) => values.includes(item[field]));
+            }
+        });
+
+        return filtered;
+    }, [data, filterValue, selectedFilters, columns]);
+
+    // Datos paginados
+    const datosPaginados = useMemo(() => {
+        const start = (currentPage - 1) * numElementos;
+        return filteredData.slice(start, start + numElementos);
+    }, [filteredData, currentPage, numElementos]);
 
     const bottomContent = useMemo(() => {
         return (

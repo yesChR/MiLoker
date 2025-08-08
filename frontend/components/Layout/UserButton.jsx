@@ -2,6 +2,7 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@heroui/r
 import { useRouter } from "next/router";
 import { useCallback, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 import { ROLES } from "../common/roles";
 import DrawerGeneral from "../DrawerGeneral";
 import CambiarContraseña from "@/components/auth/cambioContraseña/CambiarContraseña";
@@ -120,7 +121,7 @@ export function UserButton() {
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
                             <div className={`rounded-full p-0.5 cursor-pointer ${roleStyles.borderColor} border-2`}>
-                                <img
+                                <Image
                                     src="/usuario.png"
                                     alt="User Avatar"
                                     className="rounded-full"
@@ -138,7 +139,7 @@ export function UserButton() {
                             <DropdownItem key="profile" className="h-16 gap-3 opacity-100" textValue="profile">
                                 <div className="flex items-center gap-3 py-2">
                                     <div className={`rounded-full p-0.5 ${roleStyles.borderColor} border-2`}>
-                                        <img
+                                        <Image
                                             src="/usuario.png"
                                             alt="User Avatar"
                                             className="rounded-full"

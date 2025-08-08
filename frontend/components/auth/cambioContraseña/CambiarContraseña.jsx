@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 import { Form, Input, Button } from "@heroui/react";
 import { cambiarContraseñaService } from "../../../services/authService";
 import { Toast } from "../../CustomAlert";
@@ -51,7 +51,7 @@ const CambiarContraseña = forwardRef(({ cedulaUsuario, onSuccess }, ref) => {
         }
     };
 
-    const validateForm = () => {
+    const validateForm = useCallback(() => {
         const newErrors = {};
 
         if (!formData.contraseñaActual.trim()) {
@@ -76,7 +76,7 @@ const CambiarContraseña = forwardRef(({ cedulaUsuario, onSuccess }, ref) => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
+    }, [formData]);
 
     // Exponer validateAndSubmit a través de la ref
     useImperativeHandle(ref, () => ({

@@ -5,7 +5,6 @@ import { loginService } from "../../../services/authService";
 import LockAnimationSystem from "./LockAnimationSystem";
 import LoginForm from "./LoginForm";
 import { useLoginAnimations } from "../../../hooks/useLoginAnimations";
-import "../../../styles/login-animations.css";
 import { signIn } from "next-auth/react";
 
 const Login = () => {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Card, CardBody } from "@heroui/react";
 import { useRouter } from "next/router";
 import RecuperarContraseñaForm from "./RecuperarContraseñaForm";
-import "../../../styles/login-animations.css";
 import { LockClosedIcon } from "@/components/icons/LockIcons"; // Asegúrate de que esta ruta sea correcta
 
 const RecuperarContraseña = () => {

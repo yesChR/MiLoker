@@ -37,7 +37,7 @@ const Armario = () => {
     // Cargar datos iniciales
     useEffect(() => {
         cargarDatosIniciales();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Cargar especialidades y armarios
     const cargarDatosIniciales = async () => {
@@ -123,7 +123,7 @@ const Armario = () => {
                 cargarDatosIniciales();
             }
         }
-    }, [especialidadSeleccionada]);
+    }, [especialidadSeleccionada]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Cargar armarios por especialidad
     const cargarArmariosPorEspecialidad = async (idEspecialidad) => {

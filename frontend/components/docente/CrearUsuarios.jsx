@@ -313,13 +313,6 @@ const CrearUsuarios = () => {
     // El botón solo se bloquea si no se han cargado los datos del estudiante
     const isFormReadyToSubmit = datosEncontrados;
 
-    // Debug: Ver estado del formulario en consola
-    console.log('🔍 Estado del formulario:', {
-        datosEncontrados,
-        isFormReadyToSubmit,
-        primerEncargado
-    });
-
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
             <div className="w-full">
