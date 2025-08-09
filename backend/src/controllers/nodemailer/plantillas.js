@@ -98,3 +98,56 @@ export function plantillaRecuperacionContraseña({ nombreCompleto, codigoRecuper
     </div>
     `;
 }
+
+export function plantillaRestablecimientoContraseña({ nombreCompleto, nuevaContraseña }) {
+    return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa;">
+        <div style="background-color: #2a7ae2; padding: 25px; text-align: center; border-radius: 8px 8px 0 0; position: relative;">
+            <h1 style="color: white; margin: 0; font-size: 30px; font-weight: bold;">MiLoker</h1>
+            <h2 style="color: rgba(255,255,255,0.8); margin: 8px 0; font-weight: normal; font-size: 16px;">Contraseña Restablecida</h2>
+        </div>
+        
+        <div style="padding: 40px 30px; background-color: white; border-radius: 0 0 8px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <p style="color: #333; font-size: 16px; margin: 0 0 20px 0;">
+                Hola <strong style="color: #2a7ae2;">${nombreCompleto}</strong>,
+            </p>
+            
+            <p style="color: #555; line-height: 1.6; margin: 0 0 25px 0;">
+                Tu contraseña ha sido restablecida por un administrador del sistema. Tu nueva contraseña temporal es:
+            </p>
+            
+            <div style="background-color: #2a7ae2; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+                <p style="color: white; margin: 0 0 10px 0; font-size: 14px; opacity: 0.9;">Tu nueva contraseña temporal es:</p>
+                <h1 style="color: white; font-size: 32px; margin: 0; letter-spacing: 4px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-family: 'Courier New', monospace;">
+                    ${nuevaContraseña}
+                </h1>
+            </div>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 25px 0;">
+                <p style="color: #856404; margin: 0 0 10px 0; font-size: 14px;">
+                    ⚠️ <strong>Importante:</strong>
+                </p>
+                <ul style="color: #856404; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                    <li>Esta es una contraseña temporal generada automáticamente</li>
+                    <li><strong>Te recomendamos cambiarla inmediatamente</strong> después de iniciar sesión</li>
+                    <li>Mantén esta contraseña segura y no la compartas</li>
+                </ul>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin: 25px 0 0 0; font-size: 14px;">
+                Puedes iniciar sesión con tu correo electrónico y esta nueva contraseña. Recuerda cambiarla por una de tu preferencia una vez que accedas al sistema.
+            </p>
+            
+            <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #f1f3f4;">
+                <p style="color: #888; font-size: 12px; margin: 0; text-align: center;">
+                    Este es un mensaje automático generado por el sistema MiLoker.<br>
+                    Por favor, no responder a este correo electrónico.
+                </p>
+                <p style="color: #aaa; font-size: 11px; text-align: center; margin: 10px 0 0 0;">
+                    &copy; ${new Date().getFullYear()} MiLoker - Sistema de Gestión de Casilleros
+                </p>
+            </div>
+        </div>
+    </div>
+    `;
+}

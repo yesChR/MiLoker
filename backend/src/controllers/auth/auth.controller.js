@@ -8,7 +8,7 @@ import { Estudiante } from '../../models/estudiante.model.js';
 import { ROLES } from '../../common/roles.js';
 import transporter from '../../config/nodemailer.js';
 import config from '../../config/config.js';
-import { plantillaRecuperacionContraseña } from '../nodemailer/plantillas.js';
+import { plantillaRecuperacionContraseña, plantillaRestablecimientoContraseña } from '../nodemailer/plantillas.js';
 
 export const loginUsuario = async(req, res) => {
     const { email, password } = req.body;
@@ -370,4 +370,97 @@ export const cambiarContraseñaRecuperacion = async (req, res) => {
     }
 };
 
+// Función para restablecer contraseña (por administrador)
+export const restablecerContraseña = async (req, res) => {
+    const { cedula } = req.body;
+    
+    if (!cedula) {
+        return res.status(400).json({ 
+            error: 'La cédula del usuario es requerida' 
+        });
+    }
+
+    try {
+        // Buscar el usuario por cédula
+        const user = await Usuario.findOne({ where: { cedula: cedula } });
+        if (!user) {
+            return res.status(404).json({ 
+                error: 'Usuario no encontrado',
+                message: 'No se encontró un usuario con la cédula proporcionada'
+            });
+        }
+
+        // Generar nueva contraseña temporal (8 caracteres alfanuméricos)
+        const nuevaContraseña = crypto.randomBytes(4).toString('hex').toUpperCase();
+        
+        // Encriptar la nueva contraseña
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(nuevaContraseña, saltRounds);
+
+        // Actualizar la contraseña en la base de datos
+        await Usuario.update(
+            { contraseña: hashedPassword },
+            { where: { cedula: cedula } }
+        );
+
+        // Obtener datos del usuario para personalizar el email
+        let nombreCompleto = '';
+        let correoUsuario = user.nombreUsuario;
+
+        if (user.rol === ROLES.ADMINISTRADOR) {
+            const admin = await Administrador.findOne({ where: { cedula: user.cedula } });
+            if (admin) {
+                nombreCompleto = `${admin.nombre} ${admin.apellidoUno} ${admin.apellidoDos}`;
+                if (admin.correo) correoUsuario = admin.correo;
+            }
+        } else if (user.rol === ROLES.PROFESOR) {
+            const prof = await Profesor.findOne({ where: { cedula: user.cedula } });
+            if (prof) {
+                nombreCompleto = `${prof.nombre} ${prof.apellidoUno} ${prof.apellidoDos}`;
+                if (prof.correo) correoUsuario = prof.correo;
+            }
+        } else if (user.rol === ROLES.ESTUDIANTE) {
+            const est = await Estudiante.findOne({ where: { cedula: user.cedula } });
+            if (est) {
+                nombreCompleto = `${est.nombre} ${est.apellidoUno} ${est.apellidoDos}`;
+                if (est.correo) correoUsuario = est.correo;
+            }
+        }
+
+        // Si no se encontró nombre completo, usar el nombreUsuario
+        if (!nombreCompleto) nombreCompleto = user.nombreUsuario;
+
+        // Configurar el email usando la plantilla
+        const htmlContent = plantillaRestablecimientoContraseña({
+            nombreCompleto,
+            nuevaContraseña
+        });
+
+        const mailOptions = {
+            from: config.email,
+            to: correoUsuario,
+            subject: 'Contraseña Restablecida - MiLoker',
+            html: htmlContent
+        };
+
+        // Enviar el email
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Contraseña restablecida exitosamente',
+            data: {
+                correoEnviado: correoUsuario,
+                nombreUsuario: nombreCompleto
+            }
+        });
+
+    } catch (error) {
+        console.error('Error en restablecerContraseña:', error);
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            message: 'Ocurrió un error al restablecer la contraseña'
+        });
+    }
+};
 
