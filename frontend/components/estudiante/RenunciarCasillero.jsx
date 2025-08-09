@@ -186,10 +186,51 @@ const RenunciarCasillero = () => {
                 onClose={() => setShowModal(false)}
                 onConfirm={handleConfirmarRenuncia}
                 title="Confirmar renuncia al casillero"
-                message={`¿Estás completamente seguro de que deseas renunciar al casillero ${casilleroData?.numeroCasillero} del armario ${casilleroData?.codigoArmario}? Esta acción NO se puede deshacer.`}
-                confirmText="Sí, renunciar"
+                confirmText={processingRenuncia ? "Procesando..." : "Sí, renunciar"}
                 cancelText="No, cancelar"
+                confirmColor="danger"
                 isLoading={processingRenuncia}
+                size="md"
+                customContent={casilleroData && (
+                    <div className="space-y-4">
+                        <div className="text-center">
+                            <p className="text-gray-700 mb-4 text-base">
+                                ¿Estás completamente seguro de que deseas renunciar a tu casillero?
+                            </p>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Esta acción <span className="font-semibold text-danger">NO se puede deshacer</span>.
+                            </p>
+                        </div>
+                        
+                        {/* Información del casillero con diseño atractivo */}
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span className="text-red-600 font-bold text-xl">
+                                    📪
+                                </span>
+                            </div>
+                            <h4 className="text-lg font-semibold text-gray-800 mb-1">
+                                Casillero #{casilleroData.numeroCasillero}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">
+                                {casilleroData.codigoArmario}
+                            </p>
+                            <div className="bg-white border border-red-200 rounded-md p-2 mt-3">
+                                <p className="text-xs text-red-700 font-medium">
+                                    ⚠️ Recuerda retirar todas tus pertenencias antes de confirmar
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {/* Información adicional */}
+                        <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded-r-md">
+                            <p className="text-xs text-gray-600 leading-relaxed">
+                                <span className="font-medium">Nota:</span> Una vez confirmada la renuncia, el casillero quedará disponible 
+                                para otros estudiantes y no podrás recuperarlo automáticamente.
+                            </p>
+                        </div>
+                    </div>
+                )}
             />
         </div>
     );
