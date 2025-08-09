@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@heroui/react";
 import cn from "classnames";
+import { ESTADOS_CASILLERO } from "../../common/estadoCasillero";
 
 const GrillaCasilleros = ({ 
     armario, 
@@ -8,6 +9,30 @@ const GrillaCasilleros = ({
     onCasilleroClick, 
     loading 
 }) => {
+    // Función para obtener colores de los casilleros basada en el estado
+    const getCasilleroColors = (estado, isSelected, selectedIndex) => {
+        const estadoNum = parseInt(estado);
+        
+        // Si está seleccionado, usar colores de selección
+        if (isSelected) {
+            return selectedIndex === 0
+                ? "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700" // Opción 1: Morado
+                : "bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600"; // Opción 2: Naranja
+        }
+        
+        // Colores basados en el estado del casillero
+        switch (estadoNum) {
+            case ESTADOS_CASILLERO.DISPONIBLE:
+                return "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"; // Disponible - azul
+            case ESTADOS_CASILLERO.OCUPADO:
+            case ESTADOS_CASILLERO.EN_MANTENIMIENTO:
+            case ESTADOS_CASILLERO.DAÑADO:
+                return "bg-danger hover:bg-red-700"; // No disponibles - danger
+            default:
+                return "bg-danger hover:bg-red-700"; // Por defecto - danger
+        }
+    };
+
     if (!armario) {
         return (
             <div className="text-center text-gray-500 text-lg mt-10">
@@ -53,16 +78,10 @@ const GrillaCasilleros = ({
                     return (
                         <Button
                             key={casillero.id}
-                            disabled={loading}
+                            disabled={loading || casillero.estado !== ESTADOS_CASILLERO.DISPONIBLE}
                             className={cn(
                                 `text-white w-sm h-[70px] flex items-center justify-center text-xl rounded-md shadow-md transition-transform duration-200 hover:scale-105`,
-                                casillero.estado === 1
-                                    ? isSelected
-                                        ? selectedIndex === 0
-                                            ? "bg-gradient-to-br from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700" // Opción 1: Morado como en VisualizadorArmario
-                                            : "bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600" // Opción 2: Naranja como en VisualizadorArmario
-                                        : "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700" // Disponible - azul como en VisualizadorArmario
-                                    : "bg-danger hover:bg-red-700" // Ocupado - danger como en VisualizadorArmario
+                                getCasilleroColors(casillero.estado, isSelected, selectedIndex)
                             )}
                             onPress={() => onCasilleroClick(casillero)}
                         >
@@ -72,15 +91,15 @@ const GrillaCasilleros = ({
                 })}
             </div>
 
-            {/* Leyenda de colores */}
+            {/* Leyenda de colores simplificada */}
             <div className="flex justify-center items-center mt-4 space-x-4">
                 <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></span>
-                    <span className="text-gray-600 text-sm">Libre</span>
+                    <span className="text-gray-600 text-sm">Disponible</span>
                 </div>
                 <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 bg-danger rounded-full"></span>
-                    <span className="text-gray-600 text-sm">Ocupado</span>
+                    <span className="text-gray-600 text-sm">No disponible</span>
                 </div>
                 <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full"></span>
