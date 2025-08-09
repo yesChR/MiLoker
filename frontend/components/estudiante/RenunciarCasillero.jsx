@@ -119,15 +119,33 @@ const RenunciarCasillero = () => {
                         breadcrumb="Inicio • Renunciar casillero"
                     />
                 </div>
-                <div className="w-full max-w-2xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
-                    <div className="text-center">
-                        <h2 className="text-lg font-bold text-gray-600 mb-4">Sin casillero asignado</h2>
-                        <p className="text-gray-500">
-                            Actualmente no tienes ningún casillero asignado.
-                        </p>
-                        <p className="text-gray-500 mt-2">
-                            Si crees que esto es un error, contacta al administrador.
-                        </p>
+                <div className="w-full max-w-2xl p-6 bg-white shadow-lg rounded-lg border border-blue-200">
+                    <div>
+                        <div className="flex items-center mb-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <span className="text-blue-600 text-xl">📭</span>
+                            </div>
+                            <h2 className="text-lg font-bold text-blue-600">Sin casillero asignado</h2>
+                        </div>
+                        
+                        <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+                            <p className="text-blue-800 font-medium mb-2">
+                                Actualmente no tienes ningún casillero asignado.
+                            </p>
+                            <p className="text-blue-700">
+                                No hay nada que renunciar en este momento.
+                            </p>
+                        </div>
+
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r border border-yellow-300">
+                            <div className="flex items-center">
+                                <span className="text-yellow-600 text-lg mr-2">💡</span>
+                                <p className="text-sm">
+                                    <strong className="text-yellow-800">¿Necesitas ayuda?</strong> 
+                                    <span className="text-yellow-700 ml-1">Si crees que esto es un error, contacta al administrador.</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

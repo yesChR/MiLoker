@@ -20,7 +20,7 @@ const LoadingCasilleros = () => {
             {/* Spinner principal */}
             <div className="relative mb-4">
                 <div className="w-12 h-12 border-4 border-celeste border-t-primario rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-pink-300 rounded-full animate-reverse"></div>
+                <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-blue-400 rounded-full animate-reverse"></div>
             </div>
 
             {/* Texto de carga */}

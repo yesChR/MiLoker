@@ -3,17 +3,32 @@ import React from "react";
 const SolicitudEnEspera = ({ estudiante }) => {
     return (
         <div>
-            <h2 className="text-lg font-bold text-rose-500">En Lista de Espera</h2>
-            <p className="mt-4">
-                Hola <strong>{`${estudiante.nombre} ${estudiante.apellidoUno}`}</strong> 😥⌛,
-            </p>
-            <p className="mt-2">
-                Tu solicitud ha sido procesada, pero actualmente todos los casilleros han sido asignados. 
-                Te hemos añadido a nuestra <strong className="text-yellow-600">lista de espera</strong>.
-            </p>
-            <p className="mt-4">
-                Si se libera un casillero, te notificaremos lo antes posible para asignarte uno.
-            </p>
+            <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-orange-600 text-xl">⌛</span>
+                </div>
+                <h2 className="text-lg font-bold text-orange-600">En Lista de Espera</h2>
+            </div>
+            
+            <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+                <p className="text-blue-800 font-medium">
+                    Hola <strong>{`${estudiante.nombre} ${estudiante.apellidoUno}`}</strong>,
+                </p>
+                <p className="text-blue-700 mt-2">
+                    Tu solicitud ha sido procesada, pero actualmente todos los casilleros han sido asignados. 
+                    Te hemos añadido a nuestra <strong className="text-orange-600">lista de espera</strong>.
+                </p>
+            </div>
+
+            <div className="bg-orange-50 border-l-4 border-orange-400 p-3 rounded-r border border-orange-300">
+                <div className="flex items-center">
+                    <span className="text-orange-600 text-lg mr-2">⏳</span>
+                    <p className="text-sm">
+                        <strong className="text-orange-800">Estado actual:</strong> 
+                        <span className="text-orange-700 ml-1">Mantente al pendiente de futuros procesos de asignación de casilleros.</span>
+                    </p>
+                </div>
+            </div>
         </div>
     );
 };

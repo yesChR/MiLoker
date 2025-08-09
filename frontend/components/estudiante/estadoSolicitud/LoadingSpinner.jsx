@@ -14,7 +14,7 @@ const LoadingSpinner = () => {
                 <div className="flex flex-col justify-center items-center py-12">
                     <div className="relative">
                        <div className="w-12 h-12 border-4 border-celeste border-t-primario rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-pink-300 rounded-full animate-reverse"></div>
+                <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-blue-400 rounded-full animate-reverse"></div>
                     </div>
                     <div className="mt-6 text-center">
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Cargando estado de solicitud</h3>
