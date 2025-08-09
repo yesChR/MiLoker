@@ -171,3 +171,36 @@ export async function cambiarContraseñaRecuperacionService(verificationToken, n
     return { error: true, message: 'Error de red al cambiar contraseña' };
   }
 }
+
+// Función para restablecer contraseña de un usuario (solo administradores)
+export async function restablecerContraseñaService(cedula) {
+  try {
+    const res = await fetch(`${API_URL}/auth/restablecer-contrasenna`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cedula })
+    });
+    
+    const data = await handleResponse(res);
+    
+    if (data && data.error) {
+      return { error: data.error, message: data.message };
+    }
+    
+    if (!data.success) {
+      return { error: true, message: data.message || "Error al restablecer contraseña" };
+    }
+    
+    return { 
+      success: true, 
+      message: data.message || "Contraseña restablecida exitosamente",
+      data: data.data
+    };
+  } catch (error) {
+    console.error('Error en restablecerContraseñaService:', error);
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      return { error: true, message: 'No se pudo conectar con el servidor. Verifique su conexión a internet.' };
+    }
+    return { error: true, message: 'Error de red al restablecer contraseña' };
+  }
+}

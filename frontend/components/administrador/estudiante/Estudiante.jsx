@@ -3,6 +3,7 @@ import TablaDinamica from "../../Tabla";
 import { BiEditAlt } from "react-icons/bi";
 import { useDisclosure, Spinner } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
+import ConfirmModal from "../../ConfirmModal";
 import FormCargarExcel from "./cargar-excel/FormCargarExcel"
 import FormEditar from "./FormEditar";
 import React, { useState, useEffect, useRef } from "react";
@@ -11,17 +12,21 @@ import { MdOutlinePassword } from "react-icons/md";
 import { DeleteIcon } from "../../icons/DeleteIcon";
 import { getEstudiantes, cargarEstudiantesExcel, updateEstudiante, disableEstudiante } from "../../../services/estudianteService";
 import { getEspecialidades } from "../../../services/especialidadService";
+import { restablecerContraseñaService } from "../../../services/authService";
 import { ROLES } from "@/components/common/roles";
 import { ESTADOS } from "@/components/common/estados";
 
 const Estudiante = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onClose: onConfirmClose } = useDisclosure();
     const [selectedItem, setSelectedItem] = useState(null);
     const [accion, setAccion] = useState("");
     const [estudiantes, setEstudiantes] = useState([]);
     const [especialidades, setEspecialidades] = useState([]);
     const [loading, setLoading] = useState(true);
     const [drawerLoading, setDrawerLoading] = useState(false);
+    const [itemToReset, setItemToReset] = useState(null);
+    const [resetLoading, setResetLoading] = useState(false);
     const formCargarRef = useRef();
     const formEditarRef = useRef();
 
@@ -188,6 +193,36 @@ const Estudiante = () => {
         }, 500);
     };
 
+    const handleRestablecerContraseña = async (item) => {
+        setItemToReset(item);
+        onConfirmOpen();
+    };
+
+    const confirmarRestablecimiento = async () => {
+        if (!itemToReset) return;
+
+        setResetLoading(true);
+        try {
+            const result = await restablecerContraseñaService(itemToReset.cedula);
+            
+            if (result && result.error) {
+                Toast.error('Error', result.message || 'Error al restablecer contraseña');
+            } else {
+                Toast.success(
+                    "¡Contraseña restablecida!", 
+                    `Nueva contraseña enviada a: ${result.data?.correoEnviado || itemToReset.correo}`
+                );
+                onConfirmClose();
+            }
+        } catch (error) {
+            console.error('Error al restablecer contraseña:', error);
+            Toast.error('Error', 'Error al restablecer contraseña');
+        } finally {
+            setResetLoading(false);
+            setItemToReset(null);
+        }
+    };
+
     const acciones = [
         {
             tooltip: "Editar",
@@ -197,7 +232,7 @@ const Estudiante = () => {
         {
             tooltip: <span className="text-danger">Restablecer contraseña</span>,
             icon: <MdOutlinePassword className="text-danger" />,
-            handler: (item) => console.log("Restablecer contraseña", item),
+            handler: handleRestablecerContraseña,
         },
     ];
 
@@ -268,6 +303,43 @@ const Estudiante = () => {
                         />
                     )}
                 </DrawerGeneral>
+
+                <ConfirmModal
+                    isOpen={isConfirmOpen}
+                    onClose={onConfirmClose}
+                    title="Restablecer contraseña"
+                    confirmText="Restablecer"
+                    cancelText="Cancelar"
+                    confirmColor="warning"
+                    onConfirm={confirmarRestablecimiento}
+                    size="md"
+                    customContent={itemToReset && (
+                        <div className="space-y-2">
+                            <div className="text-center">
+                                <p className="text-gray-700 mb-2">
+                                    ¿Está seguro de restablecer la contraseña?
+                                </p>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span className="text-blue-600 font-bold text-xl">
+                                        {itemToReset.nombre?.charAt(0)}{itemToReset.apellidoUno?.charAt(0)}
+                                    </span>
+                                </div>
+                                <h4 className="text-lg font-semibold text-gray-800">
+                                    {itemToReset.nombre} {itemToReset.apellidoUno}
+                                </h4>
+                                <p className="text-sm text-gray-600">{itemToReset.correo}</p>
+                            </div>
+
+                            <div className="text-center">
+                                <p className="text-sm text-gray-500">
+                                    Se enviará una nueva contraseña temporal por correo electrónico
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                />
             </div>
         </div>
     );
