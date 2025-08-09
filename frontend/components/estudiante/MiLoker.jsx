@@ -164,29 +164,70 @@ const MiLoker = () => {
             </div>
 
             {/* Normas del casillero */}
-            <div className="w-full max-w-3xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
+            <div className="w-full max-w-3xl p-6 bg-white shadow-lg rounded-lg border border-blue-200">
                 <div>
-                    <h2 className="text-lg font-bold text-rose-500">Importante</h2>
-                    <p className="mt-4">📢¡Recuerda las normas de tu casillero!🔑</p>
-                    <p className="mt-4">
-                        Hola <strong>{capitalizarNombre(informacionEstudiante?.estudiante?.nombre) || capitalizarNombre(session?.user?.name)}</strong>,
-                    </p>
-                    <p className="mt-4">
-                        Para que todos podamos usar los casilleros de forma segura y ordenada, te
-                        recordamos algunas reglas importantes:
-                    </p>
-                    <ul className="mt-2 ml-4">
-                        <li>❌No prestes tu casillero a otras personas. Es de uso personal.</li>
-                        <li>🔑La llave o combinación es tu responsabilidad, cuídala bien.</li>
-                        <li>🍔No guardes alimentos perecederos para evitar malos olores y plagas.</li>
-                        <li>
-                            🚫Está prohibido almacenar sustancias ilegales, armas o cualquier objeto
-                            peligroso.
-                        </li>
-                    </ul>
-                    <p className="mt-4">
-                        ¡Cuidemos juntos este espacio!😊
-                    </p>
+                    <div className="flex items-center mb-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-blue-600 text-xl">📋</span>
+                        </div>
+                        <h2 className="text-lg font-bold text-blue-600">Normas importantes del casillero</h2>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+                        <p className="text-blue-800 font-medium">
+                            📢 ¡Hola <strong>{capitalizarNombre(informacionEstudiante?.estudiante?.nombre) || capitalizarNombre(session?.user?.name)}</strong>! 🔑
+                        </p>
+                        <p className="text-blue-700 mt-2">
+                            Para que todos podamos usar los casilleros de forma segura y ordenada, te recordamos algunas reglas importantes:
+                        </p>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 className="font-semibold text-gray-800 mb-3">Reglas importantes:</h3>
+                        <div className="space-y-3">
+                            <div className="flex items-start">
+                                <span className="text-red-500 text-lg mr-3 mt-0.5">❌</span>
+                                <div>
+                                    <strong className="text-red-800">Uso personal únicamente:</strong>
+                                    <span className="text-gray-700 ml-1">No prestes tu casillero a otras personas.</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start">
+                                <span className="text-yellow-500 text-lg mr-3 mt-0.5">🔑</span>
+                                <div>
+                                    <strong className="text-yellow-800">Responsabilidad de la llave:</strong>
+                                    <span className="text-gray-700 ml-1">La llave o combinación es tu responsabilidad, cuídala bien.</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start">
+                                <span className="text-orange-500 text-lg mr-3 mt-0.5">🍔</span>
+                                <div>
+                                    <strong className="text-orange-800">Sin alimentos perecederos:</strong>
+                                    <span className="text-gray-700 ml-1">No guardes comida para evitar malos olores y plagas.</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start">
+                                <span className="text-purple-500 text-lg mr-3 mt-0.5">🚫</span>
+                                <div>
+                                    <strong className="text-purple-800">Objetos prohibidos:</strong>
+                                    <span className="text-gray-700 ml-1">Está prohibido almacenar sustancias ilegales, armas o cualquier objeto peligroso.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-green-50 border-l-4 border-green-400 p-3 mt-4 rounded-r border border-green-300">
+                        <div className="flex items-center">
+                            <span className="text-green-600 text-lg mr-2">😊</span>
+                            <p className="text-sm">
+                                <strong className="text-green-800">¡Gracias por tu colaboración!</strong> 
+                                <span className="text-green-700 ml-1">Cuidemos juntos este espacio para todos.</span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

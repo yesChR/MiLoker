@@ -67,24 +67,6 @@ const SolicitudCasillero = () => {
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        <div className="flex items-center space-x-1 bg-white rounded-full px-2 py-1 border border-purple-200 shadow-sm">
-                            <div className="w-2 h-2 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full"></div>
-                            <span className="text-xs text-gray-700 font-medium">🥇 Opción preferida</span>
-                        </div>
-                        <div className="flex items-center space-x-1 bg-white rounded-full px-2 py-1 border border-orange-200 shadow-sm">
-                            <div className="w-2 h-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full"></div>
-                            <span className="text-xs text-gray-700 font-medium">🥈 Opción alternativa</span>
-                        </div>
-                        <div className="flex items-center space-x-1 bg-white rounded-full px-2 py-1 border border-blue-200 shadow-sm">
-                            <div className="w-2 h-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></div>
-                            <span className="text-xs text-gray-700 font-medium">✅ Disponible</span>
-                        </div>
-                        <div className="flex items-center space-x-1 bg-white rounded-full px-2 py-1 border border-red-200 shadow-sm">
-                            <div className="w-2 h-2 bg-danger rounded-full"></div>
-                            <span className="text-xs text-gray-700 font-medium">❌ No disponible</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
