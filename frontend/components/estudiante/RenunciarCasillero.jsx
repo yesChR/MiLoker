@@ -27,27 +27,16 @@ const RenunciarCasillero = () => {
         const cargarDatosCasillero = async () => {
             if (status === "loading") return; // Esperar a que cargue la sesión
             
-            console.log('=== DEBUG COMPONENTE ===');
-            console.log('Status de sesión:', status);
-            console.log('Sesión completa:', session);
-            console.log('ID del usuario (cédula):', session?.user?.id);
-            
             if (!session?.user?.id) {
-                console.log('No hay ID (cédula) en la sesión');
                 Toast.error("Error de sesión", "No se pudo obtener la información del usuario");
                 setLoading(false);
                 return;
             }
 
             try {
-                console.log('Llamando al servicio con cédula:', session.user.id);
                 const response = await obtenerCasilleroEstudiante(session.user.id);
-                
-                console.log('Respuesta del servicio:', response);
-                
+
                 if (response.error) {
-                    console.log('La respuesta tiene error:', response.message);
-                    Toast.error("Error al cargar casillero", response.message);
                     setCasilleroData(null);
                 } else {
                     console.log('Datos del casillero obtenidos:', response.data);
