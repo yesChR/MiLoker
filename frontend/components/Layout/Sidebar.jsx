@@ -2,14 +2,110 @@ import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import React, { useState } from "react";
-import { FiChevronLeft, FiChevronDown, FiChevronUp, FiChevronRight } from "react-icons/fi";
+import React, { useEffect, useState, useMemo } from "react";
+import { FiChevronLeft, FiChevronDown, FiChevronUp, FiChevronRight} from "react-icons/fi";
 import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
+import { tieneAccesoRuta } from "../../config/routeConfig";
+import { useSession } from "next-auth/react";
 
 const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
   const [expandedItems, setExpandedItems] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+    }
+  }, [status, session]);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      if (typeof window !== 'undefined') {
+        setIsMobile(!window.matchMedia("(min-width: 768px)").matches);
+      }
+    };
+
+    checkIsMobile();
+
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia("(min-width: 768px)");
+      mediaQuery.addListener(checkIsMobile);
+
+      return () => {
+        mediaQuery.removeListener(checkIsMobile);
+      };
+    }
+  }, []);
+
+  // Función para filtrar elementos del menú basado en permisos
+  const filterMenuItems = (items, userRole) => {
+    if (!userRole) return [];
+
+    return items.filter(item => {
+      // Si el item tiene un link directo, verificar acceso
+      if (item.link) {
+        return tieneAccesoRuta(userRole, item.link);
+      }
+
+      // Si el item tiene subItems, filtrarlos recursivamente
+      if (item.subItems) {
+        const filteredSubItems = filterSubItems(item.subItems, userRole);
+        // Solo mostrar el item padre si tiene al menos un subitem accesible
+        return filteredSubItems.length > 0;
+      }
+
+      // Si no tiene link ni subItems, mostrar por defecto
+      return true;
+    }).map(item => {
+      // Si el item tiene subItems, aplicar el filtro
+      if (item.subItems) {
+        return {
+          ...item,
+          subItems: filterSubItems(item.subItems, userRole)
+        };
+      }
+      return item;
+    });
+  };
+
+  // Función recursiva para filtrar subItems
+  const filterSubItems = (subItems, userRole) => {
+    return subItems.filter(subItem => {
+      // Si el subItem tiene un link directo, verificar acceso
+      if (subItem.link) {
+        return tieneAccesoRuta(userRole, subItem.link);
+      }
+
+      // Si el subItem tiene subItems anidados, filtrarlos recursivamente
+      if (subItem.subItems) {
+        const filteredNestedSubItems = filterSubItems(subItem.subItems, userRole);
+        // Solo mostrar el subItem padre si tiene al menos un subitem accesible
+        return filteredNestedSubItems.length > 0;
+      }
+
+      // Si no tiene link ni subItems, mostrar por defecto
+      return true;
+    }).map(subItem => {
+      // Si el subItem tiene subItems anidados, aplicar el filtro
+      if (subItem.subItems) {
+        return {
+          ...subItem,
+          subItems: filterSubItems(subItem.subItems, userRole)
+        };
+      }
+      return subItem;
+    });
+  };
+
+  // Usar useMemo para optimizar el filtrado
+  const filteredMenuItems = useMemo(() => {
+    if (status === "loading" || !session?.user?.role) {
+      return [];
+    }
+    return filterMenuItems(menuItems, session.user.role);
+  }, [session?.user?.role, status]);
 
   const handleExpand = (id) => {
     setExpandedItems((prev) =>
@@ -122,7 +218,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
         {
           "w-60": !toggleCollapse, // Ancho completo cuando está expandido
           "w-20 md:w-20": toggleCollapse, // Colapsado en pantallas grandes
-          "-translate-x-full md:translate-x-0": toggleCollapse && !window.matchMedia("(min-width: 768px)").matches, // Oculto en móviles cuando está colapsado
+          "-translate-x-full md:translate-x-0": toggleCollapse && isMobile, // Oculto en móviles cuando está colapsado
           "fixed md:relative": true, // Drawer en móviles, relativo en pantallas grandes
         }
       )}
@@ -137,7 +233,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
                 onClick={() => setToggleCollapse(false)}
                 className="flex-shrink-0 cursor-pointer flex items-center justify-center w-12 h-12 hover:bg-gray-100 rounded"
               >
-               <FiChevronRight className="w-6 h-6 text-gray-500" />
+                <FiChevronRight className="w-6 h-6 text-gray-500" />
               </div>
             ) : (
               <div className="flex-shrink-0">
@@ -166,48 +262,64 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
 
         {/* Contenido del Sidebar */}
         <div className="flex flex-col items-start mt-10">
-          {menuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
-            const hasSubItems = subItems && subItems.length > 0;
+          {status === "loading" ? (
+            <div className="w-full flex flex-col justify-center items-center py-8 animate-pulse">
+              {/* Spinner principal */}
+              <div className="relative mb-3">
+                <div className="w-8 h-8 border-3 border-celeste border-t-primario rounded-full animate-spin"></div>
+                <div className="absolute inset-0 w-8 h-8 border-3 border-transparent border-r-pink-300 rounded-full animate-reverse"></div>
+              </div>
+              <div className="mt-3 text-sm font-medium text-azulOscuro">
+                Cargando menú...
+              </div>
+              <div className="mt-1 text-xs text-gray-500">
+                Verificando permisos
+              </div>
+            </div>
+          ) : (
+            filteredMenuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
+              const hasSubItems = subItems && subItems.length > 0;
 
-            return (
-              <div key={id} className="w-full">
-                <div
-                  className={classNames(
-                    getNavItemClasses({ subItems, link }),
-                    "flex py-3 px-3 items-center justify-between"
-                  )}
-                  onClick={() => {
-                    if (!hasSubItems && link) {
-                      router.push(link);
-                    } else {
-                      handleExpand(id);
-                    }
-                  }}
-                >
-                  <div className="flex items-center">
-                    <div style={{ width: "2.5rem" }}>
-                      <Icon className="w-6 h-6 text-gray-500" />
+              return (
+                <div key={id} className="w-full">
+                  <div
+                    className={classNames(
+                      getNavItemClasses({ subItems, link }),
+                      "flex py-3 px-3 items-center justify-between"
+                    )}
+                    onClick={() => {
+                      if (!hasSubItems && link) {
+                        router.push(link);
+                      } else {
+                        handleExpand(id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <div style={{ width: "2.5rem" }}>
+                        <Icon className="w-6 h-6 text-gray-500" />
+                      </div>
+                      {!toggleCollapse && (
+                        <span className="text-sm font-medium text-gray-700">
+                          {menu.label}
+                        </span>
+                      )}
                     </div>
-                    {!toggleCollapse && (
-                      <span className="text-sm font-medium text-gray-700">
-                        {menu.label}
-                      </span>
+                    {!toggleCollapse && hasSubItems && (
+                      expandedItems.includes(id) ? (
+                        <FiChevronUp className="w-4 h-4 text-gray-500" />
+                      ) : (
+                        <FiChevronDown className="w-4 h-4 text-gray-500" />
+                      )
                     )}
                   </div>
-                  {!toggleCollapse && hasSubItems && (
-                    expandedItems.includes(id) ? (
-                      <FiChevronUp className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <FiChevronDown className="w-4 h-4 text-gray-500" />
-                    )
+                  {!toggleCollapse && expandedItems.includes(id) && hasSubItems && (
+                    renderSubItems(subItems, 1, id.toString())
                   )}
                 </div>
-                {!toggleCollapse && expandedItems.includes(id) && hasSubItems && (
-                  renderSubItems(subItems, 1, id.toString())
-                )}
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
         {/* Botón cerrar sesión */}
         <div
