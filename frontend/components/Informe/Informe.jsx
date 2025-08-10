@@ -301,7 +301,7 @@ const Informe = () => {
                                 isDisabled={isLoading}
                             >
                                 {especialidades.map((especialidad) => (
-                                    <SelectItem key={especialidad.id} value={especialidad.id}>
+                                    <SelectItem key={especialidad.idEspecialidad} value={especialidad.idEspecialidad}>
                                         {especialidad.nombre}
                                     </SelectItem>
                                 ))}

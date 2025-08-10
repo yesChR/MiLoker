@@ -4,17 +4,17 @@ export const informeService = {
     // Obtener historial específico de un casillero
     obtenerHistorialCasillero: async (idCasillero, idEspecialidad) => {
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/informe/casillero/${idCasillero}/${idEspecialidad}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            const url = `${API_BASE_URL}/informe/casillero/${idCasillero}/${idEspecialidad}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
             if (!response.ok) {
+                const errorText = await response.text();
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 

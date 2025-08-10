@@ -7,10 +7,32 @@ import { Solicitud } from "../../models/solicitud.model.js";
 import { SolicitudXCasillero } from "../../models/solicitudXcasillero.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { Especialidad } from "../../models/especialidad.model.js";
+import { Estudiante } from "../../models/estudiante.model.js";
 
 export const obtenerHistorialEstudiante = async (req, res) => {
     try {
         const { cedulaEstudiante } = req.params;
+
+        // Primero obtener la información del estudiante
+        const estudianteInfo = await Estudiante.findOne({
+            where: { cedula: cedulaEstudiante },
+            include: [
+                {
+                    model: Especialidad,
+                    as: 'especialidad',
+                    attributes: ['idEspecialidad', 'nombre']
+                }
+            ],
+            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono', 'seccion']
+        });
+
+        // Verificar si el estudiante existe
+        if (!estudianteInfo) {
+            return res.status(404).json({
+                success: false,
+                message: 'Estudiante no encontrado'
+            });
+        }
 
         // Obtener casilleros históricos del estudiante (todos los aprobados)
         const casilleros = await SolicitudXCasillero.findAll({
@@ -157,6 +179,20 @@ export const obtenerHistorialEstudiante = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
+                estudiante: {
+                    cedula: estudianteInfo.cedula,
+                    nombre: estudianteInfo.nombre,
+                    apellidoUno: estudianteInfo.apellidoUno,
+                    apellidoDos: estudianteInfo.apellidoDos,
+                    nombreCompleto: `${estudianteInfo.nombre} ${estudianteInfo.apellidoUno} ${estudianteInfo.apellidoDos}`,
+                    correo: estudianteInfo.correo,
+                    telefono: estudianteInfo.telefono,
+                    seccion: estudianteInfo.seccion,
+                    especialidad: estudianteInfo.especialidad ? {
+                        idEspecialidad: estudianteInfo.especialidad.idEspecialidad,
+                        nombre: estudianteInfo.especialidad.nombre
+                    } : null
+                },
                 casilleros: historialCasilleros,
                 incidentes: historialIncidentes,
                 solicitudes: historialSolicitudes,
