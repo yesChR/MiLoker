@@ -12,9 +12,9 @@ const LoadingSpinner = () => {
             </div>
             <div className="w-full max-w-3xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
                 <div className="flex flex-col justify-center items-center py-12">
-                    <div className="relative">
-                       <div className="w-12 h-12 border-4 border-celeste border-t-primario rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-blue-400 rounded-full animate-reverse"></div>
+                    <div className="relative mb-4">
+                        <div className="w-8 h-8 border-3 border-celeste border-t-primario rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-8 h-8 border-3 border-transparent border-r-pink-300 rounded-full animate-reverse"></div>
                     </div>
                     <div className="mt-6 text-center">
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Cargando estado de solicitud</h3>

@@ -1,4 +1,4 @@
-import MiLoker from "@/components/estudiante/MiLoker";
+import MiLoker from "@/components/estudiante/miLoker/MiLoker";
 
 const MiLokerPage = () => {
     return (
