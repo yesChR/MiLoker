@@ -13,6 +13,8 @@
     "@internationalized/date": "^3.8.2",
     "classnames": "^2.5.1",
     "framer-motion": "^12.5.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "next": "^15.2.4",
     "next-auth": "^4.24.11",
     "react": "^18",

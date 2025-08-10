@@ -5,15 +5,167 @@ import { Button, Input, Divider } from "@heroui/react";
 import DrawerGeneral from "../DrawerGeneral";
 import { Select, SelectItem } from "@heroui/react";
 import { useEspecialidades } from "../../hooks/useEspecialidades";
+import { Toast } from "../CustomAlert";
+import { informeService } from "../../services/informeService";
+import { pdfGenerator } from "../../utils/pdfGenerator";
 
 const Informe = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const [drawerContent, setDrawerContent] = useState(null); // Estado para determinar el contenido del Drawer
-    const { especialidades, loading } = useEspecialidades(); // Hook para obtener especialidades
+    const [drawerContent, setDrawerContent] = useState(null);
+    const { especialidades, loading } = useEspecialidades();
+    
+    // Estados para los formularios
+    const [formData, setFormData] = useState({
+        idCasillero: "",
+        especialidad: "",
+        cedulaEstudiante: ""
+    });
+    
+    // Estados para errores
+    const [errors, setErrors] = useState({
+        idCasillero: "",
+        especialidad: "",
+        cedulaEstudiante: ""
+    });
+    
+    // Estado para loading
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleOpenDrawer = (contentType) => {
-        setDrawerContent(contentType); // Define el contenido del Drawer
-        onOpen(); // Abre el Drawer
+        setDrawerContent(contentType);
+        // Limpiar datos y errores al abrir
+        setFormData({
+            idCasillero: "",
+            especialidad: "",
+            cedulaEstudiante: ""
+        });
+        setErrors({
+            idCasillero: "",
+            especialidad: "",
+            cedulaEstudiante: ""
+        });
+        setIsLoading(false); // Resetear loading al abrir
+        onOpen();
+    };
+
+    // Función para manejar cambios en inputs
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        
+        // Limpiar error cuando el usuario escriba
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ""
+            }));
+        }
+    };
+
+    // Función de validación
+    const validateForm = () => {
+        const newErrors = {};
+        let isValid = true;
+
+        if (drawerContent === "casillero") {
+            if (!formData.idCasillero.trim()) {
+                newErrors.idCasillero = "El ID del casillero es requerido";
+                isValid = false;
+            }
+            if (!formData.especialidad) {
+                newErrors.especialidad = "La especialidad es requerida";
+                isValid = false;
+            }
+        } else if (drawerContent === "estudiante") {
+            if (!formData.cedulaEstudiante.trim()) {
+                newErrors.cedulaEstudiante = "La cédula del estudiante es requerida";
+                isValid = false;
+            }
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    // Función para manejar el submit
+    const handleSubmit = async () => {
+        if (!validateForm()) {
+            // Solo mostrar errores en los campos, sin toast
+            return;
+        }
+
+        setIsLoading(true); // Activar loading
+
+        try {
+            let data;
+            let pdfName;
+
+            if (drawerContent === "casillero") {
+                // Llamada para historial de casillero
+                data = await informeService.obtenerHistorialCasillero(
+                    formData.idCasillero, 
+                    formData.especialidad
+                );
+                
+                // Generar PDF
+                pdfGenerator.generarPDFHistorialCasillero(data, formData.idCasillero);
+                pdfName = `historial_casillero_${formData.idCasillero}.pdf`;
+                
+            } else if (drawerContent === "estudiante") {
+                // Llamada para historial de estudiante
+                data = await informeService.obtenerHistorialEstudiante(formData.cedulaEstudiante);
+                
+                // Generar PDF
+                pdfGenerator.generarPDFHistorialEstudiante(data, formData.cedulaEstudiante);
+                pdfName = `historial_estudiante_${formData.cedulaEstudiante}.pdf`;
+            }
+            
+            console.log("Datos recibidos del backend:", data);
+            
+            Toast.success(
+                "¡Éxito!",
+                `Informe generado exitosamente. Se ha descargado el archivo: ${pdfName}`
+            );
+            
+            setTimeout(() => {
+                setIsLoading(false);
+                onOpenChange(false);
+            }, 1000);
+            
+        } catch (error) {
+            setIsLoading(false);
+            console.error("Error al generar informe:", error);
+            Toast.warning(
+                "Error",
+                error.message || "Hubo un problema al generar el informe"
+            );
+        }
+    };
+
+    // Función para generar informe estadístico general
+    const handleGenerarEstadisticas = async () => {
+        try {
+            const data = await informeService.obtenerEstadisticasGenerales();
+            
+            // Generar PDF
+            pdfGenerator.generarPDFEstadisticasGenerales(data);
+            
+            console.log("Estadísticas obtenidas:", data);
+            
+            Toast.success(
+                "¡Éxito!",
+                "Informe estadístico generado exitosamente. Se ha descargado el archivo: estadisticas_casilleros.pdf"
+            );
+            
+        } catch (error) {
+            console.error("Error al generar estadísticas:", error);
+            Toast.warning(
+                "Error",
+                error.message || "Hubo un problema al generar las estadísticas"
+            );
+        }
     };
 
     return (
@@ -40,7 +192,10 @@ const Informe = () => {
                         </p>
                     </div>
                     <div className="mt-6">
-                        <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-md font-semibold shadow-lg rounded-xl transition-all duration-300 transform hover:scale-105">
+                        <Button 
+                            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-md font-semibold shadow-lg rounded-xl transition-all duration-300 transform hover:scale-105"
+                            onPress={handleGenerarEstadisticas}
+                        >
                             📈 Generar informe
                         </Button>
                     </div>
@@ -103,29 +258,47 @@ const Informe = () => {
                                 ? "Historial por Estudiante"
                                 : ""
                     }
-                    size={"xs"}
+                    size={"sm"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
                     textoBotonPrimario="Generar"
+                    onBotonPrimario={handleSubmit}
+                    textoBotonSecundario="Cancelar"
+                    onBotonSecundario={() => onOpenChange(false)}
+                    loadingBotonPrimario={isLoading}
+                    disableClose={isLoading}
                 >
                     {drawerContent === "casillero" && (
                         <>
                             <Input
-                                placeholder="ID del Casillero"
+                                label="ID Casillero"
+                                placeholder="1"
                                 variant={"bordered"}
                                 className="focus:border-primario"
                                 color="primary"
+                                value={formData.idCasillero}
+                                onValueChange={(value) => handleInputChange("idCasillero", value)}
                                 isRequired
-                                errorMessage="El ID del Casillero es requerido"
+                                isInvalid={!!errors.idCasillero}
+                                errorMessage={errors.idCasillero}
+                                isDisabled={isLoading}
                             />
                             <Select
-                                placeholder="Especialidad"
+                                label="Especialidad"
+                                placeholder="Seleccione una especialidad"
                                 variant={"bordered"}
                                 className="focus:border-primario"
                                 color="primary"
                                 isLoading={loading}
+                                selectedKeys={formData.especialidad ? [formData.especialidad] : []}
+                                onSelectionChange={(keys) => {
+                                    const selectedKey = Array.from(keys)[0];
+                                    handleInputChange("especialidad", selectedKey);
+                                }}
                                 isRequired
-                                errorMessage="La especialidad es requerida"
+                                isInvalid={!!errors.especialidad}
+                                errorMessage={errors.especialidad}
+                                isDisabled={isLoading}
                             >
                                 {especialidades.map((especialidad) => (
                                     <SelectItem key={especialidad.id} value={especialidad.id}>
@@ -138,12 +311,17 @@ const Informe = () => {
                     {drawerContent === "estudiante" && (
                         <>
                             <Input
-                                placeholder="Cédula del Estudiante"
+                                label="Cédula del Estudiante"
+                                placeholder="703110111"
                                 variant={"bordered"}
                                 className="focus:border-primario"
                                 color="primary"
+                                value={formData.cedulaEstudiante}
+                                onValueChange={(value) => handleInputChange("cedulaEstudiante", value)}
                                 isRequired
-                                errorMessage="La cédula del Estudiante es requerida"
+                                isInvalid={!!errors.cedulaEstudiante}
+                                errorMessage={errors.cedulaEstudiante}
+                                isDisabled={isLoading}
                             />
                         </>
                     )}
