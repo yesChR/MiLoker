@@ -35,23 +35,33 @@ export const loginUsuario = async(req, res) => {
         if (user.rol === ROLES.ADMINISTRADOR) {
             const admin = await Administrador.findOne({ where: { cedula: user.cedula } });
             if (admin) {
-                nombreCompleto = `${admin.nombre} ${admin.apellidoUno} ${admin.apellidoDos}`;
+                nombreCompleto = `${admin.nombre} ${admin.apellidoUno} ${admin.apellidoDos}`.trim();
+            } else {
+                console.warn(`No se encontró administrador con cédula: ${user.cedula}`);
             }
         } else if (user.rol === ROLES.PROFESOR) {
             const prof = await Profesor.findOne({ where: { cedula: user.cedula } });
             if (prof) {
-                nombreCompleto = `${prof.nombre} ${prof.apellidoUno} ${prof.apellidoDos}`;
+                nombreCompleto = `${prof.nombre} ${prof.apellidoUno} ${prof.apellidoDos}`.trim();
                 idEspecialidad = prof.idEspecialidad;
+            } else {
+                console.warn(`No se encontró profesor con cédula: ${user.cedula}`);
             }
         } else if (user.rol === ROLES.ESTUDIANTE) {
             const est = await Estudiante.findOne({ where: { cedula: user.cedula } });
             if (est) {
-                nombreCompleto = `${est.nombre} ${est.apellidoUno} ${est.apellidoDos}`;
+                nombreCompleto = `${est.nombre} ${est.apellidoUno} ${est.apellidoDos}`.trim();
                 idEspecialidad = est.idEspecialidad;
+            } else {
+                console.warn(`No se encontró estudiante con cédula: ${user.cedula}`);
             }
         }
-        // Si no se encontró nombre real, usar nombreUsuario
-        if (!nombreCompleto) nombreCompleto = user.nombreUsuario;
+        
+        // Si no se encontró nombre real, usar nombreUsuario como fallback
+        if (!nombreCompleto || nombreCompleto === '  ') {
+            nombreCompleto = user.nombreUsuario;
+            console.warn(`Usando nombreUsuario como fallback para cédula: ${user.cedula}, rol: ${user.rol}`);
+        }
         
 
         // Devuelve el usuario en formato exitoso

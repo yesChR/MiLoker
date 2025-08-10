@@ -104,6 +104,15 @@ export default function Home() {
   // Función para obtener solo el primer nombre
   const obtenerPrimerNombre = (nombreCompleto) => {
     if (!nombreCompleto) return null;
+    
+    // Si es un email (contiene @), extraer la parte antes del @
+    if (nombreCompleto.includes('@')) {
+      const parteAntes = nombreCompleto.split('@')[0];
+      // Capitalizar la primera letra
+      return parteAntes.charAt(0).toUpperCase() + parteAntes.slice(1);
+    }
+    
+    // Si es un nombre normal, tomar el primer nombre
     return nombreCompleto.split(' ')[0];
   };
 

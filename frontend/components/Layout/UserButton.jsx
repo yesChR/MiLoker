@@ -37,28 +37,28 @@ export function UserButton() {
         switch (role) {
             case ROLES.ADMINISTRADOR:
                 return {
-                    borderColor: 'border-danger-500',
+                    borderColor: 'border-red-500',
                     textColor: 'text-danger',
                     bgColor: 'bg-danger-50',
                     label: 'Administrador'
                 };
             case ROLES.PROFESOR:
                 return {
-                    borderColor: 'border-primary-400',
-                    textColor: 'text-primary-600',
-                    bgColor: 'bg-primary-50',
+                    borderColor: 'border-green-500',
+                    textColor: 'text-green-600',
+                    bgColor: 'bg-green-50',
                     label: 'Docente'
                 };
             case ROLES.ESTUDIANTE:
                 return {
-                    borderColor: 'border-blue-400',
+                    borderColor: 'border-blue-500',
                     textColor: 'text-blue-600',
                     bgColor: 'bg-blue-50',
                     label: 'Estudiante'
                 };
             default:
                 return {
-                    borderColor: 'border-default-400',
+                    borderColor: 'border-gray-400',
                     textColor: 'text-default-600',
                     bgColor: 'bg-default-50',
                     label: 'Usuario'
