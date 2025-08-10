@@ -12,6 +12,7 @@ import FormCrearArmario from "./FormCrearArmario";
 import FormEditarCasillero from "./FormEditarCasillero";
 import VisualizadorArmario from "./VisualizadorArmario";
 import PaginacionArmarios from "./PaginacionArmarios";
+import LoadingArmarios from "./LoadingArmarios";
 
 const Armario = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -300,9 +301,7 @@ const Armario = () => {
                     </div>
 
                     {loading ? (
-                        <div className="text-center text-gray-500 text-lg mt-10">
-                            Cargando armarios...
-                        </div>
+                        <LoadingArmarios />
                     ) : (
                         <VisualizadorArmario 
                             armario={armarioActual}

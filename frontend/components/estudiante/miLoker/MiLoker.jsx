@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import CabezeraDinamica from "../Layout/CabeceraDinamica";
-import Toast from "../CustomAlert";
-import { obtenerPeriodos, obtenerInformacionEstudiante } from "../../services/milokerService";
+import CabezeraDinamica from "../../Layout/CabeceraDinamica";
+import Toast from "../../CustomAlert";
+import { obtenerPeriodos, obtenerInformacionEstudiante } from "../../../services/milokerService";
+import LoadingMiLoker from "./LoadingMiLoker";
 
 const MiLoker = () => {
     const { data: session, status } = useSession();
@@ -127,11 +128,7 @@ const MiLoker = () => {
                         breadcrumb="Inicio • Mi Loker"
                     />
                 </div>
-                <div className="w-full max-w-2xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
-                    <div className="flex justify-center items-center h-32">
-                        <div className="text-lg">Cargando información...</div>
-                    </div>
-                </div>
+                <LoadingMiLoker />
             </div>
         );
     }

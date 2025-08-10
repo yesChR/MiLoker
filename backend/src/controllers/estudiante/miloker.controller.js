@@ -4,17 +4,17 @@ import { Estudiante } from "../../models/estudiante.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { Armario } from "../../models/armario.model.js";
 import { Solicitud } from "../../models/solicitud.model.js";
+import { ESTADOS } from "../../common/estados.js";
 
 // Función para obtener los periodos de solicitud y asignación
 export const obtenerPeriodos = async (req, res) => {
     try {
-        console.log('Obteniendo periodos de solicitud y asignación');
 
         // Buscar periodo de solicitud (tipo = 2)
         const periodoSolicitud = await Periodo.findOne({
             where: {
                 tipo: 2, // Solicitud
-                estado: 1 // Activo
+                estado: ESTADOS.ACTIVO // Activo
             },
             attributes: ['idPeriodo', 'fechaInicio', 'fechaFin', 'tipo', 'estado']
         });
@@ -23,13 +23,10 @@ export const obtenerPeriodos = async (req, res) => {
         const periodoAsignacion = await Periodo.findOne({
             where: {
                 tipo: 1, // Asignación
-                estado: 1 // Activo
+                estado: ESTADOS.ACTIVO // Activo
             },
             attributes: ['idPeriodo', 'fechaInicio', 'fechaFin', 'tipo', 'estado']
         });
-
-        console.log('Periodo solicitud encontrado:', periodoSolicitud);
-        console.log('Periodo asignación encontrado:', periodoAsignacion);
 
         res.status(200).json({
             error: false,
@@ -55,9 +52,6 @@ export const obtenerInformacionEstudiante = async (req, res) => {
     try {
         const { cedulaEstudiante } = req.params;
         
-        console.log('=== DEBUG MILOKER CONTROLLER ===');
-        console.log('Obteniendo información completa para estudiante:', cedulaEstudiante);
-
         // Primero buscar información básica del estudiante
         const estudiante = await Estudiante.findOne({
             where: {
@@ -74,10 +68,7 @@ export const obtenerInformacionEstudiante = async (req, res) => {
             });
         }
 
-        console.log('Estudiante encontrado:', estudiante.dataValues);
-
         // Buscar información del casillero asignado (EXACTAMENTE igual que en renuncia)
-        console.log('Ejecutando consulta de asignación...');
         const asignacion = await EstudianteXCasillero.findOne({
             where: {
                 cedulaEstudiante: cedulaEstudiante
@@ -98,9 +89,6 @@ export const obtenerInformacionEstudiante = async (req, res) => {
             ]
         });
 
-        console.log('Resultado de la consulta de asignación:');
-        console.log(JSON.stringify(asignacion, null, 2));
-
         // Buscar si tiene solicitudes pendientes
         const solicitudPendiente = await Solicitud.findOne({
             where: {
@@ -110,30 +98,9 @@ export const obtenerInformacionEstudiante = async (req, res) => {
             attributes: ['idSolicitud', 'estado', 'fechaSolicitud']
         });
 
-        console.log('Estudiante encontrado:', estudiante);
-        console.log('Asignación encontrada:', asignacion);
-        console.log('Solicitud pendiente:', solicitudPendiente);
-
-        // Debug detallado de la asignación
-        if (asignacion) {
-            console.log('Asignación completa:', JSON.stringify(asignacion, null, 2));
-            console.log('¿Tiene casillero?:', !!asignacion.casillero);
-            if (asignacion.casillero) {
-                console.log('ID del casillero:', asignacion.casillero.idCasillero);
-                console.log('Número del casillero:', asignacion.casillero.numCasillero);
-                console.log('¿Tiene armario?:', !!asignacion.casillero.armario);
-                if (asignacion.casillero.armario) {
-                    console.log('ID del armario:', asignacion.casillero.armario.id);
-                    console.log('Código del armario:', asignacion.casillero.armario.idArmario);
-                }
-            }
-        } else {
-            console.log('No se encontró asignación para el estudiante');
-        }
 
         // Si no hay asignación, devolver información básica
         if (!asignacion) {
-            console.log('No se encontró asignación para el estudiante');
             return res.status(200).json({
                 error: false,
                 message: "Información del estudiante obtenida exitosamente",
@@ -153,8 +120,6 @@ export const obtenerInformacionEstudiante = async (req, res) => {
                 }
             });
         }
-
-        // Formatear la respuesta (igual que en renuncia pero con más información)
         const respuesta = {
             estudiante: {
                 cedula: estudiante.cedula,
@@ -178,8 +143,6 @@ export const obtenerInformacionEstudiante = async (req, res) => {
             fechaSolicitud: solicitudPendiente ? solicitudPendiente.fechaSolicitud : null
         };
 
-        console.log('Respuesta formateada:', respuesta);
-
         res.status(200).json({
             error: false,
             message: "Información del estudiante obtenida exitosamente",
@@ -195,3 +158,50 @@ export const obtenerInformacionEstudiante = async (req, res) => {
         });
     }
 };
+
+// Verificar si el estudiante tiene casillero asignado
+export const verificarCasilleroAsignado = async (req, res) => {
+    const { cedula } = req.params;
+    
+    try {
+        // Verificar si el estudiante existe
+        const estudiante = await Estudiante.findByPk(cedula);
+        if (!estudiante) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Estudiante no encontrado",
+                data: { tieneCasillero: false }
+            });
+        }
+
+        // Verificar si tiene casillero asignado en EstudianteXCasillero
+        const asignacion = await EstudianteXCasillero.findOne({
+            where: { 
+                cedulaEstudiante: cedula,
+            }
+        });
+
+        const tieneCasillero = !!asignacion;
+
+        res.status(200).json({
+            success: true,
+            message: tieneCasillero ? "Estudiante tiene casillero asignado" : "Estudiante no tiene casillero asignado",
+            data: {
+                tieneCasillero,
+                casillero: asignacion ? {
+                    idCasillero: asignacion.idCasillero,
+                } : null
+            }
+        });
+
+    } catch (error) {
+        console.error('Error verificando casillero asignado:', error);
+        res.status(500).json({ 
+            success: false,
+            message: "Error interno del servidor",
+            data: { tieneCasillero: false }
+        });
+    }
+};
+
+

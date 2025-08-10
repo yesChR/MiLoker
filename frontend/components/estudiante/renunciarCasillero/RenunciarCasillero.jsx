@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import CabezeraDinamica from "../Layout/CabeceraDinamica";
-import ConfirmModal from "../ConfirmModal";
-import { obtenerCasilleroEstudiante, renunciarCasillero } from "../../services/renunciaService";
-import Toast from "../CustomAlert";
+import CabezeraDinamica from "../../Layout/CabeceraDinamica";
+import ConfirmModal from "../../ConfirmModal";
+import { obtenerCasilleroEstudiante, renunciarCasillero } from "../../../services/renunciaService";
+import Toast from "../../CustomAlert";
+import LoadingRenunciarCasillero from "./LoadingRenunciarCasillero";
 
 const RenunciarCasillero = () => {
     const { data: session, status } = useSession();
@@ -89,11 +90,7 @@ const RenunciarCasillero = () => {
                         breadcrumb="Inicio • Renunciar casillero"
                     />
                 </div>
-                <div className="w-full max-w-2xl p-6 bg-white shadow-lg rounded-lg border border-gray-200">
-                    <div className="flex justify-center items-center h-32">
-                        <div className="text-lg">Cargando información del casillero...</div>
-                    </div>
-                </div>
+                <LoadingRenunciarCasillero />
             </div>
         );
     }

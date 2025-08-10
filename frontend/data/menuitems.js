@@ -2,9 +2,16 @@ import { FaChalkboardTeacher, FaBookReader } from "react-icons/fa";
 import { GiLockers } from "react-icons/gi";
 import { BsPersonFillExclamation, BsPersonFillGear } from "react-icons/bs";
 import { BiSolidReport } from "react-icons/bi";
-import { link } from "@heroui/react";
+import { AiOutlineHome } from "react-icons/ai";
+import { FaHome } from "react-icons/fa";
 
 export const menuItems = [
+  {
+    id: 0,
+    label: "Inicio",
+    icon: FaHome,
+    link: "/",
+  },
   {
     id: 1,
     label: "Administración",
