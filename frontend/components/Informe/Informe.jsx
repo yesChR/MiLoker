@@ -147,8 +147,13 @@ const Informe = () => {
                 isValid = false;
             }
         } else if (drawerContent === "estudiante") {
-            if (!formData.cedulaEstudiante.trim()) {
+            const cedula = formData.cedulaEstudiante.trim();
+            
+            if (!cedula) {
                 newErrors.cedulaEstudiante = "La cédula del estudiante es requerida";
+                isValid = false;
+            } else if (!/^\d{6,10}$/.test(cedula)) {
+                newErrors.cedulaEstudiante = "La cédula debe contener entre 6 y 10 dígitos";
                 isValid = false;
             }
         }
@@ -182,12 +187,31 @@ const Informe = () => {
                 pdfName = `historial_casillero_${formData.idCasillero}.pdf`;
                 
             } else if (drawerContent === "estudiante") {
-                // Llamada para historial de estudiante
-                data = await informeService.obtenerHistorialEstudiante(formData.cedulaEstudiante);
-                
-                // Generar PDF
-                pdfGenerator.generarPDFHistorialEstudiante(data, formData.cedulaEstudiante);
-                pdfName = `historial_estudiante_${formData.cedulaEstudiante}.pdf`;
+                // Llamada para historial de estudiante con manejo específico
+                try {
+                    data = await informeService.obtenerHistorialEstudiante(formData.cedulaEstudiante);
+                    
+                    // Solo generar PDF si la llamada fue exitosa
+                    pdfGenerator.generarPDFHistorialEstudiante(data, formData.cedulaEstudiante);
+                    pdfName = `historial_estudiante_${formData.cedulaEstudiante}.pdf`;
+                } catch (estudianteError) {
+                    // Manejo específico para errores de estudiante
+                    setIsLoading(false);
+                    
+                    let errorMessage = "No se encontró ningún estudiante con la cédula especificada. Verifique que la cédula sea correcta y que el estudiante esté registrado en el sistema.";
+                    let errorTitle = "Estudiante no encontrado";
+                    
+                    if (estudianteError.message) {
+                        if (estudianteError.message.includes("No se encontró ningún estudiante")) {
+                            errorMessage = "No se encontró ningún estudiante con la cédula especificada. Verifique que la cédula sea correcta y que el estudiante esté registrado en el sistema.";
+                        } else {
+                            errorMessage = estudianteError.message;
+                        }
+                    }
+                    
+                    Toast.warning(errorTitle, errorMessage);
+                    return; // Salir de la función sin continuar
+                }
             }
             
             console.log("Datos recibidos del backend:", data);
@@ -206,15 +230,28 @@ const Informe = () => {
             setIsLoading(false);
             console.error("Error al generar informe:", error);
             
-            // Mostrar mensaje de error más descriptivo
+            // Este catch solo maneja errores de casilleros ya que los de estudiante se manejan arriba
             let errorMessage = "Hubo un problema al generar el informe";
+            let errorTitle = "Error";
             
             if (error.message) {
                 errorMessage = error.message;
+                
+                // Detectar tipos específicos de errores para casilleros
+                if (error.message.includes("No se encontró")) {
+                    errorTitle = "Datos no encontrados";
+                    errorMessage = "No se encontraron datos para el casillero especificado.";
+                } else if (error.message.includes("Error 404")) {
+                    errorTitle = "Datos no encontrados";
+                    errorMessage = "Los datos solicitados no se encontraron en el sistema.";
+                } else if (error.message.includes("Error 500")) {
+                    errorTitle = "Error del servidor";
+                    errorMessage = "Ocurrió un error interno en el servidor. Por favor, intente nuevamente más tarde.";
+                }
             }
             
             Toast.warning(
-                "Error",
+                errorTitle,
                 errorMessage
             );
         }
@@ -237,9 +274,25 @@ const Informe = () => {
             
         } catch (error) {
             console.error("Error al generar estadísticas:", error);
+            
+            let errorMessage = "Hubo un problema al generar las estadísticas";
+            let errorTitle = "Error";
+            
+            if (error.message) {
+                errorMessage = error.message;
+                
+                if (error.message.includes("Error 500")) {
+                    errorTitle = "Error del servidor";
+                    errorMessage = "Ocurrió un error interno en el servidor. Por favor, intente nuevamente más tarde.";
+                } else if (error.message.includes("No se encontraron")) {
+                    errorTitle = "Sin datos";
+                    errorMessage = "No se encontraron datos para generar las estadísticas.";
+                }
+            }
+            
             Toast.warning(
-                "Error",
-                error.message || "Hubo un problema al generar las estadísticas"
+                errorTitle,
+                errorMessage
             );
         }
     };

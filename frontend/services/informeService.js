@@ -66,14 +66,30 @@ export const informeService = {
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+                let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    }
+                } catch (parseError) {
+                    // Si no se puede parsear el JSON, usar mensaje por defecto
+                    console.warn('No se pudo parsear la respuesta de error:', parseError);
+                }
+                
+                const error = new Error(errorMessage);
+                error.status = response.status;
+                throw error;
             }
 
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('Error al obtener historial del estudiante:', error);
+            // Solo logear errores que no sean de estudiante no encontrado
+            if (!error.message.includes("No se encontró ningún estudiante")) {
+                console.error('Error al obtener historial del estudiante:', error);
+            }
             throw error;
         }
     },
