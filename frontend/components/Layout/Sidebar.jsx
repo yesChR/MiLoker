@@ -129,9 +129,20 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
   };
 
   const getNavItemClasses = (menu) => {
-    const isActive =
-      (menu.subItems && checkSubItemsActive(menu.subItems)) ||
-      (!menu.subItems && router.pathname.startsWith(menu.link));
+    let isActive = false;
+    
+    if (menu.subItems) {
+      isActive = checkSubItemsActive(menu.subItems);
+    } else if (menu.link) {
+      // Para la ruta raíz, hacer comparación exacta
+      if (menu.link === "/") {
+        isActive = router.pathname === "/";
+      } else {
+        // Para otras rutas, usar startsWith
+        isActive = router.pathname.startsWith(menu.link);
+      }
+    }
+    
     return classNames(
       "flex items-center cursor-pointer hover:bg-gray-200 rounded w-full overflow-hidden whitespace-nowrap mb-1",
       {
