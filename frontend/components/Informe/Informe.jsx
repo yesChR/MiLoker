@@ -30,6 +30,10 @@ const Informe = () => {
     
     // Estado para loading
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Estado para casilleros por especialidad
+    const [casillerosPorEspecialidad, setCasillerosPorEspecialidad] = useState([]);
+    const [loadingCasilleros, setLoadingCasilleros] = useState(false);
 
     const handleOpenDrawer = (contentType) => {
         setDrawerContent(contentType);
@@ -44,23 +48,83 @@ const Informe = () => {
             especialidad: "",
             cedulaEstudiante: ""
         });
+        setCasillerosPorEspecialidad([]);
         setIsLoading(false); // Resetear loading al abrir
         onOpen();
     };
 
     // Función para manejar cambios en inputs
     const handleInputChange = (field, value) => {
+        // Si cambia la especialidad, cargar casilleros y limpiar casillero seleccionado
+        if (field === "especialidad") {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value,
+                idCasillero: "" // Limpiar casillero seleccionado
+            }));
+            
+            // Limpiar error cuando el usuario seleccione
+            if (errors[field]) {
+                setErrors(prev => ({
+                    ...prev,
+                    [field]: "",
+                    idCasillero: "" // También limpiar error de casillero
+                }));
+            }
+            
+            if (value) {
+                cargarCasillerosPorEspecialidad(value);
+            }
+            return;
+        }
+        
+        // Para otros campos
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
         
-        // Limpiar error cuando el usuario escriba
+        // Limpiar error cuando el usuario seleccione/escriba
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,
                 [field]: ""
             }));
+        }
+    };
+
+    // Función para cargar casilleros por especialidad
+    const cargarCasillerosPorEspecialidad = async (idEspecialidad) => {
+        if (!idEspecialidad) {
+            setCasillerosPorEspecialidad([]);
+            return;
+        }
+
+        setLoadingCasilleros(true);
+        try {
+            const data = await informeService.obtenerCasillerosPorEspecialidad(idEspecialidad);
+            const casilleros = data.data.casilleros || [];
+            
+            // Ordenar casilleros por armario y luego por número
+            const casillerosOrdenados = casilleros.sort((a, b) => {
+                // Primero ordenar por armario
+                if (a.armario !== b.armario) {
+                    return (a.armario || 0) - (b.armario || 0);
+                }
+                // Luego ordenar por número de casillero
+                return (a.numero || 0) - (b.numero || 0);
+            });
+            
+            setCasillerosPorEspecialidad(casillerosOrdenados);
+        } catch (error) {
+            console.error("Error al cargar casilleros:", error);
+            setCasillerosPorEspecialidad([]);
+            Toast.warning(
+                "Advertencia",
+                "No se pudieron cargar los casilleros de la especialidad seleccionada"
+            );
+        } finally {
+            setLoadingCasilleros(false);
         }
     };
 
@@ -70,12 +134,16 @@ const Informe = () => {
         let isValid = true;
 
         if (drawerContent === "casillero") {
-            if (!formData.idCasillero.trim()) {
-                newErrors.idCasillero = "El ID del casillero es requerido";
-                isValid = false;
-            }
             if (!formData.especialidad) {
                 newErrors.especialidad = "La especialidad es requerida";
+                isValid = false;
+            }
+            if (!formData.idCasillero) {
+                if (casillerosPorEspecialidad.length === 0 && formData.especialidad) {
+                    newErrors.idCasillero = "No hay casilleros disponibles para esta especialidad";
+                } else {
+                    newErrors.idCasillero = "El casillero es requerido";
+                }
                 isValid = false;
             }
         } else if (drawerContent === "estudiante") {
@@ -137,9 +205,17 @@ const Informe = () => {
         } catch (error) {
             setIsLoading(false);
             console.error("Error al generar informe:", error);
+            
+            // Mostrar mensaje de error más descriptivo
+            let errorMessage = "Hubo un problema al generar el informe";
+            
+            if (error.message) {
+                errorMessage = error.message;
+            }
+            
             Toast.warning(
                 "Error",
-                error.message || "Hubo un problema al generar el informe"
+                errorMessage
             );
         }
     };
@@ -270,19 +346,6 @@ const Informe = () => {
                 >
                     {drawerContent === "casillero" && (
                         <>
-                            <Input
-                                label="ID Casillero"
-                                placeholder="1"
-                                variant={"bordered"}
-                                className="focus:border-primario"
-                                color="primary"
-                                value={formData.idCasillero}
-                                onValueChange={(value) => handleInputChange("idCasillero", value)}
-                                isRequired
-                                isInvalid={!!errors.idCasillero}
-                                errorMessage={errors.idCasillero}
-                                isDisabled={isLoading}
-                            />
                             <Select
                                 label="Especialidad"
                                 placeholder="Seleccione una especialidad"
@@ -290,10 +353,18 @@ const Informe = () => {
                                 className="focus:border-primario"
                                 color="primary"
                                 isLoading={loading}
-                                selectedKeys={formData.especialidad ? [formData.especialidad] : []}
+                                selectionMode="single"
+                                selectedKeys={formData.especialidad ? new Set([String(formData.especialidad)]) : new Set()}
                                 onSelectionChange={(keys) => {
-                                    const selectedKey = Array.from(keys)[0];
+                                    const selectedKey = keys.size > 0 ? Array.from(keys)[0] : "";
                                     handleInputChange("especialidad", selectedKey);
+                                }}
+                                renderValue={(items) => {
+                                    if (!items || items.length === 0) return null;
+                                    const selectedEspecialidad = especialidades.find(
+                                        esp => String(esp.idEspecialidad) === String(items[0].key)
+                                    );
+                                    return selectedEspecialidad ? selectedEspecialidad.nombre : null;
                                 }}
                                 isRequired
                                 isInvalid={!!errors.especialidad}
@@ -301,10 +372,56 @@ const Informe = () => {
                                 isDisabled={isLoading}
                             >
                                 {especialidades.map((especialidad) => (
-                                    <SelectItem key={especialidad.idEspecialidad} value={especialidad.idEspecialidad}>
+                                    <SelectItem key={String(especialidad.idEspecialidad)} value={String(especialidad.idEspecialidad)}>
                                         {especialidad.nombre}
                                     </SelectItem>
                                 ))}
+                            </Select>
+                            
+                            <Select
+                                label="Casillero"
+                                placeholder={
+                                    !formData.especialidad 
+                                        ? "Primero seleccione una especialidad"
+                                        : casillerosPorEspecialidad.length === 0 && !loadingCasilleros
+                                            ? "No hay casilleros disponibles"
+                                            : "Seleccione un casillero"
+                                }
+                                variant={"bordered"}
+                                className="focus:border-primario"
+                                color="primary"
+                                isLoading={loadingCasilleros}
+                                selectionMode="single"
+                                selectedKeys={formData.idCasillero ? new Set([String(formData.idCasillero)]) : new Set()}
+                                onSelectionChange={(keys) => {
+                                    const selectedKey = keys.size > 0 ? Array.from(keys)[0] : "";
+                                    handleInputChange("idCasillero", selectedKey);
+                                }}
+                                renderValue={(items) => {
+                                    if (!items || items.length === 0) return null;
+                                    const selectedCasillero = casillerosPorEspecialidad.find(
+                                        cas => String(cas.id) === String(items[0].key)
+                                    );
+                                    return selectedCasillero ? `${selectedCasillero.numeroSecuencia} - ${selectedCasillero.detalle}` : null;
+                                }}
+                                isRequired
+                                isInvalid={!!errors.idCasillero}
+                                errorMessage={errors.idCasillero}
+                                isDisabled={isLoading || !formData.especialidad || loadingCasilleros || casillerosPorEspecialidad.length === 0}
+                            >
+                                {casillerosPorEspecialidad.length > 0 ? (
+                                    casillerosPorEspecialidad.map((casillero) => (
+                                        <SelectItem key={String(casillero.id)} value={String(casillero.id)}>
+                                            {casillero.numeroSecuencia} - {casillero.detalle}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    formData.especialidad && !loadingCasilleros && (
+                                        <SelectItem key="no-casilleros" value="" isDisabled>
+                                            No hay casilleros disponibles para esta especialidad
+                                        </SelectItem>
+                                    )
+                                )}
                             </Select>
                         </>
                     )}

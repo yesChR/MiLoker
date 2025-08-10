@@ -30,7 +30,7 @@ export const obtenerHistorialEstudiante = async (req, res) => {
         if (!estudianteInfo) {
             return res.status(404).json({
                 success: false,
-                message: 'Estudiante no encontrado'
+                message: 'No se encontró ningún estudiante con la cédula especificada. Verifique que la cédula sea correcta y que el estudiante esté registrado en el sistema.'
             });
         }
 

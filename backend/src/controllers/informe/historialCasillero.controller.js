@@ -8,6 +8,69 @@ import { Usuario } from "../../models/usuario.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { Incidente } from "../../models/incidente.model.js";
 
+export const obtenerCasillerosPorEspecialidad = async (req, res) => {
+    try {
+        const { idEspecialidad } = req.params;
+
+        if (!idEspecialidad) {
+            return res.status(400).json({
+                error: true,
+                message: "El ID de la especialidad es requerido"
+            });
+        }
+
+        // Verificar que la especialidad existe
+        const especialidad = await Especialidad.findByPk(idEspecialidad);
+        if (!especialidad) {
+            return res.status(404).json({
+                error: true,
+                message: "Especialidad no encontrada"
+            });
+        }
+
+        // Obtener todos los casilleros de la especialidad
+        const casilleros = await Casillero.findAll({
+            include: [{
+                model: Armario,
+                as: 'armario',
+                where: { idEspecialidad },
+                include: [{ model: Especialidad, as: 'especialidad' }]
+            }],
+            order: [
+                [{ model: Armario, as: 'armario' }, 'idArmario', 'ASC'],
+                ['numCasillero', 'ASC']
+            ]
+        });
+
+        return res.status(200).json({
+            error: false,
+            message: "Casilleros obtenidos exitosamente",
+            data: {
+                especialidad: {
+                    id: especialidad.idEspecialidad,
+                    nombre: especialidad.nombre
+                },
+                casilleros: casilleros.map(c => ({
+                    id: c.idCasillero,
+                    numero: c.numCasillero,
+                    detalle: c.detalle || 'Sin detalle',
+                    armario: c.armario?.idArmario || 'N/A',
+                    numeroSecuencia: `${c.armario?.idArmario || 'A'}-${c.numCasillero}`,
+                    estado: c.estado
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al obtener casilleros por especialidad:", error);
+        return res.status(500).json({
+            error: true,
+            message: "Error interno del servidor",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
 export const obtenerHistorialCasillero = async (req, res) => {
     try {
         const { idCasillero, idEspecialidad } = req.params;
@@ -33,7 +96,7 @@ export const obtenerHistorialCasillero = async (req, res) => {
         if (!casillero) {
             return res.status(404).json({
                 error: true,
-                message: "Casillero no encontrado en la especialidad especificada"
+                message: "No se encontró ningún casillero con el ID especificado en la especialidad seleccionada. Verifique que el casillero existe y pertenece a la especialidad correcta."
             });
         }
 

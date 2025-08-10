@@ -1,6 +1,32 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export const informeService = {
+    // Obtener casilleros por especialidad
+    obtenerCasillerosPorEspecialidad: async (idEspecialidad) => {
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/informe/casilleros/especialidad/${idEspecialidad}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error al obtener casilleros por especialidad:', error);
+            throw error;
+        }
+    },
+
     // Obtener historial específico de un casillero
     obtenerHistorialCasillero: async (idCasillero, idEspecialidad) => {
         try {
@@ -14,8 +40,8 @@ export const informeService = {
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -40,7 +66,8 @@ export const informeService = {
             );
 
             if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -65,7 +92,8 @@ export const informeService = {
             );
 
             if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
