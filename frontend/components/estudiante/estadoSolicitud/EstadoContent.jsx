@@ -2,7 +2,6 @@ import React from "react";
 import SolicitudAceptada from "./SolicitudAceptada";
 import SolicitudRechazada from "./SolicitudRechazada";
 import SolicitudEnEspera from "./SolicitudEnEspera";
-import SolicitudEnRevision from "./SolicitudEnRevision";
 
 const EstadoContent = ({ estado, estudiante, casilleroAsignado, justificacion }) => {
     const renderContent = () => {
@@ -27,15 +26,9 @@ const EstadoContent = ({ estado, estudiante, casilleroAsignado, justificacion })
                         estudiante={estudiante} 
                     />
                 );
-            case "revision":
-                return (
-                    <SolicitudEnRevision 
-                        estudiante={estudiante} 
-                    />
-                );
             default:
                 return (
-                    <SolicitudEnRevision 
+                    <SolicitudEnEspera 
                         estudiante={estudiante} 
                     />
                 );

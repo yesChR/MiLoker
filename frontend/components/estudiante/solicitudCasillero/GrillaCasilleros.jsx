@@ -103,11 +103,11 @@ const GrillaCasilleros = ({
                 </div>
                 <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full"></span>
-                    <span className="text-gray-600 text-sm">Opción 1</span>
+                    <span className="text-gray-600 text-sm">Opción preferida</span>
                 </div>
                 <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full"></span>
-                    <span className="text-gray-600 text-sm">Opción 2</span>
+                    <span className="text-gray-600 text-sm">Opción alternativa</span>
                 </div>
             </div>
         </div>
