@@ -26,8 +26,8 @@ export const EstudianteXIncidente = sequelize.define("estudianteXincidente", {
   timestamps: false
 });
 
-Estudiante.hasMany(EstudianteXIncidente, { foreignKey: 'cedulaEstudiante'});
-EstudianteXIncidente.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante' });
+Estudiante.hasMany(EstudianteXIncidente, { foreignKey: 'cedulaEstudiante', as: 'estudianteXincidentes' });
+EstudianteXIncidente.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante', as: 'estudiante' });
 
-Incidente.hasMany(EstudianteXIncidente, { foreignKey: 'idIncidente' }); 
-EstudianteXIncidente.belongsTo(Incidente, { foreignKey: 'idIncidente' });
+Incidente.hasMany(EstudianteXIncidente, { foreignKey: 'idIncidente', as: 'estudianteXincidentes' }); 
+EstudianteXIncidente.belongsTo(Incidente, { foreignKey: 'idIncidente', as: 'incidente' });
