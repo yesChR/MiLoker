@@ -43,6 +43,21 @@ export const obtenerTodosLosArmarios = async () => {
     }
 };
 
+// Obtener estudiante asignado a un casillero (a través de solicitudes)
+export const obtenerEstudiantePorCasillero = async (idCasillero) => {
+    try {
+        const response = await fetch(`${API_URL}/casillero/estudiante/${idCasillero}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return await handleResponse(response);
+    } catch (error) {
+        return { error: true, message: 'Error de conexión con el servidor' };
+    }
+};
+
 // Crear nuevo armario
 export const crearArmario = async (armarioData) => {
     try {

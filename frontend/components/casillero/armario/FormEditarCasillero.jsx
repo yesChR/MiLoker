@@ -2,7 +2,7 @@ import React, { useState, useImperativeHandle, forwardRef } from "react";
 import { Input, Select, SelectItem } from "@heroui/react";
 import EstudianteAsignado from "./EstudianteAsignado";
 
-const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmit, estadosCasillero, loading }, ref) => {
+const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmit, estadosCasillero, loading, estudianteAsignado, solicitudInfo }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
 
     console.log("FormEditarCasillero - selectedItem:", selectedItem);
@@ -106,7 +106,10 @@ const FormEditarCasillero = forwardRef(({ selectedItem, setSelectedItem, onSubmi
             </div>
 
             {/* Componente para mostrar información del estudiante asignado */}
-            <EstudianteAsignado casillerosXestudiantes={selectedItem?.casillerosXestudiantes} />
+            <EstudianteAsignado 
+                estudianteAsignado={estudianteAsignado} 
+                solicitudInfo={solicitudInfo}
+            />
         </form>
     );
 });

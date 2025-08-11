@@ -5,7 +5,7 @@ import DrawerGeneral from "../../DrawerGeneral";
 import { PlusIcon } from "../../icons/PlusIcon";
 import { useDisclosure } from "@heroui/react";
 import { Toast } from "../../CustomAlert";
-import { obtenerTodosLosArmarios, obtenerArmariosPorEspecialidad, crearArmario, editarCasillero } from "../../../services/armarioService";
+import { obtenerTodosLosArmarios, obtenerArmariosPorEspecialidad, crearArmario, editarCasillero, obtenerEstudiantePorCasillero } from "../../../services/armarioService";
 import { getEspecialidades } from "../../../services/especialidadService";
 import { obtenerEstadosCasillero } from "../../../services/estadoCasilleroService";
 import FormCrearArmario from "./FormCrearArmario";
@@ -13,11 +13,14 @@ import FormEditarCasillero from "./FormEditarCasillero";
 import VisualizadorArmario from "./VisualizadorArmario";
 import PaginacionArmarios from "./PaginacionArmarios";
 import LoadingArmarios from "./LoadingArmarios";
+import { ESTADOS_CASILLERO } from "../../common/estadoCasillero";
 
 const Armario = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedCasillero, setSelectedCasillero] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [estudianteAsignado, setEstudianteAsignado] = useState(null);
+    const [solicitudInfo, setSolicitudInfo] = useState(null);
     const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
     const [armariosData, setArmariosData] = useState([]);
     const [especialidades, setEspecialidades] = useState([]);
@@ -148,9 +151,37 @@ const Armario = () => {
         }
     };
 
-    const abrirDrawer = (casillero = null) => {
+    const abrirDrawer = async (casillero = null) => {
+        // Resetear estados de estudiante
+        setEstudianteAsignado(null);
+        setSolicitudInfo(null);
+        
         if (casillero !== null) {
             setIsEditing(true);
+            console.log("🚀 abrirDrawer - casillero:", casillero);
+            
+            // Si el casillero está ocupado, buscar el estudiante asignado
+            if (casillero.estado === ESTADOS_CASILLERO.OCUPADO || casillero.estado === 2) {
+                console.log("🔍 Casillero ocupado detectado, buscando estudiante...");
+                
+                try {
+                    const resultadoEstudiante = await obtenerEstudiantePorCasillero(casillero.idCasillero);
+                    console.log("📝 Resultado búsqueda estudiante:", resultadoEstudiante);
+                    
+                    if (!resultadoEstudiante.error && resultadoEstudiante.estudiante) {
+                        console.log("✅ Estudiante encontrado:", resultadoEstudiante.estudiante);
+                        setEstudianteAsignado(resultadoEstudiante.estudiante);
+                        setSolicitudInfo(resultadoEstudiante.solicitud);
+                    } else {
+                        console.log("⚠️ No se encontró estudiante:", resultadoEstudiante.message);
+                    }
+                } catch (error) {
+                    console.error("❌ Error al buscar estudiante:", error);
+                }
+            } else {
+                console.log("📋 Casillero no ocupado");
+            }
+            
             setSelectedCasillero(casillero);
         } else {
             setIsEditing(false);
@@ -333,6 +364,8 @@ const Armario = () => {
                         onSubmit={handleEditarCasillero}
                         estadosCasillero={estadosCasillero}
                         loading={submitting}
+                        estudianteAsignado={estudianteAsignado}
+                        solicitudInfo={solicitudInfo}
                     />
                 ) : (
                     <FormCrearArmario
