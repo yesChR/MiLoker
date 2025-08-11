@@ -6,9 +6,41 @@ import { Administrador } from '../../models/administrador.model.js';
 import { Profesor } from '../../models/profesor.model.js';
 import { Estudiante } from '../../models/estudiante.model.js';
 import { ROLES } from '../../common/roles.js';
+import { ESTADOS } from '../../common/estados.js';
 import transporter from '../../config/nodemailer.js';
 import config from '../../config/config.js';
 import { plantillaRecuperacionContraseña, plantillaRestablecimientoContraseña } from '../nodemailer/plantillas.js';
+
+// Función auxiliar para validar y obtener datos del usuario según su rol
+const validarYObtenerDatosUsuario = async (user) => {
+    const modelosPorRol = {
+        [ROLES.ADMINISTRADOR]: Administrador,
+        [ROLES.PROFESOR]: Profesor,
+        [ROLES.ESTUDIANTE]: Estudiante
+    };
+
+    const Modelo = modelosPorRol[user.rol];
+    if (!Modelo) {
+        console.warn(`Rol desconocido: ${user.rol} para cédula: ${user.cedula}`);
+        return null;
+    }
+
+    const registro = await Modelo.findOne({ where: { cedula: user.cedula } });
+    if (!registro) {
+        console.warn(`No se encontró registro de ${user.rol.toLowerCase()} con cédula: ${user.cedula}`);
+        return null;
+    }
+
+    if (registro.estado !== ESTADOS.ACTIVO) {
+        console.warn(`${user.rol} inactivo con cédula: ${user.cedula}`);
+        return null;
+    }
+
+    const nombreCompleto = `${registro.nombre} ${registro.apellidoUno} ${registro.apellidoDos}`.trim();
+    const idEspecialidad = registro.idEspecialidad || null;
+
+    return { nombreCompleto, idEspecialidad };
+};
 
 export const loginUsuario = async(req, res) => {
     const { email, password } = req.body;
@@ -28,38 +60,22 @@ export const loginUsuario = async(req, res) => {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
-        // Obtener el nombre real según el rol
-        let nombreCompleto = '';
-        let idEspecialidad = null;
-
-        if (user.rol === ROLES.ADMINISTRADOR) {
-            const admin = await Administrador.findOne({ where: { cedula: user.cedula } });
-            if (admin) {
-                nombreCompleto = `${admin.nombre} ${admin.apellidoUno} ${admin.apellidoDos}`.trim();
-            } else {
-                console.warn(`No se encontró administrador con cédula: ${user.cedula}`);
-            }
-        } else if (user.rol === ROLES.PROFESOR) {
-            const prof = await Profesor.findOne({ where: { cedula: user.cedula } });
-            if (prof) {
-                nombreCompleto = `${prof.nombre} ${prof.apellidoUno} ${prof.apellidoDos}`.trim();
-                idEspecialidad = prof.idEspecialidad;
-            } else {
-                console.warn(`No se encontró profesor con cédula: ${user.cedula}`);
-            }
-        } else if (user.rol === ROLES.ESTUDIANTE) {
-            const est = await Estudiante.findOne({ where: { cedula: user.cedula } });
-            if (est) {
-                nombreCompleto = `${est.nombre} ${est.apellidoUno} ${est.apellidoDos}`.trim();
-                idEspecialidad = est.idEspecialidad;
-            } else {
-                console.warn(`No se encontró estudiante con cédula: ${user.cedula}`);
-            }
+        // Validar que el usuario esté activo
+        if (user.estado !== ESTADOS.ACTIVO) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
         }
-        
-        // Si no se encontró nombre real, usar nombreUsuario como fallback
-        if (!nombreCompleto || nombreCompleto === '  ') {
-            nombreCompleto = user.nombreUsuario;
+
+        // Obtener y validar datos del usuario según su rol
+        const datosUsuario = await validarYObtenerDatosUsuario(user);
+        if (!datosUsuario) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        const { nombreCompleto, idEspecialidad } = datosUsuario;
+
+        // Fallback si no se encontró nombre real
+        const nombreFinal = nombreCompleto || user.nombreUsuario;
+        if (!nombreCompleto) {
             console.warn(`Usando nombreUsuario como fallback para cédula: ${user.cedula}, rol: ${user.rol}`);
         }
         
@@ -70,7 +86,7 @@ export const loginUsuario = async(req, res) => {
             message: 'Login exitoso',
             user: {
                 id: String(user.cedula),
-                name: nombreCompleto,
+                name: nombreFinal,
                 email: user.nombreUsuario,
                 role: user.rol,
                 idEspecialidad: idEspecialidad

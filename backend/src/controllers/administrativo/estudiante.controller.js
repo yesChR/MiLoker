@@ -3,6 +3,7 @@ import { Usuario } from "../../models/usuario.model.js";
 import { Especialidad } from "../../models/especialidad.model.js";
 import { Solicitud } from "../../models/solicitud.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
+import { ESTADOS } from "../../common/estados.js";
 import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
 import { ROLES } from "../../common/roles.js";
 import { uploadExcel } from "../../config/multer.js";
@@ -36,6 +37,7 @@ const procesarEstudiante = async (data, transaction) => {
         const resultadoUsuario = await crearUsuario({
             cedula,
             correo,
+            estado: ESTADOS.INACTIVO,
             rol: ROLES.ESTUDIANTE,
             transaction
         });
@@ -188,58 +190,52 @@ export const visualizar = async (req, res) => {
     }
 };
 
-// Deshabilitar estudiante
-export const deshabilitarEstudiante = async (req, res) => {
-    const { cedula } = req.params;
-    try {
-        const estudiante = await Estudiante.findByPk(cedula);
-        if (!estudiante) {
-            return res.status(404).json({ error: "El estudiante no existe" });
-        }
-        await Estudiante.update({ estado: 0 }, { where: { cedula } });
-
-        const usuario = await Usuario.findByPk(cedula);
-        if (usuario) {
-            await Usuario.update({ estado: 0 }, { where: { cedula } });
-        }
-
-        res.status(200).json({ message: "Estudiante y usuario deshabilitados exitosamente" });
-    } catch (error) {
-        res.status(500).json({ error: "Error interno en el servidor" });
-    }
-};
-
 // Editar estudiante
 export const editarEstudiante = async (req, res) => {
     const { cedula } = req.params;
     const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, seccion, fechaNacimiento, idEspecialidad } = req.body;
+    
+    const t = await sequelize.transaction();
+    
     try {
-        const existeEstudiante = await Estudiante.findByPk(cedula);
-        if (existeEstudiante !== null) {
-            // Preparar datos para actualizar
-            const updateData = {
-                nombre, 
-                apellidoUno, 
-                apellidoDos, 
-                estado, 
-                telefono, 
-                correo, 
-                seccion, 
-                idEspecialidad
-            };
-            
-            // Solo incluir fechaNacimiento si se envía desde el frontend
-            if (fechaNacimiento !== undefined) {
-                updateData.fechaNacimiento = fechaNacimiento;
-            }
-            
-            await Estudiante.update(updateData, { where: { cedula } });
-
-            res.status(200).json({ message: "Estudiante y usuario editados exitosamente" });
-        } else {
-            res.status(404).json({ error: "El estudiante no existe" });
+        const existeEstudiante = await Estudiante.findByPk(cedula, { transaction: t });
+        if (!existeEstudiante) {
+            await t.rollback();
+            return res.status(404).json({ error: "El estudiante no existe" });
         }
+
+        // Preparar datos para actualizar estudiante
+        const updateData = {
+            nombre, 
+            apellidoUno, 
+            apellidoDos, 
+            estado, 
+            telefono, 
+            correo, 
+            seccion, 
+            idEspecialidad
+        };
+        
+        // Solo incluir fechaNacimiento si se envía desde el frontend
+        if (fechaNacimiento !== undefined) {
+            updateData.fechaNacimiento = fechaNacimiento;
+        }
+        
+        // Actualizar datos del estudiante
+        await Estudiante.update(updateData, { where: { cedula }, transaction: t });
+
+        // Actualizar solo los campos apropiados del usuario (sin datos estáticos)
+        const camposUsuario = { estado };
+        
+        await Usuario.update(
+            camposUsuario,
+            { where: { cedula }, transaction: t }
+        );
+
+        await t.commit();
+        res.status(200).json({ message: "Estudiante y usuario editados exitosamente" });
     } catch (error) {
+        await t.rollback();
         console.error('Error al editar estudiante:', error);
         res.status(500).json({ error: "Error interno en el servidor", detalle: error.message });
     }

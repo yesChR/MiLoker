@@ -25,7 +25,9 @@ export const RUTAS_POR_ROL = {
     '/incidente',
     '/incidente/listaIncidentes',
     '/casillero',
-    '/casillero/armario'
+    '/casillero/armario',
+    '/informe',
+    '/informe/informes',
   ],
   [ROLES.ESTUDIANTE]: [
     '/', // Página de bienvenida

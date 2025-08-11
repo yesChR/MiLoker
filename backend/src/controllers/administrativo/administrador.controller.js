@@ -1,13 +1,14 @@
 import { Administrador } from "../../models/administrador.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { Usuario } from "../../models/usuario.model.js";
+import { ESTADOS } from "../../common/estados.js";
 import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 import { ROLES } from "../../common/roles.js";
 
 export const crearAdministrador = async (req, res) => {
-    const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol } = req.body;
+    const { cedula, nombre, apellidoUno, apellidoDos, telefono, correo, rol } = req.body;
 
     // Validar campos requeridos
     if (!cedula || !nombre || !apellidoUno || !apellidoDos || !correo || !rol) {
@@ -36,21 +37,22 @@ export const crearAdministrador = async (req, res) => {
             return res.status(409).json({ error: "El usuario o administrador ya existe" });
         }
 
-        // Crea el usuario usando la función del nuevo controller
+        // Crea el usuario usando la función del nuevo controller con estado activo
         const { usuario, contraseñaGenerada } = await crearUsuario({
             cedula,
             correo,
             rol,
+            estado: ESTADOS.ACTIVO, // Usar el estado activo del común
             transaction: t
         });
 
-        // Crea el administrador
+        // Crea el administrador con estado activo
         const administrador = await Administrador.create({
             cedula,
             nombre,
             apellidoUno,
             apellidoDos,
-            estado,
+            estado: ESTADOS.ACTIVO, // Usar el estado activo del común
             telefono,
             correo
         }, { transaction: t });
@@ -99,55 +101,37 @@ export const visualizar = async (req, res) => {
     }
 };
 
-export const deshabilitarAdministrador = async (req, res) => {
-    const { cedula } = req.params;
-    try {
-        // Deshabilita el administrador
-        const admin = await Administrador.findByPk(cedula);
-        if (!admin) {
-            return res.status(404).json({ error: "El administrador no existe" });
-        }
-        await Administrador.update({ estado: 1 }, { where: { cedula } });
-
-        // Deshabilita el usuario asociado (si existe)
-        const usuario = await Usuario.findByPk(cedula);
-        if (usuario) {
-            await Usuario.update({ estado: 1 }, { where: { cedula } });
-        }
-
-        res.status(200).json({ message: "Administrador y usuario deshabilitados exitosamente" });
-    } catch (error) {
-        res.status(500).json({ error: "Error interno en el servidor" });
-    }
-};
-
 export const editarAdministrador = async (req, res) => {
     const { cedula } = req.params;
-    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol } = req.body;
+    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo } = req.body;
+    
+    const t = await sequelize.transaction();
+    
     try {
-        const existeAdministrador = await Administrador.findByPk(cedula);
-        if (existeAdministrador !== null) {
-            await Administrador.update(
-                { nombre, apellidoUno, apellidoDos, estado, telefono, correo },
-                { where: { cedula } }
-            );
-
-            // Genera valores estáticos y nombreUsuario desde correo
-            const nombreUsuario = correo.split('@')[0];
-            const token = "token_estatico";
-            const contraseña = "123456";
-
-            // Actualiza Usuario
-            await Usuario.update(
-                { estado, nombreUsuario, token, contraseña, rol },
-                { where: { cedula } }
-            );
-
-            res.status(200).json({ message: "Administrador y usuario editados exitosamente" });
-        } else {
-            res.status(404).json({ error: "El administrador no existe" });
+        const existeAdministrador = await Administrador.findByPk(cedula, { transaction: t });
+        if (!existeAdministrador) {
+            await t.rollback();
+            return res.status(404).json({ error: "El administrador no existe" });
         }
+
+        // Actualizar datos del administrador
+        await Administrador.update(
+            { nombre, apellidoUno, apellidoDos, estado, telefono, correo },
+            { where: { cedula }, transaction: t }
+        );
+
+        const camposUsuario = { estado };
+        
+        await Usuario.update(
+            camposUsuario,
+            { where: { cedula }, transaction: t }
+        );
+
+        await t.commit();
+        res.status(200).json({ message: "Administrador y usuario editados exitosamente" });
     } catch (error) {
+        await t.rollback();
+        console.error("Error en editarAdministrador:", error);
         res.status(500).json({ error: "Error interno en el servidor" });
     }
 };

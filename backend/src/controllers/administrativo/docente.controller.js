@@ -2,12 +2,13 @@ import { Profesor } from "../../models/profesor.model.js";
 import { Usuario } from "../../models/usuario.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { Especialidad } from "../../models/especialidad.model.js";
+import { ESTADOS } from "../../common/estados.js";
 import { crearUsuario } from "../usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 
 export const crearProfesor = async (req, res) => {
-    const { cedula, nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol, idEspecialidad } = req.body;
+    const { cedula, nombre, apellidoUno, apellidoDos, telefono, correo, rol, idEspecialidad } = req.body;
 
     const t = await sequelize.transaction();
 
@@ -20,21 +21,22 @@ export const crearProfesor = async (req, res) => {
             return res.status(409).json({ error: "El usuario o profesor ya existe" });
         }
 
-        // Crea el usuario usando la función del nuevo controller
+        // Crea el usuario usando la función del nuevo controller con estado activo
         const { usuario, contraseñaGenerada } = await crearUsuario({
             cedula,
             correo,
             rol,
+            estado: ESTADOS.ACTIVO, // Usar el estado activo del común
             transaction: t
         });
 
-        // Crea el profesor
+        // Crea el profesor con estado activo
         await Profesor.create({
             cedula,
             nombre,
             apellidoUno,
             apellidoDos,
-            estado,
+            estado: ESTADOS.ACTIVO, // Usar el estado activo del común
             telefono,
             correo,
             idEspecialidad
@@ -85,53 +87,38 @@ export const visualizar = async (req, res) => {
     }
 };
 
-export const deshabilitarProfesor = async (req, res) => {
-    const { cedula } = req.params;
-    try {
-        const profesor = await Profesor.findByPk(cedula);
-        if (!profesor) {
-            return res.status(404).json({ error: "El profesor no existe" });
-        }
-        await Profesor.update({ estado: 0 }, { where: { cedula } });
-
-        const usuario = await Usuario.findByPk(cedula);
-        if (usuario) {
-            await Usuario.update({ estado: 0 }, { where: { cedula } });
-        }
-
-        res.status(200).json({ message: "Profesor y usuario deshabilitados exitosamente" });
-    } catch (error) {
-        res.status(500).json({ error: "Error interno en el servidor" });
-    }
-};
-
 export const editarProfesor = async (req, res) => {
     const { cedula } = req.params;
-    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, rol, idEspecialidad } = req.body;
+    const { nombre, apellidoUno, apellidoDos, estado, telefono, correo, idEspecialidad } = req.body;
+    
+    const t = await sequelize.transaction();
+    
     try {
-        const existeProfesor = await Profesor.findByPk(cedula);
-        if (existeProfesor !== null) {
-            await Profesor.update(
-                { nombre, apellidoUno, apellidoDos, estado, telefono, correo, idEspecialidad },
-                { where: { cedula } }
-            );
-
-            // Genera valores estáticos y nombreUsuario desde correo
-            const nombreUsuario = correo.split('@')[0];
-            const token = "token_estatico";
-            const contraseña = "123456";
-
-            // Actualiza Usuario
-            await Usuario.update(
-                { estado, nombreUsuario, token, contraseña, rol },
-                { where: { cedula } }
-            );
-
-            res.status(200).json({ message: "Profesor y usuario editados exitosamente" });
-        } else {
-            res.status(404).json({ error: "El profesor no existe" });
+        const existeProfesor = await Profesor.findByPk(cedula, { transaction: t });
+        if (!existeProfesor) {
+            await t.rollback();
+            return res.status(404).json({ error: "El profesor no existe" });
         }
+
+        // Actualizar datos del profesor
+        await Profesor.update(
+            { nombre, apellidoUno, apellidoDos, estado, telefono, correo, idEspecialidad },
+            { where: { cedula }, transaction: t }
+        );
+
+        // Actualizar solo los campos apropiados del usuario (sin datos estáticos)
+        const camposUsuario = { estado };
+        
+        await Usuario.update(
+            camposUsuario,
+            { where: { cedula }, transaction: t }
+        );
+
+        await t.commit();
+        res.status(200).json({ message: "Profesor y usuario editados exitosamente" });
     } catch (error) {
+        await t.rollback();
+        console.error("Error en editarProfesor:", error);
         res.status(500).json({ error: "Error interno en el servidor" });
     }
 };

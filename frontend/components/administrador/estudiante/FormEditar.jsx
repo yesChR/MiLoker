@@ -208,7 +208,7 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                 isRequired
                 label="Fecha de Nacimiento"
                 name="fechaNacimiento"
-                value={formatDateForInput(selectedItem?.fechaNacimiento)}
+                value={formatDateForInput(selectedItem?.fechaNacimiento) || undefined}
                 onChange={(date) =>
                     setSelectedItem((prev) => ({
                         ...prev,

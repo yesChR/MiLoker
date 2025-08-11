@@ -39,7 +39,7 @@ export const formatDateForDisplay = (dateString) => {
 
 // Función para formatear fecha del backend (YYYY-MM-DD o ISO) a parseDate
 export const formatDateForInput = (dateString) => {
-    if (!dateString || dateString.trim() === '') return '';
+    if (!dateString || dateString.trim() === '') return null;
     
     // Si ya es un objeto CalendarDate, devolverlo tal como está
     if (typeof dateString === 'object' && dateString.year) {
@@ -62,7 +62,7 @@ export const formatDateForInput = (dateString) => {
             dateOnly = dateString;
         } else {
             console.warn('Formato de fecha no reconocido:', dateString);
-            return '';
+            return null;
         }
         
         // Verificar que el formato sea YYYY-MM-DD
@@ -70,12 +70,12 @@ export const formatDateForInput = (dateString) => {
             return parseDate(dateOnly);
         } else {
             console.warn('Formato de fecha inválido:', dateOnly);
-            return '';
+            return null;
         }
     } catch (error) {
         console.warn('Error al parsear fecha:', error);
+        return null;
     }
-    return '';
 };
 
 // Función para convertir fecha de CalendarDate a string YYYY-MM-DD
