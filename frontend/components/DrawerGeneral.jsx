@@ -31,7 +31,7 @@ const DrawerGeneral = ({
                             <DrawerHeader className="flex flex-col gap-1 text-azulOscuro">
                                 {titulo}
                             </DrawerHeader>
-                            <DrawerBody>{children}</DrawerBody>
+                            <DrawerBody className="custom-scrollbar">{children}</DrawerBody>
                             {mostrarBotones && ( // Mostrar los botones solo si mostrarBotones es true
                                 <DrawerFooter>
                                     <Button

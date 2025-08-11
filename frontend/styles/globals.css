@@ -1,4 +1,5 @@
 @import './casilleros-animations.css';
+@import "./drawer-scrollbar.css";
 
 @tailwind base;
 @tailwind components;
