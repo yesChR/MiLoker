@@ -104,3 +104,18 @@ export const visualizarArmarios = async () => {
         return { error: true, message: 'Error de conexión con el servidor' };
     }
 };
+
+// Obtener casilleros por especialidad (desde informe)
+export const obtenerCasillerosPorEspecialidad = async (idEspecialidad) => {
+    try {
+        const response = await fetch(`${API_URL}/informe/casilleros/especialidad/${idEspecialidad}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return await handleResponse(response);
+    } catch (error) {
+        return { error: true, message: 'Error de conexión con el servidor' };
+    }
+};

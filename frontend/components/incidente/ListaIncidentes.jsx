@@ -2,78 +2,155 @@ import React, { useState, useEffect } from "react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import DrawerGeneral from "../DrawerGeneral";
-import { useDisclosure, Input } from "@heroui/react";
-import { Select } from "@heroui/react";
+import { useDisclosure, Chip } from "@heroui/react";
 import { PiNotePencilFill } from "react-icons/pi";
 import "react-multi-carousel/lib/styles.css";
 import FormularioRevision from "./FormularioRevision";
 import FormularioCreacion from "./FormularioCreacion";
+import { useIncidentes } from "../../hooks/useIncidentes";
+import { obtenerTextoEstado, obtenerColorEstado } from "../../utils/incidenteConstants";
 
 const ListaIncidentes = () => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const { incidentes, listarIncidentes, loading, error } = useIncidentes();
+    
     const [selectedItem, setSelectedItem] = useState(null);
-    const [accion, setAccion] = useState(""); // Estado para determinar si es "Revisar" o "Crear"
-    const [loading, setLoading] = useState(false); //
-    const [detalleEditable, setDetalleEditable] = useState(""); // Estado para el textarea
+    const [accion, setAccion] = useState(""); // "revisar" o "crear"
+    const [loadingDetalle, setLoadingDetalle] = useState(false);
+    const [detalleEditable, setDetalleEditable] = useState("");
 
-    const columnasPrueba = [
-        { name: "Id", uid: "id" },
+    const columnas = [
+        { name: "ID", uid: "idIncidente" },
         { name: "Casillero", uid: "casillero" },
-        { name: "Demandante", uid: "demandante" },
-        { name: "Responsable", uid: "responsable" },
+        { name: "Reportado por", uid: "reportante" },
         { name: "Detalle", uid: "detalle" },
-        { name: "Fecha Reporte", uid: "fechaReporte" },
-        { name: "Revisión", uid: "acciones" },
+        { name: "Estado", uid: "estado" },
+        { name: "Fecha", uid: "fechaCreacion" },
+        { name: "Acciones", uid: "acciones" },
     ];
 
-    const datosPrueba = [
-        { id: 1, casillero: "A-1", demandante: "Juan Perez", responsable: "Maria Lopez", detalle: "Fuga de agua", fechaReporte: "2023-10-01" },
-        { id: 2, casillero: "B-2", demandante: "Ana Garcia", responsable: "Luis Martinez", detalle: "Fuga de gas", fechaReporte: "2023-10-02" },
-    ];
+    // Cargar incidentes al montar el componente
+    useEffect(() => {
+        cargarIncidentes();
+    }, []);
 
-    const handleRevisar = (item) => {
-        setAccion(1);
-        setLoading(true);
+    const cargarIncidentes = async () => {
+        try {
+            await listarIncidentes();
+        } catch (error) {
+            console.error("Error cargando incidentes:", error);
+        }
+    };
+
+    const formatearFecha = (fecha) => {
+        return new Date(fecha).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    // Formatear datos para la tabla
+    const datosFormateados = incidentes.map(incidente => ({
+        ...incidente,
+        casillero: incidente.casillero?.numCasillero || 'N/A',
+        reportante: incidente.creadorUsuario?.nombreUsuario || 'Desconocido',
+        detalle: incidente.detalle?.length > 50 
+            ? `${incidente.detalle.substring(0, 50)}...` 
+            : incidente.detalle,
+        estado: (
+            <Chip 
+                color={obtenerColorEstado(incidente.idEstadoIncidente)}
+                variant="flat"
+                size="sm"
+            >
+                {obtenerTextoEstado(incidente.idEstadoIncidente)}
+            </Chip>
+        ),
+        fechaCreacion: formatearFecha(incidente.fechaCreacion)
+    }));
+
+    const handleRevisar = async (item) => {
+        setAccion("revisar");
+        setLoadingDetalle(true);
         setSelectedItem(null);
         onOpen();
 
-        setTimeout(() => {
-            const data = {
-                casillero: "A-1",
-                demandante: {
-                    nombre: item.demandante,
-                    seccion: "8-2",
-                    telefono: "8888-8888",
-                    correo: "martaR@gmail.com",
-                },
-                responsable: {
-                    nombre: item.responsable,
-                    seccion: "8-2",
-                    telefono: "8888-3333",
-                    correo: "alfredoF@gmail.com",
-                },
-                encargados: [
-                    { parentesco: "Padre", nombre: "Alfredo Flores", telefono: "8888-3333" },
-                    { parentesco: "Madre", nombre: "Flor Jimenez", telefono: "8888-3333" },
-                ],
-                detalle: "Se guindaron de la puerta de un casillero.",
-                evidencia: [
-                    "/casillero_dañado.jpg",
-                    "/casillero_dañado.jpg",
-                ],
-            };
-            setSelectedItem(data);
-            setLoading(false);
-        }, 500);
+        try {
+            // Aquí podrías hacer una llamada para obtener más detalles del incidente
+            // Por ahora usamos los datos que ya tenemos
+            const incidenteCompleto = incidentes.find(inc => inc.idIncidente === item.idIncidente);
+            
+            // Simular carga de datos adicionales
+            setTimeout(() => {
+                setSelectedItem({
+                    ...incidenteCompleto,
+                    // Datos simulados para demostrar - reemplazar con datos reales
+                    demandante: {
+                        nombre: incidenteCompleto.creadorUsuario?.nombreUsuario || "Usuario",
+                        seccion: "8-2",
+                        telefono: "8888-8888",
+                        correo: "usuario@ejemplo.com"
+                    },
+                    responsable: {
+                        nombre: "Por determinar",
+                        seccion: "N/A",
+                        telefono: "N/A",
+                        correo: "N/A"
+                    },
+                    encargados: [
+                        { parentesco: "Padre", nombre: "Padre Ejemplo", telefono: "8888-1111" },
+                        { parentesco: "Madre", nombre: "Madre Ejemplo", telefono: "8888-2222" }
+                    ],
+                    evidencia: [
+                        "/casillero_dañado.jpg" // Imagen de ejemplo
+                    ]
+                });
+                setDetalleEditable(incidenteCompleto.detalle || "");
+                setLoadingDetalle(false);
+            }, 500);
+        } catch (error) {
+            console.error("Error cargando detalles:", error);
+            setLoadingDetalle(false);
+        }
     };
 
-    const accionesPrueba = [
+    const handleCrearNuevo = () => {
+        setAccion("crear");
+        setSelectedItem(null);
+        onOpen();
+    };
+
+    const handleSuccessCreacion = (resultado) => {
+        // Recargar la lista de incidentes
+        cargarIncidentes();
+    };
+
+    const accionesTabla = [
         {
             tooltip: "Revisar",
             icon: <PiNotePencilFill size={18} />,
             handler: handleRevisar,
         },
     ];
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
+                <div className="w-full">
+                    <CabezeraDinamica
+                        title="Lista de incidentes"
+                        breadcrumb="Inicio • Lista de Incidentes"
+                    />
+                </div>
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded w-full max-w-4xl">
+                    Error al cargar incidentes: {error}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center w-full max-w-7xl mx-auto space-y-8">
@@ -83,38 +160,50 @@ const ListaIncidentes = () => {
                     breadcrumb="Inicio • Lista de Incidentes"
                 />
             </div>
+            
             <div className="w-full max-w-4xl">
                 <TablaDinamica
-                    columns={columnasPrueba}
-                    data={datosPrueba}
-                    acciones={accionesPrueba}
-                    mostrarAcciones={false}
+                    columns={columnas}
+                    data={datosFormateados}
+                    acciones={accionesTabla}
+                    mostrarAcciones={true}
                     onOpen={onOpen}
                     setAccion={setAccion}
+                    isLoading={loading}
+                    emptyContent="No hay incidentes registrados"
+                    // Agregar botón para crear nuevo incidente
+                    topContent={
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleCrearNuevo}
+                                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
+                            >
+                                Reportar Nuevo Incidente
+                            </button>
+                        </div>
+                    }
                 />
+
                 <DrawerGeneral
-                    titulo={accion === 1 ? "Revisión de Incidente" : "Registrar Incidente"}
-                    size={accion === 1 ? "3xl" : "sm"}
+                    titulo={accion === "revisar" ? "Revisión de Incidente" : "Reportar Incidente"}
+                    size={accion === "revisar" ? "3xl" : "xl"}
                     isOpen={isOpen}
                     onOpenChange={onOpenChange}
-                    textoBotonPrimario={accion === 1 ? "Actualizar" : "Enviar"}
+                    textoBotonPrimario={accion === "revisar" ? "Actualizar" : "Reportar"}
+                    showFooter={accion === "crear"}
                 >
-                    {accion === 1 ? (
-                        selectedItem ? (
-                            <FormularioRevision
-                                loading={loading}
-                                selectedItem={selectedItem}
-                                detalleEditable={detalleEditable}
-                                setDetalleEditable={setDetalleEditable}
-                            />
-
-                        ) : (
-                            <p>No hay datos seleccionados.</p>
-                        )
+                    {accion === "revisar" ? (
+                        <FormularioRevision
+                            loading={loadingDetalle}
+                            selectedItem={selectedItem}
+                            detalleEditable={detalleEditable}
+                            setDetalleEditable={setDetalleEditable}
+                        />
                     ) : (
-                        <div>
-                            <FormularioCreacion />
-                        </div>
+                        <FormularioCreacion
+                            onSuccess={handleSuccessCreacion}
+                            onClose={() => onOpenChange(false)}
+                        />
                     )}
                 </DrawerGeneral>
             </div>

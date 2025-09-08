@@ -19,6 +19,7 @@ import docenteRoutes from "./routes/docente/docente.routes.js";
 import renunciaRoutes from "./routes/estudiante/renuncia.routes.js";
 import milokerRoutes from "./routes/estudiante/miloker.routes.js";
 import informeRoutes from "./routes/informe/informe.routes.js";
+import { incidenteRoutes } from "./routes/incidente/incidente.routes.js";
 
 const app = express();
 import cors from 'cors';
@@ -64,5 +65,6 @@ app.use("/docente", docenteRoutes);
 app.use("/estudiante", renunciaRoutes);
 app.use("/api/estudiante", milokerRoutes);
 app.use("/informe", informeRoutes);
+app.use("/incidente", incidenteRoutes);
 
 export default app;
