@@ -1,0 +1,277 @@
+import { Incidente } from "../../models/incidente.model.js";
+import { EstudianteXIncidente } from "../../models/estudianteXincidente.model.js";
+import { Casillero } from "../../models/casillero.model.js";
+import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
+import { Estudiante } from "../../models/estudiante.model.js";
+import { Usuario } from "../../models/usuario.model.js";
+import { ESTADOS_INCIDENTE } from "../../common/estadosIncidente.js";
+import { TIPOS_INVOLUCRAMIENTO, esTipoValido } from "../../common/tiposInvolucramiento.js";
+import { ROLES } from "../../common/roles.js";
+import { sequelize } from "../../bd_config/conexion.js";
+
+export const crear = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { idCasillero, detalle, evidencias, cedulaUsuario } = req.body;
+
+        // Validar que se envió el usuario
+        if (!cedulaUsuario) {
+            return res.status(400).json({
+                error: "La cédula del usuario es requerida"
+            });
+        }
+
+        // Verificar que el casillero existe
+        const casillero = await Casillero.findByPk(idCasillero);
+        if (!casillero) {
+            return res.status(404).json({
+                error: "El casillero especificado no existe"
+            });
+        }
+
+        // Verificar que el usuario existe y obtener su rol
+        const usuario = await Usuario.findByPk(cedulaUsuario);
+        if (!usuario) {
+            return res.status(404).json({
+                error: "Usuario no encontrado"
+            });
+        }
+
+        const estadoInicial = usuario.rol === ROLES.ESTUDIANTE ? 
+            ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE : 
+            ESTADOS_INCIDENTE.REPORTADO_PROFESOR;
+
+        // Crear incidente
+        const incidente = await Incidente.create({
+            usuarioCreador: cedulaUsuario,
+            idCasillero,
+            detalle,
+            fechaCreacion: new Date(),
+            idEstadoIncidente: estadoInicial
+        }, { transaction });
+
+        // SOLO agregar a EstudianteXIncidente si el reportante es ESTUDIANTE
+        if (usuario.rol === ROLES.ESTUDIANTE) {
+            // 1. Agregar el estudiante reportante
+            await EstudianteXIncidente.create({
+                cedulaEstudiante: cedulaUsuario,
+                idIncidente: incidente.idIncidente,
+                tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.REPORTANTE,
+                seccion: req.body.seccionReportante || "N/A"
+            }, { transaction });
+        }
+
+        // 2. Buscar si hay un dueño actual del casillero
+        const duenoCasillero = await EstudianteXCasillero.findOne({
+            where: { 
+                idCasillero: idCasillero,
+            }
+        });
+
+        // 3. Si hay dueño, agregarlo como afectado (independientemente de quién reporte)
+        if (duenoCasillero) {
+            // Obtener datos del estudiante dueño para la sección
+            const estudianteDueno = await Estudiante.findByPk(duenoCasillero.cedulaEstudiante);
+            
+            // Solo agregar si no es el mismo que ya agregamos como reportante
+            const yaEsReportante = (usuario.rol === ROLES.ESTUDIANTE && duenoCasillero.cedulaEstudiante === cedulaUsuario);
+            
+            if (!yaEsReportante) {
+                await EstudianteXIncidente.create({
+                    cedulaEstudiante: duenoCasillero.cedulaEstudiante,
+                    idIncidente: incidente.idIncidente,
+                    tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.AFECTADO,
+                    seccion: estudianteDueno.seccion
+                }, { transaction });
+            } else {
+                // Si el estudiante reportante ES el dueño, agregarlo también como afectado
+                await EstudianteXIncidente.create({
+                    cedulaEstudiante: cedulaUsuario,
+                    idIncidente: incidente.idIncidente,
+                    tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.AFECTADO,
+                    seccion: req.body.seccionReportante || estudianteDueno.seccion
+                }, { transaction });
+            }
+        }
+
+        await transaction.commit();
+
+        res.status(201).json({
+            message: "Incidente reportado exitosamente",
+            incidente: {
+                ...incidente.toJSON(),
+                esReportanteProfesor: usuario.rol === ROLES.PROFESOR,
+                esReportanteDueno: duenoCasillero?.cedulaEstudiante === cedulaUsuario,
+                tieneDuenoConocido: !!duenoCasillero,
+                duenoDelCasillero: duenoCasillero?.cedulaEstudiante || null
+            }
+        });
+
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
+    }
+};
+
+export const agregarInvolucrado = async (req, res) => {
+    try {
+        const { idIncidente } = req.params;
+        const { cedulaEstudiante, tipoInvolucramiento, seccion, cedulaUsuario } = req.body;
+
+        // Validar que se envió el usuario
+        if (!cedulaUsuario) {
+            return res.status(400).json({
+                error: "La cédula del usuario es requerida"
+            });
+        }
+
+        // Validar tipo de involucramiento
+        if (!esTipoValido(tipoInvolucramiento)) {
+            return res.status(400).json({
+                error: "Tipo de involucramiento inválido",
+                tiposValidos: Object.values(TIPOS_INVOLUCRAMIENTO)
+            });
+        }
+
+        // Verificar que el usuario existe y es profesor
+        const usuario = await Usuario.findByPk(cedulaUsuario);
+        if (!usuario) {
+            return res.status(404).json({
+                error: "Usuario no encontrado"
+            });
+        }
+        
+        if (usuario.rol !== ROLES.PROFESOR) {
+            return res.status(403).json({
+                error: "Solo los profesores pueden agregar estudiantes involucrados"
+            });
+        }
+
+        // Verificar que el incidente existe
+        const incidente = await Incidente.findByPk(idIncidente);
+        if (!incidente) {
+            return res.status(404).json({
+                error: "Incidente no encontrado"
+            });
+        }
+
+        // Verificar que no existe ya esa relación específica
+        const relacionExistente = await EstudianteXIncidente.findOne({
+            where: {
+                cedulaEstudiante,
+                idIncidente,
+                tipoInvolucramiento
+            }
+        });
+
+        if (relacionExistente) {
+            return res.status(400).json({
+                error: `El estudiante ya está marcado como ${tipoInvolucramiento} en este incidente`
+            });
+        }
+
+        // Crear la relación
+        const nuevaRelacion = await EstudianteXIncidente.create({
+            cedulaEstudiante,
+            idIncidente,
+            tipoInvolucramiento,
+            seccion
+        });
+
+        // Si se agrega un responsable, cambiar estado del incidente
+        if (tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.RESPONSABLE) {
+            await incidente.update({
+                idEstadoIncidente: ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO
+            });
+        }
+
+        res.status(201).json({
+            message: `Estudiante agregado como ${tipoInvolucramiento} exitosamente`,
+            relacion: nuevaRelacion
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
+    }
+};
+
+// Listar incidentes según rol del usuario
+export const listar = async (req, res) => {
+    try {
+        // Por ahora listar todos - puedes agregar filtros según el usuario
+        const incidentes = await Incidente.findAll({
+            include: [
+                {
+                    model: Usuario,
+                    as: "creadorUsuario",
+                    attributes: ['cedula', 'nombreUsuario', 'rol']
+                },
+                {
+                    model: Casillero,
+                    as: "casillero",
+                    attributes: ['idCasillero', 'numCasillero']
+                }
+            ],
+            order: [['fechaCreacion', 'DESC']]
+        });
+
+        res.status(200).json(incidentes);
+    } catch (error) {
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
+    }
+};
+
+// Obtener un incidente específico
+export const obtenerPorId = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const incidente = await Incidente.findByPk(id, {
+            include: [
+                {
+                    model: Usuario,
+                    as: "creadorUsuario",
+                    attributes: ['cedula', 'nombreUsuario', 'rol']
+                },
+                {
+                    model: Casillero,
+                    as: "casillero",
+                    attributes: ['idCasillero', 'numCasillero']
+                },
+                {
+                    model: EstudianteXIncidente,
+                    as: "estudianteXincidentes",
+                    include: [
+                        {
+                            model: Estudiante,
+                            as: "estudiante",
+                            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'seccion']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (!incidente) {
+            return res.status(404).json({
+                error: "Incidente no encontrado"
+            });
+        }
+
+        res.status(200).json(incidente);
+    } catch (error) {
+        res.status(500).json({
+            error: "Error interno del servidor",
+            message: error.message
+        });
+    }
+};

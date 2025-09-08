@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
 import { Estudiante } from './estudiante.model.js';
 import { Incidente } from "./incidente.model.js";
+import { TIPOS_INVOLUCRAMIENTO } from "../common/tiposInvolucramiento.js";
 
 export const EstudianteXIncidente = sequelize.define("estudianteXincidente", {
   id: {
@@ -20,6 +21,20 @@ export const EstudianteXIncidente = sequelize.define("estudianteXincidente", {
   seccion: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  tipoInvolucramiento: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: TIPOS_INVOLUCRAMIENTO.AFECTADO,
+    validate: {
+      isIn: [[
+        TIPOS_INVOLUCRAMIENTO.REPORTANTE,
+        TIPOS_INVOLUCRAMIENTO.RESPONSABLE,
+        TIPOS_INVOLUCRAMIENTO.TESTIGO,
+        TIPOS_INVOLUCRAMIENTO.AFECTADO
+      ]]
+    },
+    comment: '1 = Reportante, 2 = Responsable, 3 = Testigo, 4 = Afectado'
   }
 }, {
   tableName: 'estudianteXincidente',

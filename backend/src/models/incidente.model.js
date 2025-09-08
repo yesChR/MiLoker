@@ -2,6 +2,7 @@ import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
 import { Casillero } from "./casillero.model.js";
 import { Usuario } from "./usuario.model.js";
+import { EstadoIncidente } from "./estadoIncidente.model.js";
 
 export const Incidente = sequelize.define("incidente", {
     idIncidente: {
@@ -14,6 +15,10 @@ export const Incidente = sequelize.define("incidente", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    idCasillero: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     fechaCreacion: {
         type: DataTypes.DATE,
         allowNull: false
@@ -23,12 +28,17 @@ export const Incidente = sequelize.define("incidente", {
         allowNull: true
     },
     detalle: {
-        type: DataTypes.STRING,
-        allowNull: true
+        type: DataTypes.TEXT,
+        allowNull: false
     },
     solucionPlanteada: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true
+    },
+    idEstadoIncidente: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
     }
 }, {
     tableName: 'incidente',
@@ -53,4 +63,14 @@ Usuario.hasMany(Incidente, {
 Incidente.belongsTo(Usuario, {
     foreignKey: 'usuarioCreador',
     as: 'creadorUsuario' // <-- alias diferente al atributo
+});
+
+// Relación: Un incidente pertenece a un estado
+EstadoIncidente.hasMany(Incidente, {
+    foreignKey: 'idEstadoIncidente',
+    as: 'incidentes'
+});
+Incidente.belongsTo(EstadoIncidente, {
+    foreignKey: 'idEstadoIncidente',
+    as: 'estadoIncidente'
 });
