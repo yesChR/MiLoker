@@ -20,6 +20,8 @@ import renunciaRoutes from "./routes/estudiante/renuncia.routes.js";
 import milokerRoutes from "./routes/estudiante/miloker.routes.js";
 import informeRoutes from "./routes/informe/informe.routes.js";
 import { incidenteRoutes } from "./routes/incidente/incidente.routes.js";
+import uploadRoutes from "./routes/evidencia/upload.routes.js";
+import evidenciaRoutes from "./routes/evidencia/evidencia.routes.js";
 
 const app = express();
 import cors from 'cors';
@@ -40,6 +42,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Servir archivos estáticos (imágenes)
+app.use('/uploads', express.static('public/uploads'));
 
 // Rutas (Agregar todas las rutas que existan en Routes)
 app.use("/nodemailer", nodemailer);
@@ -66,5 +71,7 @@ app.use("/estudiante", renunciaRoutes);
 app.use("/api/estudiante", milokerRoutes);
 app.use("/informe", informeRoutes);
 app.use("/incidente", incidenteRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/evidencia", evidenciaRoutes);
 
 export default app;

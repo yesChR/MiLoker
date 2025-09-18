@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
 import DrawerGeneral from "../DrawerGeneral";
@@ -18,6 +18,9 @@ const ListaIncidentes = () => {
     const [accion, setAccion] = useState(""); // "revisar" o "crear"
     const [loadingDetalle, setLoadingDetalle] = useState(false);
     const [detalleEditable, setDetalleEditable] = useState("");
+    
+    // Referencia al formulario de creación
+    const formularioRef = useRef(null);
 
     const columnas = [
         { name: "ID", uid: "idIncidente" },
@@ -128,6 +131,13 @@ const ListaIncidentes = () => {
         cargarIncidentes();
     };
 
+    // Función que se ejecuta cuando se hace clic en el botón del drawer
+    const handleBotonPrimario = () => {
+        if (formularioRef.current) {
+            formularioRef.current.handleSubmit();
+        }
+    };
+
     const accionesTabla = [
         {
             tooltip: "Revisar",
@@ -191,6 +201,7 @@ const ListaIncidentes = () => {
                     onOpenChange={onOpenChange}
                     textoBotonPrimario={accion === "revisar" ? "Actualizar" : "Reportar"}
                     showFooter={accion === "crear"}
+                    onBotonPrimario={handleBotonPrimario}
                 >
                     {accion === "revisar" ? (
                         <FormularioRevision
@@ -201,6 +212,7 @@ const ListaIncidentes = () => {
                         />
                     ) : (
                         <FormularioCreacion
+                            ref={formularioRef} // ← NUEVA REFERENCIA
                             onSuccess={handleSuccessCreacion}
                             onClose={() => onOpenChange(false)}
                         />

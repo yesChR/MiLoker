@@ -8,11 +8,12 @@ import { ESTADOS_INCIDENTE } from "../../common/estadosIncidente.js";
 import { TIPOS_INVOLUCRAMIENTO, esTipoValido } from "../../common/tiposInvolucramiento.js";
 import { ROLES } from "../../common/roles.js";
 import { sequelize } from "../../bd_config/conexion.js";
+import { asociarEvidenciasIncidente } from "../evidencia/evidencia.controller.js";
 
 export const crear = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        const { idCasillero, detalle, evidencias, cedulaUsuario } = req.body;
+        const { idCasillero, detalle, evidenciasIds, cedulaUsuario } = req.body;
 
         // Validar que se envió el usuario
         if (!cedulaUsuario) {
@@ -94,6 +95,14 @@ export const crear = async (req, res) => {
             }
         }
 
+        // Asociar evidencias si se enviaron
+        if (evidenciasIds && evidenciasIds.length > 0) {
+            const evidenciasAsociadas = await asociarEvidenciasIncidente(incidente.idIncidente, evidenciasIds);
+            if (!evidenciasAsociadas) {
+                console.warn("Error asociando evidencias, pero el incidente se creó correctamente");
+            }
+        }
+
         await transaction.commit();
 
         res.status(201).json({
@@ -103,7 +112,8 @@ export const crear = async (req, res) => {
                 esReportanteProfesor: usuario.rol === ROLES.PROFESOR,
                 esReportanteDueno: duenoCasillero?.cedulaEstudiante === cedulaUsuario,
                 tieneDuenoConocido: !!duenoCasillero,
-                duenoDelCasillero: duenoCasillero?.cedulaEstudiante || null
+                duenoDelCasillero: duenoCasillero?.cedulaEstudiante || null,
+                evidenciasAsociadas: evidenciasIds?.length || 0
             }
         });
 

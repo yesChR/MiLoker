@@ -1,11 +1,14 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Select, Button, SelectItem, Spinner } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import { PlusIcon } from "../icons/PlusIcon";
 import { useIncidentes } from "../../hooks/useIncidentes";
 import { obtenerArmariosPorEspecialidad, obtenerCasillerosPorEspecialidad } from "../../services/armarioService";
+import { Toast } from "../CustomAlert";
+import { subirEvidencias } from "../../services/evidenciaService";
+import { uploadService } from "../../services/uploadService";
 
-const FormularioCreacion = ({ onSuccess, onClose }) => {
+const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     const { data: session, status } = useSession();
     const { crearIncidente, loading, error, limpiarError } = useIncidentes();
     
@@ -45,7 +48,6 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
     useEffect(() => {
         const cargarDatosPorEspecialidad = async () => {
             if (!session?.user?.idEspecialidad) {
-                console.log("No se encontró la especialidad del usuario");
                 console.error("No se encontró la especialidad del usuario");
                 return;
             }
@@ -87,6 +89,11 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
         }
     }, [session]);
 
+    // Exponer handleSubmit al componente padre
+    useImperativeHandle(ref, () => ({
+        handleSubmit: handleSubmit
+    }));
+
     // Filtrar casilleros por armario seleccionado
     const casillerosFiltrados = armarioSeleccionado 
         ? casilleros.filter(casillero => casillero.armario === armarioSeleccionado)
@@ -101,13 +108,60 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            console.log("Archivo seleccionado:", file.name);
-            // Aquí puedes manejar la subida del archivo
+            // Validar tamaño del archivo (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                Toast.warning("Archivo muy grande", "El archivo no puede exceder 5MB");
+                return;
+            }
+
+            // Validar tipo de archivo
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                Toast.warning("Tipo de archivo no válido", "Solo se permiten imágenes (JPEG, PNG, WebP)");
+                return;
+            }
+
+            // Determinar qué posición usar
+            const newEvidencias = [...formData.evidencias];
+            
+            // Si no hay evidencias, agregar en posición 0
+            if (newEvidencias.length === 0) {
+                newEvidencias[0] = file;
+            }
+            // Si hay una evidencia, agregar en posición 1
+            else if (newEvidencias.length === 1) {
+                newEvidencias[1] = file;
+            }
+            // Si ya hay 2, no hacer nada (esto no debería pasar por la UI)
+            else {
+                Toast.warning("Límite alcanzado", "Solo puedes subir máximo 2 evidencias");
+                return;
+            }
+
             setFormData(prev => ({
                 ...prev,
-                evidencias: [...prev.evidencias, file]
+                evidencias: newEvidencias
             }));
+
+            Toast.success("Evidencia agregada", `${file.name} se agregó correctamente`);
         }
+    };
+
+    const removeEvidence = (index) => {
+        // Liberar la URL del objeto antes de remover para evitar memory leaks
+        if (formData.evidencias[index]) {
+            URL.revokeObjectURL(URL.createObjectURL(formData.evidencias[index]));
+        }
+        
+        const newEvidencias = [...formData.evidencias];
+        newEvidencias.splice(index, 1); // Remover el elemento en la posición específica
+        
+        setFormData(prev => ({
+            ...prev,
+            evidencias: newEvidencias
+        }));
+        
+        Toast.info("Evidencia removida", "La evidencia se eliminó correctamente");
     };
 
     const handleSubmit = async () => {
@@ -116,39 +170,58 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
 
         // Validaciones
         if (!formData.idCasillero) {
-            alert("Por favor selecciona un casillero");
+            Toast.warning("Validación", "Por favor selecciona un casillero");
             return;
         }
 
         if (!formData.detalle.trim()) {
-            alert("Por favor describe el incidente");
+            Toast.warning("Validación", "Por favor describe el incidente");
             return;
         }
 
         try {
+            let evidenciasIds = [];
+            
+            // Subir evidencias primero si existen
+            if (formData.evidencias.length > 0) {
+                Toast.info("Subiendo evidencias", "Por favor espera...");
+                
+                const resultadoEvidencias = await subirEvidencias(formData.evidencias);
+                
+                if (resultadoEvidencias.error) {
+                    Toast.error("Error subiendo evidencias", resultadoEvidencias.message);
+                    return;
+                }
+                
+                evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
+                Toast.success("Evidencias subidas", "Las evidencias se subieron correctamente");
+            }
+
             const incidenteData = {
                 idCasillero: parseInt(formData.idCasillero),
                 detalle: formData.detalle.trim(),
-                cedulaUsuario: session.user.id, // Enviar la cédula del usuario logueado
+                cedulaUsuario: session.user.id,
+                evidenciasIds: evidenciasIds,
                 seccionReportante: session.user.seccion || "N/A"
             };
 
             const resultado = await crearIncidente(incidenteData);
             
-            // Mostrar mensaje de éxito
-            let mensaje = "¡Incidente reportado exitosamente!";
+            // Mostrar mensaje de éxito con Toast
+            let mensaje = "Incidente reportado exitosamente";
+            let detalle = "";
             
             if (resultado.incidente.esReportanteProfesor) {
-                mensaje += "\n\nReportado como profesor.";
+                detalle = "Reportado como profesor.";
             } else if (resultado.incidente.esReportanteDueno) {
-                mensaje += "\n\nHas reportado un incidente en tu propio casillero.";
+                detalle = "Has reportado un incidente en tu propio casillero.";
             } else if (resultado.incidente.tieneDuenoConocido) {
-                mensaje += "\n\nSe ha registrado al dueño del casillero como afectado.";
+                detalle = "Se ha registrado al dueño del casillero como afectado.";
             } else {
-                mensaje += "\n\nEl casillero reportado no tiene dueño asignado actualmente.";
+                detalle = "El casillero reportado no tiene dueño asignado actualmente.";
             }
             
-            alert(mensaje);
+            Toast.success(mensaje, detalle);
             
             // Limpiar formulario
             setFormData({
@@ -158,13 +231,18 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
             });
             setArmarioSeleccionado("");
             
+            // Limpiar URLs de objetos para evitar memory leaks
+            formData.evidencias.forEach(file => {
+                if (file) URL.revokeObjectURL(URL.createObjectURL(file));
+            });
+            
             // Llamar callbacks
             onSuccess?.(resultado);
             onClose?.();
             
         } catch (error) {
             console.error("Error al crear incidente:", error);
-            alert(`Error al reportar el incidente: ${error.message}`);
+            Toast.error("Error al reportar incidente", error.message || "Ocurrió un error inesperado");
         }
     };
 
@@ -227,58 +305,113 @@ const FormularioCreacion = ({ onSuccess, onClose }) => {
 
             <div>
                 <label className="text-gray-500 text-sm mb-2 block">
-                    Comparta la evidencia (Opcional):
+                    Evidencias (Opcional - Máximo 2):
                 </label>
+
                 <div className="grid grid-cols-2 gap-4">
-                    <div
-                        className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
-                        onClick={() => handleFileSelect(fileInputRef1)}
-                    >
-                        <PlusIcon className="text-blue-400 w-10 h-10" />
-                        <input
-                            type="file"
-                            ref={fileInputRef1}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                        />
+                    {/* Espacio 1 - Evidencia o área de carga */}
+                    <div>
+                        {formData.evidencias[0] ? (
+                            // Mostrar evidencia 1 con vista previa
+                            <div className="relative border-2 border-blue-300 rounded-lg p-2">
+                                <div className="space-y-2">
+                                    {/* Vista previa de la imagen */}
+                                    <div className="relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden">
+                                        <img
+                                            src={URL.createObjectURL(formData.evidencias[0])}
+                                            alt="Vista previa"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEvidence(0)}
+                                            className="absolute top-1 right-1 text-white bg-red-500 hover:bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-colors"
+                                            title="Eliminar evidencia"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    {/* Información del archivo */}
+                                    <div className="px-2">
+                                        <span className="text-xs text-gray-700 block truncate">{formData.evidencias[0].name}</span>
+                                        <span className="text-xs text-gray-500">({(formData.evidencias[0].size / 1024).toFixed(1)} KB)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            // Área de carga 1
+                            <div
+                                className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
+                                onClick={() => handleFileSelect(fileInputRef1)}
+                            >
+                                <div className="text-center">
+                                    <PlusIcon className="mx-auto w-10 h-10 text-blue-400" />
+                                    <p className="text-sm mt-2 text-blue-600">Agregar evidencia</p>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef1}
+                                    className="hidden"
+                                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    <div
-                        className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
-                        onClick={() => handleFileSelect(fileInputRef2)}
-                    >
-                        <PlusIcon className="text-blue-400 w-10 h-10" />
-                        <input
-                            type="file"
-                            ref={fileInputRef2}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                        />
+                    {/* Espacio 2 - Evidencia o área de carga */}
+                    <div>
+                        {formData.evidencias[1] ? (
+                            // Mostrar evidencia 2 con vista previa
+                            <div className="relative border-2 border-blue-300 rounded-lg p-2">
+                                <div className="space-y-2">
+                                    {/* Vista previa de la imagen */}
+                                    <div className="relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden">
+                                        <img
+                                            src={URL.createObjectURL(formData.evidencias[1])}
+                                            alt="Vista previa"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEvidence(1)}
+                                            className="absolute top-1 right-1 text-white bg-red-500 hover:bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-colors"
+                                            title="Eliminar evidencia"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    {/* Información del archivo */}
+                                    <div className="px-2">
+                                        <span className="text-xs text-gray-700 block truncate">{formData.evidencias[1].name}</span>
+                                        <span className="text-xs text-gray-500">({(formData.evidencias[1].size / 1024).toFixed(1)} KB)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            // Área de carga 2
+                            <div
+                                className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
+                                onClick={() => handleFileSelect(fileInputRef2)}
+                            >
+                                <div className="text-center">
+                                    <PlusIcon className="mx-auto w-10 h-10 text-blue-400" />
+                                    <p className="text-sm mt-2 text-blue-600">Agregar evidencia</p>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef2}
+                                    className="hidden"
+                                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                                    onChange={handleFileChange}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                    variant="light" 
-                    onPress={onClose}
-                    isDisabled={loading}
-                >
-                    Cancelar
-                </Button>
-                <Button 
-                    color="primary" 
-                    onPress={handleSubmit}
-                    isLoading={loading}
-                    isDisabled={!formData.idCasillero || !formData.detalle.trim()}
-                >
-                    {loading ? <Spinner size="sm" /> : "Reportar Incidente"}
-                </Button>
-            </div>
         </div>
     );
-};
+});
 
 export default FormularioCreacion;
