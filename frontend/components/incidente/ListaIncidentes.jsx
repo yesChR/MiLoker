@@ -23,7 +23,6 @@ const ListaIncidentes = () => {
     const formularioRef = useRef(null);
 
     const columnas = [
-        { name: "ID", uid: "idIncidente" },
         { name: "Casillero", uid: "casillero" },
         { name: "Reportado por", uid: "reportante" },
         { name: "Detalle", uid: "detalle" },
@@ -63,15 +62,7 @@ const ListaIncidentes = () => {
         detalle: incidente.detalle?.length > 50 
             ? `${incidente.detalle.substring(0, 50)}...` 
             : incidente.detalle,
-        estado: (
-            <Chip 
-                color={obtenerColorEstado(incidente.idEstadoIncidente)}
-                variant="flat"
-                size="sm"
-            >
-                {obtenerTextoEstado(incidente.idEstadoIncidente)}
-            </Chip>
-        ),
+        estado: obtenerTextoEstado(incidente.idEstadoIncidente),
         fechaCreacion: formatearFecha(incidente.fechaCreacion)
     }));
 
@@ -86,34 +77,6 @@ const ListaIncidentes = () => {
             // Por ahora usamos los datos que ya tenemos
             const incidenteCompleto = incidentes.find(inc => inc.idIncidente === item.idIncidente);
             
-            // Simular carga de datos adicionales
-            setTimeout(() => {
-                setSelectedItem({
-                    ...incidenteCompleto,
-                    // Datos simulados para demostrar - reemplazar con datos reales
-                    demandante: {
-                        nombre: incidenteCompleto.creadorUsuario?.nombreUsuario || "Usuario",
-                        seccion: "8-2",
-                        telefono: "8888-8888",
-                        correo: "usuario@ejemplo.com"
-                    },
-                    responsable: {
-                        nombre: "Por determinar",
-                        seccion: "N/A",
-                        telefono: "N/A",
-                        correo: "N/A"
-                    },
-                    encargados: [
-                        { parentesco: "Padre", nombre: "Padre Ejemplo", telefono: "8888-1111" },
-                        { parentesco: "Madre", nombre: "Madre Ejemplo", telefono: "8888-2222" }
-                    ],
-                    evidencia: [
-                        "/casillero_dañado.jpg" // Imagen de ejemplo
-                    ]
-                });
-                setDetalleEditable(incidenteCompleto.detalle || "");
-                setLoadingDetalle(false);
-            }, 500);
         } catch (error) {
             console.error("Error cargando detalles:", error);
             setLoadingDetalle(false);
@@ -212,7 +175,7 @@ const ListaIncidentes = () => {
                         />
                     ) : (
                         <FormularioCreacion
-                            ref={formularioRef} // ← NUEVA REFERENCIA
+                            ref={formularioRef}
                             onSuccess={handleSuccessCreacion}
                             onClose={() => onOpenChange(false)}
                         />

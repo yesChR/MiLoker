@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import { SearchIcon } from "./icons/SearchIcon";
 import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
+import { ESTADOS } from "./common/estados";
 
 const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [], loading = false }) => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -88,7 +89,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
             "Inactivo": "danger",
             "Activo": "success"
         };
-        
+
         let cellValue = item[columnKey];
         switch (columnKey) {
             case "nombreCompleto":
@@ -214,20 +215,25 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                 }
 
             case "estado": {
-                // Definir color de texto según el estado
-                let textColor = "";
-                if (cellValue === 2 || cellValue === "Activo") textColor = "text-green-700";
-                else if (cellValue === 1 || cellValue === "Inactivo") textColor = "text-red-600";
-                else if (cellValue === "Paused") textColor = "text-pink-600";
-                else if (cellValue === "Vacation") textColor = "text-yellow-700";
-                else textColor = "text-gray-700";
+                const getColor = (estado) => {
+                    switch (estado) {
+                        case "Activo":
+                        case ESTADOS.ACTIVO:
+                            return "success";
+                        case "Inactivo":
+                        case ESTADOS.INACTIVO:
+                            return "danger";
+                        default:
+                            return "primary";
+                    }
+                };
+
+                const color = getColor(cellValue);
 
                 return (
                     <Chip
-                        className={`capitalize border-none gap-1 px-3 py-1 text-sm font-semibold bg-opacity-80 ${textColor}`}
-                        color={estadosColors[cellValue]}
+                        color={color}
                         size="sm"
-                        variant="flat"
                     >
                         {getEstadoLabel(cellValue)}
                     </Chip>
