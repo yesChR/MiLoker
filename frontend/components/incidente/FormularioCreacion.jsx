@@ -6,26 +6,26 @@ import { useIncidentes } from "../../hooks/useIncidentes";
 import { obtenerArmariosPorEspecialidad, obtenerCasillerosPorEspecialidad } from "../../services/armarioService";
 import { Toast } from "../CustomAlert";
 import { subirEvidencias } from "../../services/evidenciaService";
-import { uploadService } from "../../services/uploadService";
+import { validarArchivo, validarFormulario, obtenerDetalleIncidente } from "../../utils/formValidation";
+import { ordenarCasillerosPorNumero, limpiarURLsArchivos } from "../../utils/dataUtils";
 
 const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     const { data: session, status } = useSession();
     const { crearIncidente, loading, error, limpiarError } = useIncidentes();
-    
+
     const [formData, setFormData] = useState({
         idCasillero: "",
         detalle: "",
         evidencias: []
     });
-    
+
     const [armarios, setArmarios] = useState([]);
     const [casilleros, setCasilleros] = useState([]);
     const [armarioSeleccionado, setArmarioSeleccionado] = useState("");
     const [loadingArmarios, setLoadingArmarios] = useState(false);
     const [loadingCasilleros, setLoadingCasilleros] = useState(false);
 
-    const fileInputRef1 = useRef(null);
-    const fileInputRef2 = useRef(null);
+    const fileInputRef = useRef(null);
 
     // Verificar que el usuario esté autenticado
     if (status === "loading") {
@@ -72,7 +72,8 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                     setCasilleros([]);
                 } else {
                     // Extraer los casilleros del formato de respuesta
-                    setCasilleros(resultadoCasilleros.data?.casilleros || []);
+                    const casillerosData = resultadoCasilleros.data?.casilleros || [];
+                    setCasilleros(casillerosData);
                 }
             } catch (error) {
                 console.error("Error cargando datos:", error);
@@ -95,106 +96,53 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     }));
 
     // Filtrar casilleros por armario seleccionado
-    const casillerosFiltrados = armarioSeleccionado 
+    const casillerosFiltrados = armarioSeleccionado
         ? casilleros.filter(casillero => casillero.armario === armarioSeleccionado)
-        : casilleros;
+        : [];
 
-    const handleFileSelect = (ref) => {
-        if (ref.current) {
-            ref.current.click();
-        }
+    const handleFileSelect = () => {
+        fileInputRef.current?.click();
     };
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        if (file) {
-            // Validar tamaño del archivo (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                Toast.warning("Archivo muy grande", "El archivo no puede exceder 5MB");
-                return;
-            }
-
-            // Validar tipo de archivo
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            if (!allowedTypes.includes(file.type)) {
-                Toast.warning("Tipo de archivo no válido", "Solo se permiten imágenes (JPEG, PNG, WebP)");
-                return;
-            }
-
-            // Determinar qué posición usar
-            const newEvidencias = [...formData.evidencias];
-            
-            // Si no hay evidencias, agregar en posición 0
-            if (newEvidencias.length === 0) {
-                newEvidencias[0] = file;
-            }
-            // Si hay una evidencia, agregar en posición 1
-            else if (newEvidencias.length === 1) {
-                newEvidencias[1] = file;
-            }
-            // Si ya hay 2, no hacer nada (esto no debería pasar por la UI)
-            else {
-                Toast.warning("Límite alcanzado", "Solo puedes subir máximo 2 evidencias");
-                return;
-            }
-
-            setFormData(prev => ({
-                ...prev,
-                evidencias: newEvidencias
-            }));
-
-            Toast.success("Evidencia agregada", `${file.name} se agregó correctamente`);
-        }
+        if (!validarArchivo(file) || formData.evidencias.length >= 2) return;
+        
+        setFormData(prev => ({
+            ...prev,
+            evidencias: [...prev.evidencias, file]
+        }));
     };
 
     const removeEvidence = (index) => {
-        // Liberar la URL del objeto antes de remover para evitar memory leaks
-        if (formData.evidencias[index]) {
-            URL.revokeObjectURL(URL.createObjectURL(formData.evidencias[index]));
-        }
-        
-        const newEvidencias = [...formData.evidencias];
-        newEvidencias.splice(index, 1); // Remover el elemento en la posición específica
-        
+        const newEvidencias = formData.evidencias.filter((_, i) => i !== index);
         setFormData(prev => ({
             ...prev,
             evidencias: newEvidencias
         }));
-        
-        Toast.info("Evidencia removida", "La evidencia se eliminó correctamente");
     };
 
     const handleSubmit = async () => {
-        // Limpiar errores previos
         limpiarError();
 
-        // Validaciones
-        if (!formData.idCasillero) {
-            Toast.warning("Validación", "Por favor selecciona un casillero");
-            return;
-        }
-
-        if (!formData.detalle.trim()) {
-            Toast.warning("Validación", "Por favor describe el incidente");
+        const validacion = validarFormulario(formData);
+        if (!validacion.valido) {
+            Toast.warning("Validación", validacion.mensaje);
             return;
         }
 
         try {
             let evidenciasIds = [];
-            
-            // Subir evidencias primero si existen
+
             if (formData.evidencias.length > 0) {
-                Toast.info("Subiendo evidencias", "Por favor espera...");
-                
-                const resultadoEvidencias = await subirEvidencias(formData.evidencias);
-                
-                if (resultadoEvidencias.error) {
-                    Toast.error("Error subiendo evidencias", resultadoEvidencias.message);
-                    return;
+                if (formData.evidencias.length > 0) {
+                    const resultadoEvidencias = await subirEvidencias(formData.evidencias);
+                    if (resultadoEvidencias.error) {
+                        Toast.error("Error al reportar incidente", resultadoEvidencias.message);
+                        return;
+                    }
+                    evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
                 }
-                
-                evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
-                Toast.success("Evidencias subidas", "Las evidencias se subieron correctamente");
             }
 
             const incidenteData = {
@@ -206,23 +154,15 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
             };
 
             const resultado = await crearIncidente(incidenteData);
-            
+
             // Mostrar mensaje de éxito con Toast
             let mensaje = "Incidente reportado exitosamente";
             let detalle = "";
-            
-            if (resultado.incidente.esReportanteProfesor) {
-                detalle = "Reportado como profesor.";
-            } else if (resultado.incidente.esReportanteDueno) {
-                detalle = "Has reportado un incidente en tu propio casillero.";
-            } else if (resultado.incidente.tieneDuenoConocido) {
-                detalle = "Se ha registrado al dueño del casillero como afectado.";
-            } else {
-                detalle = "El casillero reportado no tiene dueño asignado actualmente.";
-            }
-            
+
+            detalle = obtenerDetalleIncidente(resultado.incidente);
+
             Toast.success(mensaje, detalle);
-            
+
             // Limpiar formulario
             setFormData({
                 idCasillero: "",
@@ -230,16 +170,14 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                 evidencias: []
             });
             setArmarioSeleccionado("");
-            
-            // Limpiar URLs de objetos para evitar memory leaks
-            formData.evidencias.forEach(file => {
-                if (file) URL.revokeObjectURL(URL.createObjectURL(file));
-            });
-            
+
+            // Limpiar URLs de objetos
+            limpiarURLsArchivos(formData.evidencias);
+
             // Llamar callbacks
             onSuccess?.(resultado);
             onClose?.();
-            
+
         } catch (error) {
             console.error("Error al crear incidente:", error);
             Toast.error("Error al reportar incidente", error.message || "Ocurrió un error inesperado");
@@ -248,166 +186,136 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
 
     return (
         <div className="space-y-4">
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    {error}
-                </div>
-            )}
-
             <div className="grid grid-cols-2 gap-4">
                 <Select
+                    aria-label="Selección de Armario"
                     label="Armario"
                     placeholder="Seleccionar Armario"
                     variant="bordered"
+                    color="primary"
+                    isRequired
                     isLoading={loadingArmarios}
-                    selectedKeys={armarioSeleccionado ? [armarioSeleccionado] : []}
+                    selectedKeys={armarioSeleccionado ? new Set([String(armarioSeleccionado)]) : new Set([])}
                     onSelectionChange={(keys) => {
                         const selectedKey = Array.from(keys)[0];
-                        setArmarioSeleccionado(selectedKey || "");
+                        setArmarioSeleccionado(selectedKey);
                         setFormData(prev => ({ ...prev, idCasillero: "" }));
                     }}
                 >
                     {armarios.map((armario) => (
-                        <SelectItem key={armario.idArmario} value={armario.idArmario}>
+                        <SelectItem
+                            key={String(armario.idArmario)}
+                            textValue={`Armario ${armario.idArmario}`}
+                        >
                             Armario {armario.idArmario}
                         </SelectItem>
                     ))}
                 </Select>
 
                 <Select
+                    aria-label="Selección de Casillero"
                     label="Casillero"
                     placeholder="Seleccionar Casillero"
                     variant="bordered"
+                    color="primary"
+                    isRequired
                     isDisabled={!armarioSeleccionado}
                     isLoading={loadingCasilleros}
-                    selectedKeys={formData.idCasillero ? [formData.idCasillero.toString()] : []}
+                    selectedKeys={formData.idCasillero ? new Set([formData.idCasillero]) : new Set()}
                     onSelectionChange={(keys) => {
                         const selectedKey = Array.from(keys)[0];
                         setFormData(prev => ({ ...prev, idCasillero: selectedKey || "" }));
                     }}
                 >
-                    {casillerosFiltrados.map((casillero) => (
-                        <SelectItem key={casillero.id.toString()} value={casillero.id.toString()}>
-                            {casillero.numeroSecuencia} {casillero.detalle !== 'Sin detalle' ? `- ${casillero.detalle}` : ''}
+                    {casillerosFiltrados.length > 0 ? (
+                        ordenarCasillerosPorNumero(casillerosFiltrados).map((casillero) => (
+                            <SelectItem
+                                key={String(casillero.id)}
+                                value={String(casillero.id)}
+                                textValue={`Casillero ${casillero.numero}`}
+                            >
+                                Casillero {casillero.numero}
+                            </SelectItem>
+                        ))
+                    ) : (
+                        <SelectItem
+                            key="no-casilleros"
+                            isReadOnly
+                            textValue={!armarioSeleccionado ? "Seleccione un armario primero" : "No hay casilleros disponibles"}
+                        >
+                            {!armarioSeleccionado ? "Seleccione un armario primero" : "No hay casilleros disponibles"}
                         </SelectItem>
-                    ))}
+                    )}
                 </Select>
             </div>
 
             <div>
+                <div className="flex items-center gap-2 mb-2">
+                    <label className="text-gray-700 text-sm">Descripción del incidente<span className="text-red-500 ml-0.5">*</span></label>
+                </div>
                 <textarea
                     placeholder="Describa detalladamente el incidente encontrado..."
                     className="focus:outline-none focus:ring-2 focus:ring-primary border-2 rounded-xl p-3 w-full placeholder:text-sm text-gray-900 min-h-[100px] resize-y"
                     value={formData.detalle}
                     onChange={(e) => setFormData(prev => ({ ...prev, detalle: e.target.value }))}
+                    aria-required="true"
                 />
             </div>
 
-            <div>
-                <label className="text-gray-500 text-sm mb-2 block">
-                    Evidencias (Opcional - Máximo 2):
-                </label>
-
-                <div className="grid grid-cols-2 gap-4">
-                    {/* Espacio 1 - Evidencia o área de carga */}
-                    <div>
-                        {formData.evidencias[0] ? (
-                            // Mostrar evidencia 1 con vista previa
-                            <div className="relative border-2 border-blue-300 rounded-lg p-2">
-                                <div className="space-y-2">
-                                    {/* Vista previa de la imagen */}
-                                    <div className="relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                        <img
-                                            src={URL.createObjectURL(formData.evidencias[0])}
-                                            alt="Vista previa"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeEvidence(0)}
-                                            className="absolute top-1 right-1 text-white bg-red-500 hover:bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-colors"
-                                            title="Eliminar evidencia"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                    {/* Información del archivo */}
-                                    <div className="px-2">
-                                        <span className="text-xs text-gray-700 block truncate">{formData.evidencias[0].name}</span>
-                                        <span className="text-xs text-gray-500">({(formData.evidencias[0].size / 1024).toFixed(1)} KB)</span>
-                                    </div>
+            <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                    <label className="text-gray-700 text-sm">Evidencias</label>
+                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+                        Opcional - Máximo 2
+                    </span>
+                </div>
+                <div className={`grid ${formData.evidencias.length > 0 ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    {formData.evidencias.map((file, idx) => (
+                        <div key={idx} className="relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden group">
+                            <div>
+                                <div className="relative w-full h-32">
+                                    <img
+                                        src={URL.createObjectURL(file)}
+                                        alt="Vista previa"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeEvidence(idx)}
+                                        className="absolute top-2 right-2 text-white bg-red-500/90 hover:bg-red-600 rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                                        title="Eliminar evidencia"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="p-3 bg-white border-t border-gray-100">
+                                    <span className="text-sm text-gray-700 font-medium block truncate mb-0.5">{file.name}</span>
+                                    <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
                                 </div>
                             </div>
-                        ) : (
-                            // Área de carga 1
-                            <div
-                                className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
-                                onClick={() => handleFileSelect(fileInputRef1)}
-                            >
-                                <div className="text-center">
-                                    <PlusIcon className="mx-auto w-10 h-10 text-blue-400" />
-                                    <p className="text-sm mt-2 text-blue-600">Agregar evidencia</p>
+                        </div>
+                    ))}
+                    {formData.evidencias.length < 2 && (
+                        <div
+                            className="bg-white border-2 border-dashed border-blue-300 rounded-xl flex items-center justify-center h-[160px] cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                            onClick={handleFileSelect}
+                        >
+                            <div className="text-center px-4">
+                                <div className="mb-2 w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto group-hover:bg-blue-100 transition-colors">
+                                    <PlusIcon className="w-6 h-6 text-blue-500" />
                                 </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef1}
-                                    className="hidden"
-                                    accept="image/jpeg,image/png,image/jpg,image/webp"
-                                    onChange={handleFileChange}
-                                />
+                                <p className="text-sm font-medium text-blue-600 group-hover:text-blue-700">Agregar evidencia</p>
+                                <p className="text-xs text-gray-500 mt-1">Haz clic o arrastra una imagen aquí</p>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Espacio 2 - Evidencia o área de carga */}
-                    <div>
-                        {formData.evidencias[1] ? (
-                            // Mostrar evidencia 2 con vista previa
-                            <div className="relative border-2 border-blue-300 rounded-lg p-2">
-                                <div className="space-y-2">
-                                    {/* Vista previa de la imagen */}
-                                    <div className="relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                        <img
-                                            src={URL.createObjectURL(formData.evidencias[1])}
-                                            alt="Vista previa"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeEvidence(1)}
-                                            className="absolute top-1 right-1 text-white bg-red-500 hover:bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-colors"
-                                            title="Eliminar evidencia"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                    {/* Información del archivo */}
-                                    <div className="px-2">
-                                        <span className="text-xs text-gray-700 block truncate">{formData.evidencias[1].name}</span>
-                                        <span className="text-xs text-gray-500">({(formData.evidencias[1].size / 1024).toFixed(1)} KB)</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            // Área de carga 2
-                            <div
-                                className="border-2 border-dashed border-blue-300 rounded-lg flex items-center justify-center h-32 cursor-pointer hover:bg-blue-50 transition-colors"
-                                onClick={() => handleFileSelect(fileInputRef2)}
-                            >
-                                <div className="text-center">
-                                    <PlusIcon className="mx-auto w-10 h-10 text-blue-400" />
-                                    <p className="text-sm mt-2 text-blue-600">Agregar evidencia</p>
-                                </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef2}
-                                    className="hidden"
-                                    accept="image/jpeg,image/png,image/jpg,image/webp"
-                                    onChange={handleFileChange}
-                                />
-                            </div>
-                        )}
-                    </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                onChange={handleFileChange}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

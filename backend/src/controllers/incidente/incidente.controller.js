@@ -11,39 +11,37 @@ import { sequelize } from "../../bd_config/conexion.js";
 import { asociarEvidenciasIncidente } from "../evidencia/evidencia.controller.js";
 
 export const crear = async (req, res) => {
+
+    let incidente;
+    let usuario;
+    let duenoCasillero;
+    const { idCasillero, detalle, evidenciasIds, cedulaUsuario } = req.body;
     const transaction = await sequelize.transaction();
     try {
-        const { idCasillero, detalle, evidenciasIds, cedulaUsuario } = req.body;
-
         // Validar que se envió el usuario
         if (!cedulaUsuario) {
-            return res.status(400).json({
-                error: "La cédula del usuario es requerida"
-            });
+            await transaction.rollback();
+            return res.status(400).json({ error: "La cédula del usuario es requerida" });
         }
 
         // Verificar que el casillero existe
         const casillero = await Casillero.findByPk(idCasillero);
         if (!casillero) {
-            return res.status(404).json({
-                error: "El casillero especificado no existe"
-            });
+            await transaction.rollback();
+            return res.status(404).json({ error: "El casillero especificado no existe" });
         }
 
         // Verificar que el usuario existe y obtener su rol
-        const usuario = await Usuario.findByPk(cedulaUsuario);
+        usuario = await Usuario.findByPk(cedulaUsuario);
         if (!usuario) {
-            return res.status(404).json({
-                error: "Usuario no encontrado"
-            });
+            await transaction.rollback();
+            return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        const estadoInicial = usuario.rol === ROLES.ESTUDIANTE ? 
-            ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE : 
-            ESTADOS_INCIDENTE.REPORTADO_PROFESOR;
+        const estadoInicial = usuario.rol === ROLES.ESTUDIANTE ? ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE : ESTADOS_INCIDENTE.REPORTADO_PROFESOR;
 
         // Crear incidente
-        const incidente = await Incidente.create({
+        incidente = await Incidente.create({
             usuarioCreador: cedulaUsuario,
             idCasillero,
             detalle,
@@ -53,7 +51,6 @@ export const crear = async (req, res) => {
 
         // SOLO agregar a EstudianteXIncidente si el reportante es ESTUDIANTE
         if (usuario.rol === ROLES.ESTUDIANTE) {
-            // 1. Agregar el estudiante reportante
             await EstudianteXIncidente.create({
                 cedulaEstudiante: cedulaUsuario,
                 idIncidente: incidente.idIncidente,
@@ -62,21 +59,13 @@ export const crear = async (req, res) => {
             }, { transaction });
         }
 
-        // 2. Buscar si hay un dueño actual del casillero
-        const duenoCasillero = await EstudianteXCasillero.findOne({
-            where: { 
-                idCasillero: idCasillero,
-            }
-        });
+        // Buscar si hay un dueño actual del casillero
+        duenoCasillero = await EstudianteXCasillero.findOne({ where: { idCasillero } });
 
-        // 3. Si hay dueño, agregarlo como afectado (independientemente de quién reporte)
+        // Si hay dueño, agregarlo como afectado
         if (duenoCasillero) {
-            // Obtener datos del estudiante dueño para la sección
             const estudianteDueno = await Estudiante.findByPk(duenoCasillero.cedulaEstudiante);
-            
-            // Solo agregar si no es el mismo que ya agregamos como reportante
             const yaEsReportante = (usuario.rol === ROLES.ESTUDIANTE && duenoCasillero.cedulaEstudiante === cedulaUsuario);
-            
             if (!yaEsReportante) {
                 await EstudianteXIncidente.create({
                     cedulaEstudiante: duenoCasillero.cedulaEstudiante,
@@ -85,7 +74,6 @@ export const crear = async (req, res) => {
                     seccion: estudianteDueno.seccion
                 }, { transaction });
             } else {
-                // Si el estudiante reportante ES el dueño, agregarlo también como afectado
                 await EstudianteXIncidente.create({
                     cedulaEstudiante: cedulaUsuario,
                     idIncidente: incidente.idIncidente,
@@ -95,35 +83,33 @@ export const crear = async (req, res) => {
             }
         }
 
-        // Asociar evidencias si se enviaron
-        if (evidenciasIds && evidenciasIds.length > 0) {
-            const evidenciasAsociadas = await asociarEvidenciasIncidente(incidente.idIncidente, evidenciasIds);
-            if (!evidenciasAsociadas) {
-                console.warn("Error asociando evidencias, pero el incidente se creó correctamente");
-            }
-        }
-
         await transaction.commit();
-
-        res.status(201).json({
-            message: "Incidente reportado exitosamente",
-            incidente: {
-                ...incidente.toJSON(),
-                esReportanteProfesor: usuario.rol === ROLES.PROFESOR,
-                esReportanteDueno: duenoCasillero?.cedulaEstudiante === cedulaUsuario,
-                tieneDuenoConocido: !!duenoCasillero,
-                duenoDelCasillero: duenoCasillero?.cedulaEstudiante || null,
-                evidenciasAsociadas: evidenciasIds?.length || 0
-            }
-        });
-
     } catch (error) {
         await transaction.rollback();
-        res.status(500).json({
-            error: "Error interno del servidor",
-            message: error.message
-        });
+        return res.status(500).json({ error: "Error interno del servidor", message: error.message });
     }
+
+    // Asociar evidencias fuera de la transacción principal
+    let evidenciasAsociadas = true;
+    if (evidenciasIds && evidenciasIds.length > 0) {
+        evidenciasAsociadas = await asociarEvidenciasIncidente(incidente.idIncidente, evidenciasIds);
+        if (!evidenciasAsociadas) {
+            console.warn("Error asociando evidencias, pero el incidente se creó correctamente");
+        }
+    }
+
+    res.status(201).json({
+        message: "Incidente reportado exitosamente",
+        incidente: {
+            ...incidente.toJSON(),
+            esReportanteProfesor: usuario.rol === ROLES.PROFESOR,
+            esReportanteDueno: duenoCasillero?.cedulaEstudiante === cedulaUsuario,
+            tieneDuenoConocido: !!duenoCasillero,
+            duenoDelCasillero: duenoCasillero?.cedulaEstudiante || null,
+            evidenciasAsociadas: evidenciasIds?.length || 0,
+            evidenciasAsociadasExito: evidenciasAsociadas
+        }
+    });
 };
 
 export const agregarInvolucrado = async (req, res) => {
