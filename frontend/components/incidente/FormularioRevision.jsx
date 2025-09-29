@@ -1,11 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { Divider, Spinner, Select, } from "@heroui/react"; // Importar Button, Select y Option
+import React, { useState, useEffect } from "react";
+import { Divider, Spinner, Select, SelectItem } from "@heroui/react";
 import Carousel from "react-multi-carousel";
 import Image from "next/image";
-import { AiOutlinePlus } from "react-icons/ai"; // Importar el ícono de "Agregar"
+import { AiOutlinePlus } from "react-icons/ai";
+import { useFormularioRevision } from "../../hooks/useFormularioRevision";
+import { obtenerTextoEstado, ESTADOS_INCIDENTE } from "../../utils/incidenteConstants";
 
-const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalleEditable }) => {
+const FormularioRevision = ({ selectedItem, loading: loadingProp }) => {
+    // Debug log para ver los datos que llegan
+    console.log('FormularioRevision - selectedItem:', selectedItem);
+
+    const {
+        loading: loadingHook,
+        detalles,
+        solucion,
+        setSolucion,
+        estadoSeleccionado,
+        setEstadoSeleccionado,
+        observaciones,
+        setObservaciones,
+        actualizarEstado
+    } = useFormularioRevision(selectedItem?.idIncidente);
+
+    // Combinar loading del prop y del hook
+    const loading = loadingProp || loadingHook;
     const [evidencias, setEvidencias] = useState(selectedItem?.evidencia || []); // Estado para las evidencias
+    const [detalleEditable, setDetalleEditable] = useState(selectedItem?.detalle || ''); // Estado para el detalle editable
 
     const responsive = {
         superLargeDesktop: {
@@ -37,17 +57,27 @@ const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalle
     };
 
     useEffect(() => {
-        if (selectedItem) {
-            setDetalleEditable(selectedItem.detalle); // Inicializa el detalle editable con el valor actual
-            setEvidencias(selectedItem.evidencia || []); // Inicializa las evidencias
+        if (detalles) {
+            setDetalleEditable(detalles.detalle || ''); // Inicializa el detalle editable con el valor actual
+            setEvidencias(detalles.evidencia || []); // Inicializa las evidencias
         }
-    }, [selectedItem, setDetalleEditable]);
+    }, [detalles]);
 
     const handleAddImage = (event) => {
         const files = Array.from(event.target.files);
         const newEvidencias = files.map((file) => URL.createObjectURL(file)); // Crear URLs temporales para las imágenes
         setEvidencias((prev) => [...prev, ...newEvidencias]); // Agregar nuevas evidencias
     };
+
+    // Debug logs
+    useEffect(() => {
+        console.log('Estado actual:', {
+            loading,
+            selectedItem,
+            detalles,
+            estadoSeleccionado
+        });
+    }, [loading, selectedItem, detalles, estadoSeleccionado]);
 
     if (loading) {
         return (
@@ -57,8 +87,11 @@ const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalle
         );
     }
 
-    if (!selectedItem) {
-        return <p>No hay datos seleccionados.</p>;
+    // Usar selectedItem como respaldo si detalles aún no está disponible
+    const datosAMostrar = detalles || selectedItem;
+
+    if (!datosAMostrar) {
+        return <p className="text-center text-gray-600">No hay datos disponibles.</p>;
     }
 
     return (
@@ -67,19 +100,19 @@ const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalle
                 <div>
                     <h2 className="text-gray-700 font-bold text-sm mb-2">Demandante:</h2>
                     <div className="text-gray-600 text-sm">
-                        <p>Nombre: {selectedItem.demandante.nombre}</p>
-                        <p>Sección: {selectedItem.demandante.seccion}</p>
-                        <p>Teléfono: {selectedItem.demandante.telefono}</p>
-                        <p>Correo: {selectedItem.demandante.correo}</p>
+                        <p>Nombre: {detalles.demandante?.nombre}</p>
+                        <p>Sección: {detalles.demandante?.seccion}</p>
+                        <p>Teléfono: {detalles.demandante?.telefono}</p>
+                        <p>Correo: {detalles.demandante?.correo}</p>
                     </div>
                 </div>
                 <div>
                     <h2 className="text-gray-700 font-bold text-sm mb-2">Responsable:</h2>
                     <div className="text-gray-600 text-sm">
-                        <p>Nombre: {selectedItem.responsable.nombre}</p>
-                        <p>Sección: {selectedItem.responsable.seccion}</p>
-                        <p>Teléfono: {selectedItem.responsable.telefono}</p>
-                        <p>Correo: {selectedItem.responsable.correo}</p>
+                        <p>Nombre: {detalles.responsable?.nombre}</p>
+                        <p>Sección: {detalles.responsable?.seccion}</p>
+                        <p>Teléfono: {detalles.responsable?.telefono}</p>
+                        <p>Correo: {detalles.responsable?.correo}</p>
                     </div>
                 </div>
             </div>
@@ -87,7 +120,7 @@ const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalle
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <h2 className="text-gray-700 font-bold text-sm mb-2">Encargados:</h2>
-                    {selectedItem.encargados.map((encargado, index) => (
+                                        {datosAMostrar?.encargados?.map((encargado, index) => (
                         <div key={index} className="mb-2 text-gray-600 text-sm">
                             <p className="font-semibold">
                                 {encargado.parentesco}: {encargado.nombre}
@@ -159,18 +192,51 @@ const FormularioRevision = ({ loading, selectedItem, setDetalleEditable, detalle
                     <h2 className="text-gray-700 font-bold text-sm mb-2">Complete la información</h2>
                     <div className="space-y-4">
                         <Select
+                            label="Estado del incidente"
                             labelPlacement="outside"
                             placeholder="Seleccione un estado..."
-                            variant={"bordered"}
+                            variant="bordered"
                             className="focus:border-primario"
                             color="primary"
-                        />
+                            selectedKeys={estadoSeleccionado ? [estadoSeleccionado.toString()] : []}
+                            onChange={(e) => setEstadoSeleccionado(Number(e.target.value))}
+                        >
+                            {Object.entries(ESTADOS_INCIDENTE).map(([key, value]) => (
+                                <SelectItem key={value} value={value}>
+                                    {obtenerTextoEstado(value)}
+                                </SelectItem>
+                            ))}
+                        </Select>
 
-                        <textarea
-                            className="w-full border rounded-lg p-2 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            rows="4"
-                            placeholder="Solución planteada..."
-                        ></textarea>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Observaciones</label>
+                            <textarea
+                                className="w-full border rounded-lg p-2 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                rows="2"
+                                placeholder="Agregue observaciones sobre el cambio de estado..."
+                                value={observaciones}
+                                onChange={(e) => setObservaciones(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Solución propuesta</label>
+                            <textarea
+                                className="w-full border rounded-lg p-2 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                rows="4"
+                                placeholder="Describa la solución planteada..."
+                                value={solucion}
+                                onChange={(e) => setSolucion(e.target.value)}
+                            />
+                        </div>
+
+                        <button
+                            onClick={actualizarEstado}
+                            className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
+                            disabled={loading}
+                        >
+                            {loading ? "Actualizando..." : "Actualizar estado"}
+                        </button>
                     </div>
                 </div>
             </div>

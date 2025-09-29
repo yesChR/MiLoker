@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Funciones del servicio de incidentes
-export const incidenteService = {
+const incidenteService = {
   // Crear un nuevo incidente
   crear: async (incidenteData) => {
     try {
@@ -67,6 +67,92 @@ export const incidenteService = {
     }
   },
 
+  // Obtener detalles completos de un incidente
+  obtenerDetalles: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/incidente/${id}/detalles`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener los detalles del incidente');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error en incidenteService.obtenerDetalles:', error);
+      throw error;
+    }
+  },
+
+  // Obtener historial de cambios de un incidente
+  obtenerHistorial: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/incidente/${id}/historial`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener el historial del incidente');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error en incidenteService.obtenerHistorial:', error);
+      throw error;
+    }
+  },
+
+  // Actualizar estado de un incidente
+  actualizarEstado: async (id, data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/incidente/${id}/estado`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al actualizar el estado del incidente');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error en incidenteService.actualizarEstado:', error);
+      throw error;
+    }
+  },
+
+  // Obtener un incidente por ID
+  obtenerPorId: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/incidente/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener el incidente');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error en incidenteService.obtenerPorId:', error);
+      throw error;
+    }
+  },
+
   // Agregar involucrado a un incidente
   agregarInvolucrado: async (idIncidente, involucradoData) => {
     try {
@@ -89,4 +175,58 @@ export const incidenteService = {
       throw error;
     }
   }
+};
+
+// Exportar el servicio
+export { incidenteService };
+
+// Exportaciones individuales para uso directo
+export const obtenerDetallesIncidente = async (id) => {
+  if (!id) return null;
+  const response = await fetch(`${API_BASE_URL}/incidente/${id}/detalles`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Error al obtener los detalles del incidente');
+  }
+
+  return await response.json();
+};
+
+export const obtenerHistorialIncidente = async (id) => {
+  if (!id) return [];
+  const response = await fetch(`${API_BASE_URL}/incidente/${id}/historial`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Error al obtener el historial del incidente');
+  }
+
+  return await response.json();
+};
+
+export const actualizarEstadoIncidente = async (id, data) => {
+  if (!id) throw new Error('ID de incidente requerido');
+  const response = await fetch(`${API_BASE_URL}/incidente/${id}/estado`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error al actualizar el estado del incidente');
+  }
+
+  return await response.json();
 };

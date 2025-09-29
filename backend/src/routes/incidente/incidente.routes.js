@@ -1,19 +1,23 @@
 import { Router } from "express";
 import { crear, agregarInvolucrado, listar, obtenerPorId } from "../../controllers/incidente/incidente.controller.js";
-// import { verificarToken } from "../../middleware/auth.middleware.js"; // Descomenta cuando tengas el middleware
+import { obtenerDetallesIncidente, actualizarEstadoIncidente, obtenerHistorialIncidente } from "../../controllers/incidente/detallesIncidente.controller.js";
+// import { verificarToken } from "../../middleware/auth.middleware.js" // Descomenta cuando tengas el middleware
 
 const router = Router();
 
-// Listar incidentes
+// Rutas para listar y obtener incidentes
 router.get("/", listar);
-
-// Obtener un incidente específico
 router.get("/:id", obtenerPorId);
 
-// Crear un nuevo incidente
-router.post("/", crear);
+// Rutas para detalles y historial
+router.get("/:id/detalles", obtenerDetallesIncidente);
+router.get("/:id/historial", obtenerHistorialIncidente);
 
-// Agregar estudiante involucrado a un incidente
+// Ruta para actualizar estado
+router.put("/:id/estado", actualizarEstadoIncidente);
+
+// Rutas para crear y modificar
+router.post("/", crear);
 router.post("/:idIncidente/involucrado", agregarInvolucrado);
 
 export { router as incidenteRoutes };

@@ -67,18 +67,28 @@ const ListaIncidentes = () => {
     }));
 
     const handleRevisar = async (item) => {
+        if (!item?.idIncidente) {
+            console.error('No se proporcionó un ID de incidente válido');
+            return;
+        }
+
         setAccion("revisar");
         setLoadingDetalle(true);
-        setSelectedItem(null);
-        onOpen();
-
+        
         try {
-            // Aquí podrías hacer una llamada para obtener más detalles del incidente
-            // Por ahora usamos los datos que ya tenemos
+            // Obtener el incidente completo de los datos que ya tenemos
             const incidenteCompleto = incidentes.find(inc => inc.idIncidente === item.idIncidente);
+            if (!incidenteCompleto) {
+                throw new Error('No se encontró el incidente');
+            }
             
+            console.log('Incidente seleccionado:', incidenteCompleto); // Debug log
+            setSelectedItem(incidenteCompleto); // Establecer el incidente seleccionado
+            onOpen(); // Abrir el drawer después de tener los datos
         } catch (error) {
             console.error("Error cargando detalles:", error);
+            Toast.error('Error', 'No se pudieron cargar los detalles del incidente');
+        } finally {
             setLoadingDetalle(false);
         }
     };
