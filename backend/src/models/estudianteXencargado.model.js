@@ -22,8 +22,23 @@ export const EstudianteXEncargado = sequelize.define("estudianteXencargado", {
   timestamps: false
 });
 
-Estudiante.hasMany(EstudianteXEncargado, { foreignKey: 'cedulaEstudiante' });
-EstudianteXEncargado.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante'});
+Estudiante.hasMany(EstudianteXEncargado, { foreignKey: 'cedulaEstudiante', as: 'estudianteXencargados' });
+EstudianteXEncargado.belongsTo(Estudiante, { foreignKey: 'cedulaEstudiante', as: 'estudiante' });
 
-Encargado.hasMany(EstudianteXEncargado, { foreignKey: 'cedulaEncargado' });
-EstudianteXEncargado.belongsTo(Encargado, { foreignKey: 'cedulaEncargado' });
+Encargado.hasMany(EstudianteXEncargado, { foreignKey: 'cedulaEncargado', as: 'encargadoXestudiantes' });
+EstudianteXEncargado.belongsTo(Encargado, { foreignKey: 'cedulaEncargado', as: 'encargado' });
+
+// Relación many-to-many: Un estudiante tiene muchos encargados
+Estudiante.belongsToMany(Encargado, {
+  through: EstudianteXEncargado,
+  foreignKey: 'cedulaEstudiante',
+  otherKey: 'cedulaEncargado',
+  as: 'encargados'
+});
+
+Encargado.belongsToMany(Estudiante, {
+  through: EstudianteXEncargado,
+  foreignKey: 'cedulaEncargado',
+  otherKey: 'cedulaEstudiante',
+  as: 'estudiantes'
+});
