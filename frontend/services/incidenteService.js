@@ -26,9 +26,15 @@ const incidenteService = {
   },
 
   // Listar incidentes
-  listar: async () => {
+  listar: async (usuarioInfo) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/incidente`, {
+      // Construir query params para filtrado por rol y especialidad
+      const params = new URLSearchParams();
+      if (usuarioInfo?.cedulaUsuario) params.append('cedulaUsuario', usuarioInfo.cedulaUsuario);
+      if (usuarioInfo?.rol) params.append('rol', usuarioInfo.rol);
+      if (usuarioInfo?.idEspecialidad) params.append('idEspecialidad', usuarioInfo.idEspecialidad);
+
+      const response = await fetch(`${API_BASE_URL}/incidente?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -229,4 +235,8 @@ export const actualizarEstadoIncidente = async (id, data) => {
   }
 
   return await response.json();
+};
+
+export const agregarInvolucrado = async (idIncidente, involucradoData) => {
+  return await incidenteService.agregarInvolucrado(idIncidente, involucradoData);
 };

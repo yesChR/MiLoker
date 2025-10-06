@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Toast } from '../components/CustomAlert';
 import { obtenerDetallesIncidente, actualizarEstadoIncidente, obtenerHistorialIncidente } from '../services/incidenteService';
+import { transformarIncidente } from '../utils/incidenteUtils';
 
 export const useFormularioRevision = (idIncidente) => {
     const { data: session } = useSession();
@@ -23,20 +24,24 @@ export const useFormularioRevision = (idIncidente) => {
         try {
             setError(null);
             setLoading(true);
-            console.log('Cargando detalles para ID:', idIncidente); // Debug
+            console.log('Cargando detalles para ID:', idIncidente);
 
             const [resultado, historialData] = await Promise.all([
                 obtenerDetallesIncidente(idIncidente),
                 obtenerHistorialIncidente(idIncidente)
             ]);
 
-            console.log('Detalles recibidos:', resultado); // Debug
-            console.log('Historial recibido:', historialData); // Debug
+            console.log('Detalles recibidos del backend:', resultado);
+            console.log('Historial recibido:', historialData);
 
             if (resultado) {
-                setDetalles(resultado);
+                // Transformar los datos al formato esperado por el frontend
+                const datosTransformados = transformarIncidente(resultado);
+                console.log('Datos transformados:', datosTransformados);
+                
+                setDetalles(datosTransformados);
                 setEstadoSeleccionado(resultado.idEstadoIncidente);
-                setSolucion(resultado.solucion || '');
+                setSolucion(resultado.solucionPlanteada || '');
             }
 
             setHistorial(historialData || []);
@@ -50,7 +55,7 @@ export const useFormularioRevision = (idIncidente) => {
     };
 
     // Actualizar estado del incidente
-    const actualizarEstado = async () => {
+    const actualizarEstado = async (detalleModificado, nuevasEvidencias = []) => {
         if (!session?.user?.id) {
             Toast.error('Error', 'No hay sesión de usuario');
             return;
@@ -58,17 +63,34 @@ export const useFormularioRevision = (idIncidente) => {
 
         try {
             setLoading(true);
+            
+            // Subir nuevas evidencias si existen
+            let evidenciasIds = [];
+            if (nuevasEvidencias.length > 0) {
+                const { subirEvidencias } = await import('../services/evidenciaService');
+                const resultadoUpload = await subirEvidencias(nuevasEvidencias);
+                
+                if (resultadoUpload.error) {
+                    Toast.error('Error', 'No se pudieron subir las evidencias');
+                    return;
+                }
+                
+                evidenciasIds = resultadoUpload.evidencias?.map(e => e.idEvidencia) || [];
+            }
+            
             await actualizarEstadoIncidente(idIncidente, {
                 nuevoEstado: estadoSeleccionado,
                 observaciones,
                 solucion,
-                usuarioModificador: session.user.id
+                detalle: detalleModificado,
+                usuarioModificador: session.user.id,
+                evidenciasIds: evidenciasIds
             });
 
-            Toast.success('Éxito', 'Estado actualizado correctamente');
+            Toast.success('Éxito', 'Incidente actualizado correctamente');
             await cargarDetalles(); // Recargar detalles
         } catch (error) {
-            Toast.error('Error', 'No se pudo actualizar el estado del incidente');
+            Toast.error('Error', 'No se pudo actualizar el incidente');
             console.error('Error al actualizar estado:', error);
         } finally {
             setLoading(false);

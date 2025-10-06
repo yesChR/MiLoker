@@ -52,3 +52,30 @@ export const obtenerColorEstado = (estado) => {
     };
     return colores[estado] || 'default';
 };
+
+// Helper para obtener los estados siguientes permitidos (secuencial)
+export const obtenerEstadosSiguientes = (estadoActual) => {
+    // Mapeo de transiciones permitidas (solo hacia adelante)
+    const transiciones = {
+        [ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE]: [
+            ESTADOS_INCIDENTE.REPORTADO_PROFESOR,
+            ESTADOS_INCIDENTE.EN_INVESTIGACION
+        ],
+        [ESTADOS_INCIDENTE.REPORTADO_PROFESOR]: [
+            ESTADOS_INCIDENTE.EN_INVESTIGACION
+        ],
+        [ESTADOS_INCIDENTE.EN_INVESTIGACION]: [
+            ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO,
+            ESTADOS_INCIDENTE.RESUELTO
+        ],
+        [ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO]: [
+            ESTADOS_INCIDENTE.RESUELTO
+        ],
+        [ESTADOS_INCIDENTE.RESUELTO]: [
+            ESTADOS_INCIDENTE.CERRADO
+        ],
+        [ESTADOS_INCIDENTE.CERRADO]: [] // Estado final, no permite cambios
+    };
+    
+    return transiciones[estadoActual] || [];
+};

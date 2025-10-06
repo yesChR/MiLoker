@@ -50,3 +50,22 @@ export const HistorialIncidente = sequelize.define('HistorialIncidente', {
     tableName: 'historial_incidente',
     timestamps: false
 });
+
+// Relaciones
+Incidente.hasMany(HistorialIncidente, {
+    foreignKey: 'idIncidente',
+    as: 'HistorialIncidentes'
+});
+HistorialIncidente.belongsTo(Incidente, {
+    foreignKey: 'idIncidente',
+    as: 'incidente'
+});
+
+Usuario.hasMany(HistorialIncidente, {
+    foreignKey: 'usuarioModificador',
+    as: 'historialModificaciones'
+});
+HistorialIncidente.belongsTo(Usuario, {
+    foreignKey: 'usuarioModificador',
+    as: 'usuario'
+});

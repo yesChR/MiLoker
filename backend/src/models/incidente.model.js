@@ -74,3 +74,7 @@ Incidente.belongsTo(EstadoIncidente, {
     foreignKey: 'idEstadoIncidente',
     as: 'estadoIncidente'
 });
+
+// Importar dinámicamente para evitar dependencias circulares
+// Las relaciones con HistorialIncidente y EvidenciaXIncidente
+// se definen en sus respectivos archivos de modelo

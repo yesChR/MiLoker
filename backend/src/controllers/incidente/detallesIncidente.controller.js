@@ -3,7 +3,12 @@ import { Usuario } from "../../models/usuario.model.js";
 import { HistorialIncidente } from "../../models/historialIncidente.model.js";
 import { EstudianteXIncidente } from "../../models/estudianteXincidente.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
+import { Profesor } from "../../models/profesor.model.js";
 import { Evidencia } from "../../models/evidencia.model.js";
+import { EvidenciaXIncidente } from "../../models/evidenciaXincidente.model.js";
+import { Casillero } from "../../models/casillero.model.js";
+import { Armario } from "../../models/armario.model.js";
+import { Encargado } from "../../models/encargado.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS_INCIDENTE } from "../../common/estadosIncidente.js";
 import { ROLES } from "../../common/roles.js";
@@ -15,30 +20,67 @@ export const obtenerDetallesIncidente = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Obtener incidente con relaciones
         const incidente = await Incidente.findByPk(id, {
             include: [
                 {
+                    model: Casillero,
+                    as: 'casillero',
+                    include: [{
+                        model: Armario,
+                        as: 'armario',
+                        attributes: ['id', 'idEspecialidad']
+                    }]
+                },
+                {
                     model: Usuario,
-                    as: 'creador',
-                    attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'rol']
+                    as: 'creadorUsuario',
+                    attributes: ['cedula', 'nombreUsuario', 'rol'],
+                    include: [
+                        {
+                            model: Estudiante,
+                            as: 'estudiante',
+                            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'seccion', 'telefono', 'correo'],
+                            required: false
+                        },
+                        {
+                            model: Profesor,
+                            as: 'profesor',
+                            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'telefono', 'correo'],
+                            required: false
+                        }
+                    ]
                 },
                 {
                     model: EstudianteXIncidente,
+                    as: 'estudianteXincidentes',
                     include: [{
                         model: Estudiante,
-                        attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'correo', 'telefono', 'seccion']
+                        as: 'estudiante',
+                        include: [{
+                            model: Encargado,
+                            as: 'encargados',
+                            required: false
+                        }]
                     }]
                 },
                 {
-                    model: Evidencia
+                    model: EvidenciaXIncidente,
+                    as: 'incidentesXevidencia',
+                    include: [{
+                        model: Evidencia,
+                        as: 'evidencia'
+                    }],
+                    required: false
                 },
                 {
                     model: HistorialIncidente,
+                    as: 'HistorialIncidentes',
                     include: [{
                         model: Usuario,
-                        attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'rol']
-                    }]
+                        as: 'usuario'
+                    }],
+                    required: false,
+                    order: [['fechaCambio', 'DESC']]
                 }
             ]
         });
@@ -59,7 +101,7 @@ export const obtenerDetallesIncidente = async (req, res) => {
  */
 export const actualizarEstadoIncidente = async (req, res) => {
     const { id } = req.params;
-    const { nuevoEstado, observaciones, solucion, usuarioModificador } = req.body;
+    const { nuevoEstado, observaciones, solucion, detalle, usuarioModificador, evidenciasIds } = req.body;
     const transaction = await sequelize.transaction();
 
     try {
@@ -83,13 +125,38 @@ export const actualizarEstadoIncidente = async (req, res) => {
             return res.status(400).json({ error: "Estado no válido" });
         }
 
+        // Si el nuevo estado es RESUELTO (5), la solución es obligatoria
+        if (nuevoEstado === 5 && (!solucion || solucion.trim() === '')) {
+            await transaction.rollback();
+            return res.status(400).json({ error: "La solución es obligatoria para marcar el incidente como resuelto" });
+        }
+
         // Guardar el estado anterior
         const estadoAnterior = incidente.idEstadoIncidente;
 
-        // Actualizar el estado del incidente
-        await incidente.update({
+        // Preparar datos para actualizar
+        const datosActualizar = {
             idEstadoIncidente: nuevoEstado
-        }, { transaction });
+        };
+
+        // Actualizar detalle si se proporcionó
+        if (detalle !== undefined) {
+            datosActualizar.detalle = detalle;
+        }
+
+        // Actualizar solución solo si el nuevo estado es RESUELTO (5)
+        if (nuevoEstado === 5 && solucion) {
+            datosActualizar.solucionPlanteada = solucion;
+        }
+
+        // Actualizar el incidente
+        await incidente.update(datosActualizar, { transaction });
+
+        // Asociar nuevas evidencias si existen
+        if (evidenciasIds && evidenciasIds.length > 0) {
+            const { asociarEvidenciasIncidente } = await import('../evidencia/evidencia.controller.js');
+            await asociarEvidenciasIncidente(id, evidenciasIds);
+        }
 
         // Registrar en el historial
         await HistorialIncidente.create({
@@ -104,9 +171,55 @@ export const actualizarEstadoIncidente = async (req, res) => {
 
         await transaction.commit();
         
+        // Recargar el incidente con todas sus relaciones
+        const incidenteActualizado = await Incidente.findByPk(id, {
+            include: [
+                {
+                    model: Casillero,
+                    as: 'casillero'
+                },
+                {
+                    model: Usuario,
+                    as: 'creadorUsuario'
+                },
+                {
+                    model: EstudianteXIncidente,
+                    as: 'estudianteXincidentes',
+                    include: [{
+                        model: Estudiante,
+                        as: 'estudiante',
+                        include: [{
+                            model: Encargado,
+                            as: 'encargados',
+                            required: false
+                        }]
+                    }]
+                },
+                {
+                    model: EvidenciaXIncidente,
+                    as: 'incidentesXevidencia',
+                    include: [{
+                        model: Evidencia,
+                        as: 'evidencia'
+                    }],
+                    required: false
+                },
+                {
+                    model: HistorialIncidente,
+                    as: 'HistorialIncidentes',
+                    include: [{
+                        model: Usuario,
+                        as: 'usuario'
+                    }],
+                    required: false,
+                    order: [['fechaCambio', 'DESC']]
+                }
+            ]
+        });
+        
         return res.json({ 
             mensaje: "Estado actualizado correctamente",
-            incidente: await obtenerDetallesIncidente(id)
+            incidente: incidenteActualizado
         });
     } catch (error) {
         await transaction.rollback();
@@ -126,7 +239,8 @@ export const obtenerHistorialIncidente = async (req, res) => {
             where: { idIncidente: id },
             include: [{
                 model: Usuario,
-                attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'rol']
+                as: 'usuario',
+                attributes: ['cedula', 'nombreUsuario', 'rol']
             }],
             order: [['fechaCambio', 'DESC']]
         });

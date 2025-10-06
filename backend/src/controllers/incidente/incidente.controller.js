@@ -1,6 +1,7 @@
 import { Incidente } from "../../models/incidente.model.js";
 import { EstudianteXIncidente } from "../../models/estudianteXincidente.model.js";
 import { Casillero } from "../../models/casillero.model.js";
+import { Armario } from "../../models/armario.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
 import { Usuario } from "../../models/usuario.model.js";
@@ -200,25 +201,71 @@ export const agregarInvolucrado = async (req, res) => {
 // Listar incidentes según rol del usuario
 export const listar = async (req, res) => {
     try {
-        // Por ahora listar todos - puedes agregar filtros según el usuario
+        const { cedulaUsuario, idEspecialidad, rol } = req.query;
+
+        // Validar que se envió información del usuario
+        if (!cedulaUsuario || !rol) {
+            return res.status(400).json({ 
+                error: "Se requiere cédula de usuario y rol" 
+            });
+        }
+
+        // Convertir rol a número para comparación
+        const rolNumerico = parseInt(rol);
+
+        let whereClause = {};
+        let includeClause = [
+            {
+                model: Usuario,
+                as: "creadorUsuario",
+                attributes: ['cedula', 'nombreUsuario', 'rol']
+            },
+            {
+                model: Casillero,
+                as: "casillero",
+                attributes: ['idCasillero', 'numCasillero', 'idArmario'],
+                include: [
+                    {
+                        model: Armario,
+                        as: "armario",
+                        attributes: ['idEspecialidad'],
+                        // Filtrar por especialidad para profesores
+                        ...(rolNumerico === ROLES.PROFESOR && idEspecialidad ? {
+                            where: { idEspecialidad: parseInt(idEspecialidad) }
+                        } : {})
+                    }
+                ]
+            }
+        ];
+
+        // Si es estudiante, solo ver incidentes donde está involucrado
+        if (rolNumerico === ROLES.ESTUDIANTE) {
+            const incidentesEstudiante = await EstudianteXIncidente.findAll({
+                where: { cedulaEstudiante: cedulaUsuario },
+                attributes: ['idIncidente'],
+                raw: true
+            });
+
+            const idsIncidentes = incidentesEstudiante.map(e => e.idIncidente);
+            
+            if (idsIncidentes.length === 0) {
+                // Si no tiene incidentes, devolver array vacío
+                return res.status(200).json([]);
+            }
+
+            whereClause.idIncidente = idsIncidentes;
+        }
+        // Si es profesor, ya se filtró por especialidad en el include del casillero
+
         const incidentes = await Incidente.findAll({
-            include: [
-                {
-                    model: Usuario,
-                    as: "creadorUsuario",
-                    attributes: ['cedula', 'nombreUsuario', 'rol']
-                },
-                {
-                    model: Casillero,
-                    as: "casillero",
-                    attributes: ['idCasillero', 'numCasillero']
-                }
-            ],
+            where: whereClause,
+            include: includeClause,
             order: [['fechaCreacion', 'DESC']]
         });
 
         res.status(200).json(incidentes);
     } catch (error) {
+        console.error('Error al listar incidentes:', error);
         res.status(500).json({
             error: "Error interno del servidor",
             message: error.message
