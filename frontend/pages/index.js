@@ -214,11 +214,35 @@ export default function Home() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm-6 4a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6z" />
             </svg>
           ),
-          title: "Configuración",
-          description: "Gestiona tipos de sanciones y períodos de solicitud",
+          title: "Tipos de Sanciones",
+          description: "Gestiona tipos de sanciones y políticas disciplinarias",
           color: "#f59e0b",
           route: "/administrador/tiposSanciones",
           delay: "delay-400"
+        },
+        {
+          icon: (
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0v4m-4 8a2 2 0 100-4 2 2 0 000 4zm-6 4a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6z" />
+            </svg>
+          ),
+          title: "Períodos",
+          description: "Gestiona períodos de solicitud y configuraciones temporales",
+          color: "#ef4444",
+          route: "/administrador/periodosSolicitud",
+          delay: "delay-500"
+        },
+        {
+          icon: (
+            <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          ),
+          title: "Seguridad",
+          description: "Gestiona permisos y configuraciones de seguridad del sistema",
+          color: "#6366f1",
+          route: "/administrador/admin",
+          delay: "delay-600"
         }
       ],
       
@@ -359,6 +383,18 @@ export default function Home() {
           color: "#ef4444",
           route: "/estudiante/renunciarCasillero",
           delay: "delay-500"
+        },
+        {
+          icon: (
+            <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+          ),
+          title: "Mis Incidentes",
+          description: "Consulta el historial de incidentes que has reportado",
+          color: "#6366f1",
+          route: "/incidente/listaIncidentes",
+          delay: "delay-600"
         }
       ]
     };
@@ -378,7 +414,7 @@ export default function Home() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-auto">
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-white via-sky-50 to-cyan-25 overflow-auto">
       {/* Fondo animado */}
       <ParticlesBackground />
 
