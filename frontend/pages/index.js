@@ -151,12 +151,18 @@ export default function Home() {
   const obtenerPrimerNombre = (nombreCompleto) => {
     if (!nombreCompleto) return null;
     
+    let nombre;
+    
     if (nombreCompleto.includes('@')) {
-      const parteAntes = nombreCompleto.split('@')[0];
-      return parteAntes.charAt(0).toUpperCase() + parteAntes.slice(1);
+      // Si es email, tomar la parte antes del @
+      nombre = nombreCompleto.split('@')[0];
+    } else {
+      // Si es nombre completo, tomar solo el primer nombre
+      nombre = nombreCompleto.split(' ')[0];
     }
     
-    return nombreCompleto.split(' ')[0];
+    // Capitalizar correctamente: primera letra mayúscula, resto minúscula
+    return nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
   };
 
   // Funcionalidades por rol basadas en el sistema real
