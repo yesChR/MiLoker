@@ -4,7 +4,6 @@ import { runSeedersIfNeeded } from './seeders/index.js'
 
 import './models/administrador.model.js'
 import './models/armario.model.js'
-import './models/bitacora.model.js'
 import './models/casillero.model.js'
 import './models/encargado.model.js'
 import './models/especialidad.model.js'

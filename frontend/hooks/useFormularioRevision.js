@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { Toast } from '../components/CustomAlert';
 import { obtenerDetallesIncidente, actualizarEstadoIncidente, obtenerHistorialIncidente } from '../services/incidenteService';
 import { transformarIncidente } from '../utils/incidenteUtils';
+import { ROLES } from '../utils/rolesConstants';
 
 export const useFormularioRevision = (idIncidente) => {
     const { data: session } = useSession();
@@ -24,20 +25,15 @@ export const useFormularioRevision = (idIncidente) => {
         try {
             setError(null);
             setLoading(true);
-            console.log('Cargando detalles para ID:', idIncidente);
 
             const [resultado, historialData] = await Promise.all([
                 obtenerDetallesIncidente(idIncidente),
                 obtenerHistorialIncidente(idIncidente)
             ]);
 
-            console.log('Detalles recibidos del backend:', resultado);
-            console.log('Historial recibido:', historialData);
-
             if (resultado) {
                 // Transformar los datos al formato esperado por el frontend
                 const datosTransformados = transformarIncidente(resultado);
-                console.log('Datos transformados:', datosTransformados);
                 
                 setDetalles(datosTransformados);
                 setEstadoSeleccionado(resultado.idEstadoIncidente);
@@ -46,7 +42,6 @@ export const useFormularioRevision = (idIncidente) => {
 
             setHistorial(historialData || []);
         } catch (error) {
-            console.error('Error al cargar detalles:', error);
             setError(error.message || 'No se pudieron cargar los detalles del incidente');
             Toast.error('Error', 'No se pudieron cargar los detalles del incidente');
         } finally {
@@ -56,8 +51,9 @@ export const useFormularioRevision = (idIncidente) => {
 
     // Actualizar estado del incidente
     const actualizarEstado = async (detalleModificado, nuevasEvidencias = []) => {
-        if (!session?.user?.id) {
-            Toast.error('Error', 'No hay sesión de usuario');
+        const usuarioId = session?.user?.id;
+        if (!usuarioId) {
+            Toast.error('Error', 'No hay sesión de usuario válida');
             return;
         }
 
@@ -68,7 +64,8 @@ export const useFormularioRevision = (idIncidente) => {
             let evidenciasIds = [];
             if (nuevasEvidencias.length > 0) {
                 const { subirEvidencias } = await import('../services/evidenciaService');
-                const resultadoUpload = await subirEvidencias(nuevasEvidencias);
+                // Tipo 2 = evidencias agregadas después de crear el incidente
+                const resultadoUpload = await subirEvidencias(nuevasEvidencias, 2);
                 
                 if (resultadoUpload.error) {
                     Toast.error('Error', 'No se pudieron subir las evidencias');
@@ -83,7 +80,7 @@ export const useFormularioRevision = (idIncidente) => {
                 observaciones,
                 solucion,
                 detalle: detalleModificado,
-                usuarioModificador: session.user.id,
+                usuarioModificador: usuarioId,
                 evidenciasIds: evidenciasIds
             });
 
@@ -91,7 +88,6 @@ export const useFormularioRevision = (idIncidente) => {
             await cargarDetalles(); // Recargar detalles
         } catch (error) {
             Toast.error('Error', 'No se pudo actualizar el incidente');
-            console.error('Error al actualizar estado:', error);
         } finally {
             setLoading(false);
         }
@@ -104,6 +100,39 @@ export const useFormularioRevision = (idIncidente) => {
         }
     }, [idIncidente]);
 
+    // Función para verificar permisos de edición
+    const verificarPermisos = () => {
+        // Si está cargando, no permitir edición
+        if (!session?.user) {
+            return { puedeEditar: false, mensaje: 'Verificando permisos...' };
+        }
+
+        // Verificar que sea profesor
+        if (session.user.role !== ROLES.PROFESOR) {
+            return { puedeEditar: false, mensaje: 'Solo los profesores pueden actualizar el estado de los incidentes' };
+        }
+
+        // Verificar que tenga especialidad
+        if (!session.user.idEspecialidad) {
+            return { puedeEditar: false, mensaje: 'El usuario no tiene una especialidad asignada' };
+        }
+
+        // Verificar que el incidente tenga un casillero con armario
+        const especialidadCasillero = detalles?.casillero?.armario?.idEspecialidad;
+        if (!especialidadCasillero) {
+            return { puedeEditar: false, mensaje: 'El incidente no tiene un casillero válido asignado' };
+        }
+
+        // Verificar que las especialidades coincidan
+        if (especialidadCasillero !== session.user.idEspecialidad) {
+            return { 
+                puedeEditar: false, 
+                mensaje: 'No puede revisar este incidente porque pertenece a otra especialidad' 
+            };
+        }
+        return { puedeEditar: true, mensaje: '' };
+    };
+
     return {
         loading,
         detalles,
@@ -114,6 +143,7 @@ export const useFormularioRevision = (idIncidente) => {
         setEstadoSeleccionado,
         observaciones,
         setObservaciones,
-        actualizarEstado
+        actualizarEstado,
+        verificarPermisos
     };
 };

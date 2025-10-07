@@ -77,7 +77,22 @@ export const obtenerDetallesIncidente = async (req, res) => {
                     as: 'HistorialIncidentes',
                     include: [{
                         model: Usuario,
-                        as: 'usuario'
+                        as: 'usuario',
+                        attributes: ['cedula', 'nombreUsuario', 'rol'],
+                        include: [
+                            {
+                                model: Estudiante,
+                                as: 'estudiante',
+                                attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                                required: false
+                            },
+                            {
+                                model: Profesor,
+                                as: 'profesor',
+                                attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                                required: false
+                            }
+                        ]
                     }],
                     required: false,
                     order: [['fechaCambio', 'DESC']]
@@ -102,6 +117,7 @@ export const obtenerDetallesIncidente = async (req, res) => {
 export const actualizarEstadoIncidente = async (req, res) => {
     const { id } = req.params;
     const { nuevoEstado, observaciones, solucion, detalle, usuarioModificador, evidenciasIds } = req.body;
+    
     const transaction = await sequelize.transaction();
 
     try {
@@ -125,14 +141,34 @@ export const actualizarEstadoIncidente = async (req, res) => {
             return res.status(400).json({ error: "Estado no válido" });
         }
 
+        // Validar transiciones de estado (solo puede avanzar secuencialmente)
+        const transicionesValidas = {
+            1: [2, 3],  // REPORTADO_ESTUDIANTE -> REPORTADO_PROFESOR o EN_INVESTIGACION
+            2: [3],     // REPORTADO_PROFESOR -> EN_INVESTIGACION
+            3: [4, 5],  // EN_INVESTIGACION -> RESPONSABLE_IDENTIFICADO o RESUELTO
+            4: [5],     // RESPONSABLE_IDENTIFICADO -> RESUELTO
+            5: [6],     // RESUELTO -> CERRADO
+            6: []       // CERRADO (estado final)
+        };
+
+        const estadoAnterior = incidente.idEstadoIncidente;
+        const estadosPermitidos = transicionesValidas[estadoAnterior] || [];
+
+        // Permitir mantener el mismo estado (para actualizar detalles/evidencias sin cambiar estado)
+        if (nuevoEstado !== estadoAnterior && !estadosPermitidos.includes(nuevoEstado)) {
+            await transaction.rollback();
+            return res.status(400).json({ 
+                error: `Transición de estado inválida. Desde estado ${estadoAnterior} solo puede cambiar a: ${estadosPermitidos.join(', ')}`,
+                estadoActual: estadoAnterior,
+                estadosPermitidos
+            });
+        }
+
         // Si el nuevo estado es RESUELTO (5), la solución es obligatoria
         if (nuevoEstado === 5 && (!solucion || solucion.trim() === '')) {
             await transaction.rollback();
             return res.status(400).json({ error: "La solución es obligatoria para marcar el incidente como resuelto" });
         }
-
-        // Guardar el estado anterior
-        const estadoAnterior = incidente.idEstadoIncidente;
 
         // Preparar datos para actualizar
         const datosActualizar = {
@@ -144,30 +180,48 @@ export const actualizarEstadoIncidente = async (req, res) => {
             datosActualizar.detalle = detalle;
         }
 
-        // Actualizar solución solo si el nuevo estado es RESUELTO (5)
-        if (nuevoEstado === 5 && solucion) {
-            datosActualizar.solucionPlanteada = solucion;
+        // Actualizar solución y fecha de resolución si el nuevo estado es RESUELTO (5)
+        if (nuevoEstado === 5) {
+            if (solucion) {
+                datosActualizar.solucionPlanteada = solucion;
+            }
+            datosActualizar.fechaResolucion = new Date();
         }
 
         // Actualizar el incidente
         await incidente.update(datosActualizar, { transaction });
 
         // Asociar nuevas evidencias si existen
-        if (evidenciasIds && evidenciasIds.length > 0) {
+        const seAgregaronEvidencias = evidenciasIds && evidenciasIds.length > 0;
+        if (seAgregaronEvidencias) {
             const { asociarEvidenciasIncidente } = await import('../evidencia/evidencia.controller.js');
-            await asociarEvidenciasIncidente(id, evidenciasIds);
+            await asociarEvidenciasIncidente(id, evidenciasIds, transaction);
         }
 
-        // Registrar en el historial
-        await HistorialIncidente.create({
-            idIncidente: id,
-            estadoAnterior,
-            estadoNuevo: nuevoEstado,
-            usuarioModificador,
-            fechaCambio: new Date(),
-            observaciones,
-            solucion
-        }, { transaction });
+        // Registrar en el historial si:
+        // 1. El estado cambió, O
+        // 2. Se agregaron evidencias (aunque el estado sea el mismo)
+        if (estadoAnterior !== nuevoEstado || seAgregaronEvidencias) {
+            // Determinar el mensaje de observaciones
+            let observacionesFinal = observaciones;
+            if (estadoAnterior === nuevoEstado && seAgregaronEvidencias) {
+                // Si solo se agregaron evidencias sin cambiar estado
+                const mensajeEvidencias = `Se agregaron ${evidenciasIds.length} evidencia(s)`;
+                observacionesFinal = observaciones 
+                    ? `${observaciones}\n${mensajeEvidencias}` 
+                    : mensajeEvidencias;
+            }
+
+            await HistorialIncidente.create({
+                idIncidente: id,
+                estadoAnterior,
+                estadoNuevo: nuevoEstado,
+                usuarioModificador,
+                fechaCambio: new Date(),
+                observaciones: observacionesFinal,
+                solucion
+            }, { transaction });
+        }
 
         await transaction.commit();
         
@@ -209,7 +263,22 @@ export const actualizarEstadoIncidente = async (req, res) => {
                     as: 'HistorialIncidentes',
                     include: [{
                         model: Usuario,
-                        as: 'usuario'
+                        as: 'usuario',
+                        attributes: ['cedula', 'nombreUsuario', 'rol'],
+                        include: [
+                            {
+                                model: Estudiante,
+                                as: 'estudiante',
+                                attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                                required: false
+                            },
+                            {
+                                model: Profesor,
+                                as: 'profesor',
+                                attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                                required: false
+                            }
+                        ]
                     }],
                     required: false,
                     order: [['fechaCambio', 'DESC']]

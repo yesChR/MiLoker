@@ -34,14 +34,8 @@ export const useIncidentes = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 DEBUG - Sesión completa:', session);
-      console.log('🔍 DEBUG - session?.user:', session?.user);
-      
       // Validar que la sesión esté disponible
       if (!session?.user?.id || !session?.user?.role) {
-        console.warn('⚠️ Sesión no disponible para listar incidentes');
-        console.warn('  - session.user.id:', session?.user?.id);
-        console.warn('  - session.user.role:', session?.user?.role);
         setIncidentes([]);
         setLoading(false);
         return [];
@@ -50,19 +44,15 @@ export const useIncidentes = () => {
       // Obtener info del usuario de la sesión
       const usuarioInfo = {
         cedulaUsuario: session.user.id,
-        rol: session.user.role, // next-auth guarda como 'role' no 'rol'
+        rol: session.user.role,
         idEspecialidad: session.user.idEspecialidad
       };
       
-      console.log('✅ Listando incidentes con:', usuarioInfo);
-      
       const resultado = await incidenteService.listar(usuarioInfo);
-      console.log('✅ Resultado recibido:', resultado);
       setIncidentes(resultado);
       
       return resultado;
     } catch (err) {
-      console.error('❌ Error en listarIncidentes:', err);
       setError(err.message);
       throw err;
     } finally {

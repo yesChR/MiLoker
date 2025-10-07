@@ -126,6 +126,7 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
         limpiarError();
 
         const validacion = validarFormulario(formData);
+        
         if (!validacion.valido) {
             Toast.warning("Validación", validacion.mensaje);
             return;
@@ -183,6 +184,11 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
             Toast.error("Error al reportar incidente", error.message || "Ocurrió un error inesperado");
         }
     };
+
+    // Exponer handleSubmit al componente padre mediante ref
+    useImperativeHandle(ref, () => ({
+        handleSubmit
+    }));
 
     return (
         <div className="space-y-4">

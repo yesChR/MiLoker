@@ -14,7 +14,8 @@ const handleResponse = async (response) => {
 };
 
 // Subir evidencias
-export const subirEvidencias = async (archivos) => {
+// tipo: 1 = evidencia inicial (al crear incidente), 2 = evidencia agregada después
+export const subirEvidencias = async (archivos, tipo = 1) => {
     try {
         const formData = new FormData();
         
@@ -22,6 +23,9 @@ export const subirEvidencias = async (archivos) => {
         archivos.forEach((archivo, index) => {
             formData.append('evidencias', archivo);
         });
+        
+        // Agregar el tipo de evidencia
+        formData.append('tipo', tipo);
 
         const response = await fetch(`${API_URL}/evidencia/upload`, {
             method: 'POST',
@@ -59,6 +63,47 @@ export const eliminarEvidencia = async (idEvidencia) => {
             },
         });
         return await handleResponse(response);
+    } catch (error) {
+        return { error: true, message: 'Error de conexión con el servidor' };
+    }
+};
+
+// Descargar evidencia
+export const descargarEvidencia = async (evidencia) => {
+    try {
+        if (!evidencia) {
+            return { error: true, message: 'Evidencia no disponible' };
+        }
+
+        // Construir la URL completa
+        const url = evidencia.imgUrl 
+            ? `${API_URL}${evidencia.imgUrl}` 
+            : evidencia; // Si ya es una URL completa (string)
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            return { error: true, message: `Error al descargar: ${response.status}` };
+        }
+        
+        const blob = await response.blob();
+        const urlBlob = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = urlBlob;
+        
+        // Extraer el nombre del archivo
+        const nombreArchivo = typeof evidencia === 'object' 
+            ? (evidencia.nombreArchivo || url.split('/').pop() || 'evidencia.jpg')
+            : url.split('/').pop() || 'evidencia.jpg';
+        
+        link.download = nombreArchivo;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(urlBlob);
+        
+        return { success: true, message: 'Evidencia descargada correctamente' };
     } catch (error) {
         return { error: true, message: 'Error de conexión con el servidor' };
     }

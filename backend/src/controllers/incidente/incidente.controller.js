@@ -1,9 +1,11 @@
 import { Incidente } from "../../models/incidente.model.js";
+import { HistorialIncidente } from "../../models/historialIncidente.model.js";
 import { EstudianteXIncidente } from "../../models/estudianteXincidente.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { Armario } from "../../models/armario.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
+import { Profesor } from "../../models/profesor.model.js";
 import { Usuario } from "../../models/usuario.model.js";
 import { ESTADOS_INCIDENTE } from "../../common/estadosIncidente.js";
 import { TIPOS_INVOLUCRAMIENTO, esTipoValido } from "../../common/tiposInvolucramiento.js";
@@ -48,6 +50,17 @@ export const crear = async (req, res) => {
             detalle,
             fechaCreacion: new Date(),
             idEstadoIncidente: estadoInicial
+        }, { transaction });
+
+        // Registrar en el historial la creación del incidente
+        await HistorialIncidente.create({
+            idIncidente: incidente.idIncidente,
+            estadoAnterior: null, // Primer estado, no hay anterior
+            estadoNuevo: estadoInicial,
+            usuarioModificador: cedulaUsuario,
+            fechaCambio: new Date(),
+            observaciones: 'Incidente creado',
+            solucion: null
         }, { transaction });
 
         // SOLO agregar a EstudianteXIncidente si el reportante es ESTUDIANTE
@@ -218,7 +231,21 @@ export const listar = async (req, res) => {
             {
                 model: Usuario,
                 as: "creadorUsuario",
-                attributes: ['cedula', 'nombreUsuario', 'rol']
+                attributes: ['cedula', 'nombreUsuario', 'rol'],
+                include: [
+                    {
+                        model: Estudiante,
+                        as: 'estudiante',
+                        attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                        required: false
+                    },
+                    {
+                        model: Profesor,
+                        as: 'profesor',
+                        attributes: ['nombre', 'apellidoUno', 'apellidoDos'],
+                        required: false
+                    }
+                ]
             },
             {
                 model: Casillero,

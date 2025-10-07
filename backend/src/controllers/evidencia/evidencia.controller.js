@@ -12,16 +12,19 @@ export const subirEvidencias = async (req, res) => {
             });
         }
 
+        // Obtener el tipo de evidencia del body (1=inicial al crear, 2=agregada después)
+        const tipoEvidencia = parseInt(req.body.tipo) || 1;
+
         const evidenciasCreadas = [];
         
         for (const file of req.files) {
             // Crear la URL relativa para acceder al archivo
             const imgUrl = `/uploads/evidencias/${file.filename}`;
             
-            // Crear registro de evidencia
+            // Crear registro de evidencia con el tipo recibido
             const evidencia = await Evidencia.create({
                 imgUrl: imgUrl,
-                tipo: 1 // Tipo 1 para incidentes, puedes ajustar según tu sistema
+                tipo: tipoEvidencia
             });
             
             evidenciasCreadas.push({
@@ -54,18 +57,26 @@ export const subirEvidencias = async (req, res) => {
 };
 
 // Asociar evidencias a un incidente
-export const asociarEvidenciasIncidente = async (idIncidente, evidenciasIds) => {
+export const asociarEvidenciasIncidente = async (idIncidente, evidenciasIds, transaction = null) => {
     try {
+        // Validar que evidenciasIds sea un array
+        if (!Array.isArray(evidenciasIds) || evidenciasIds.length === 0) {
+            return true;
+        }
+
         const relaciones = evidenciasIds.map(idEvidencia => ({
             idIncidente,
             idEvidencia
         }));
 
-        await EvidenciaXIncidente.bulkCreate(relaciones);
+        // Usar la transacción si se proporciona
+        const options = transaction ? { transaction } : {};
+        await EvidenciaXIncidente.bulkCreate(relaciones, options);
+        
         return true;
     } catch (error) {
         console.error("Error asociando evidencias:", error);
-        return false;
+        throw error; // Propagar el error para que la transacción haga rollback
     }
 };
 

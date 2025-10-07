@@ -12,3 +12,31 @@
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #e0e7ff;
 }
+
+/* Scrollbar para DetalleIncidente con mejor posicionamiento */
+.detalle-incidente-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #f3f4f6;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.detalle-incidente-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.detalle-incidente-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.detalle-incidente-scroll::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 10px;
+  border: 2px solid #f3f4f6;
+}
+
+.detalle-incidente-scroll::-webkit-scrollbar-thumb:hover {
+  background: #1d4ed8;
+}
