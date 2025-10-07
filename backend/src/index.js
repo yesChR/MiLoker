@@ -1,5 +1,6 @@
 import app from './app.js'
 import { sequelize } from './bd_config/conexion.js'
+import { runSeedersIfNeeded } from './seeders/index.js'
 
 import './models/administrador.model.js'
 import './models/armario.model.js'
@@ -26,10 +27,14 @@ import './models/solicitudXcasillero.model.js'
 const main = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conexión a la base de datos exitosa');
+    console.log('Conexion a la base de datos exitosa');
 
     // Crear o actualizar las tablas sin borrar datos
     await sequelize.sync({ alter: false });
+    console.log('Modelos sincronizados');
+
+    // Ejecutar seeders automáticamente si es necesario
+    await runSeedersIfNeeded();
 
     app.listen(app.get('port'));
     console.log(`Servidor corriendo en el puerto ${app.get('port')}`);

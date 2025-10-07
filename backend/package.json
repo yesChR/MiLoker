@@ -5,7 +5,11 @@
     "babel-node": "babel-node --presets=@babel/preset-env",
     "dev": "nodemon --exec npm run babel-node src/index.js",
     "start": "node dist/index.js",
-    "build": "babel src -d dist"
+    "build": "babel src -d dist",
+    "seed": "node src/seeders/cli.js seed",
+    "seed:check": "node src/seeders/cli.js seed:check",
+    "seed:revert": "node src/seeders/cli.js seed:revert",
+    "seed:test": "node src/seeders/test.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
