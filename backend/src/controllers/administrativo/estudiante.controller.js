@@ -11,51 +11,126 @@ import { leerArchivoExcel } from "../../utils/excelReader.js";
 import { obtenerEspecialidades } from "../../common/especialidades.js";
 export { uploadExcel };
 
-const procesarEstudiante = async (data, transaction) => {
-    const { cedula, correo, seccion } = data;
-
-    const usuario = await Usuario.findOne({ where: { cedula }, transaction });
-    const estudiante = await Estudiante.findOne({ where: { cedula }, transaction });
-
-    if (estudiante) {
-        estudiante.seccion = seccion;
-        await estudiante.save({ transaction });
-
-        return {
-            cedula,
-            accion: "actualizado",
-            mensaje: "Estudiante ya existía, se actualizó la sección.",
-            usuario: usuario?.nombreUsuario || null
-        };
+// Procesar estudiantes en lotes para optimizar performance
+const procesarEstudiantesEnLotes = async (estudiantesData, transaction, tamañoLote = 50) => {
+    const resultados = [];
+    
+    // 1. Obtener todos los datos necesarios de una vez (optimización)
+    const cedulas = estudiantesData.map(e => e.cedula);
+    const usuariosExistentes = await Usuario.findAll({
+        where: { cedula: cedulas },
+        attributes: ['cedula', 'nombreUsuario'],
+        raw: true,
+        transaction
+    });
+    
+    const estudiantesExistentes = await Estudiante.findAll({
+        where: { cedula: cedulas },
+        attributes: ['cedula', 'seccion'],
+        raw: true,
+        transaction
+    });
+    
+    // Crear mapas para búsqueda rápida
+    const mapaUsuarios = new Map(usuariosExistentes.map(u => [u.cedula, u]));
+    const mapaEstudiantes = new Map(estudiantesExistentes.map(e => [e.cedula, e]));
+    
+    // 2. Separar estudiantes en: actualizar, crear con usuario, crear sin usuario
+    const paraActualizar = [];
+    const paraCrearConUsuario = [];
+    const paraCrearSinUsuario = [];
+    
+    for (const data of estudiantesData) {
+        const existeEstudiante = mapaEstudiantes.has(data.cedula);
+        const existeUsuario = mapaUsuarios.has(data.cedula);
+        
+        if (existeEstudiante) {
+            paraActualizar.push(data);
+        } else if (existeUsuario) {
+            paraCrearConUsuario.push(data);
+        } else {
+            paraCrearSinUsuario.push(data);
+        }
     }
-
-    // Crear usuario si no existe
-    let usuarioCreado = usuario;
-    let contraseñaGenerada = null;
-
-    if (!usuario) {
-        const resultadoUsuario = await crearUsuario({
-            cedula,
-            correo,
-            estado: ESTADOS.INACTIVO,
-            rol: ROLES.ESTUDIANTE,
-            transaction
-        });
-        usuarioCreado = resultadoUsuario.usuario;
-        contraseñaGenerada = resultadoUsuario.contraseñaGenerada;
+        
+    // 3. Actualizar estudiantes existentes (por lotes)
+    if (paraActualizar.length > 0) {
+        console.log(`Actualizando ${paraActualizar.length} estudiantes...`);
+        for (let i = 0; i < paraActualizar.length; i += tamañoLote) {
+            const lote = paraActualizar.slice(i, i + tamañoLote);
+            
+            // Actualizar uno por uno pero en lote controlado
+            for (const data of lote) {
+                await Estudiante.update(
+                    { seccion: data.seccion },
+                    { where: { cedula: data.cedula }, transaction }
+                );
+                
+                resultados.push({
+                    cedula: data.cedula,
+                    accion: "actualizado",
+                    mensaje: "Estudiante ya existía, se actualizó la sección.",
+                    usuario: mapaUsuarios.get(data.cedula)?.nombreUsuario || null
+                });
+            }
+            
+        }
     }
-
-    // Crear estudiante
-    await Estudiante.create({ ...data }, { transaction });
-
-    return {
-        cedula,
-        accion: "creado",
-        mensaje: "Estudiante y usuario creados.",
-        usuario: usuarioCreado?.nombreUsuario || null,
-        contraseña: contraseñaGenerada,
-        correo
-    };
+    
+    // 4. Crear estudiantes que ya tienen usuario (por lotes)
+    if (paraCrearConUsuario.length > 0) {
+        console.log(`Creando ${paraCrearConUsuario.length} estudiantes con usuario existente...`);
+        for (let i = 0; i < paraCrearConUsuario.length; i += tamañoLote) {
+            const lote = paraCrearConUsuario.slice(i, i + tamañoLote);
+            
+            await Estudiante.bulkCreate(lote, {
+                transaction,
+                validate: false, // Más rápido
+                ignoreDuplicates: true
+            });
+            
+            lote.forEach(data => {
+                resultados.push({
+                    cedula: data.cedula,
+                    accion: "creado",
+                    mensaje: "Estudiante creado con usuario existente.",
+                    usuario: mapaUsuarios.get(data.cedula)?.nombreUsuario || null
+                });
+            });
+        }
+    }
+    
+    // 5. Crear usuarios y estudiantes nuevos (por lotes)
+    if (paraCrearSinUsuario.length > 0) {
+        console.log(`Creando ${paraCrearSinUsuario.length} usuarios y estudiantes nuevos...`);
+        for (let i = 0; i < paraCrearSinUsuario.length; i += tamañoLote) {
+            const lote = paraCrearSinUsuario.slice(i, i + tamañoLote);
+            
+            // Crear usuarios y estudiantes
+            for (const data of lote) {
+                const resultadoUsuario = await crearUsuario({
+                    cedula: data.cedula,
+                    correo: data.correo,
+                    estado: ESTADOS.INACTIVO,
+                    rol: ROLES.ESTUDIANTE,
+                    transaction
+                });
+                
+                await Estudiante.create(data, { transaction });
+                
+                resultados.push({
+                    cedula: data.cedula,
+                    accion: "creado",
+                    mensaje: "Estudiante y usuario creados.",
+                    usuario: resultadoUsuario.usuario?.nombreUsuario || null,
+                    contraseña: resultadoUsuario.contraseñaGenerada,
+                    correo: data.correo
+                });
+            }
+        }
+    }
+    
+    return resultados;
 };
 
 // Endpoint flexible para cargar estudiantes desde uno o múltiples archivos Excel
@@ -77,8 +152,6 @@ export const cargarEstudiantesDesdeExcel = async (req, res) => {
             });
         }
 
-        console.log(`Procesando ${archivos.length} archivo(s) Excel...`);
-
         // Procesar cada archivo
         for (let i = 0; i < archivos.length; i++) {
             const file = archivos[i];
@@ -92,37 +165,40 @@ export const cargarEstudiantesDesdeExcel = async (req, res) => {
                     throw new Error(`No se encontraron datos válidos en el archivo: ${file.originalname}`);
                 }
 
-                const resultadosArchivo = [];
+                console.log(`Total de estudiantes en archivo: ${estudiantesData.length}`);
 
-                // Procesar cada estudiante del archivo actual
-                for (const data of estudiantesData) {
-                    try {
-                        const resultado = await procesarEstudiante(data, t);
-                        resultadosArchivo.push(resultado);
+                // Procesar estudiantes en lotes (optimizado)
+                try {
+                    const resultadosArchivo = await procesarEstudiantesEnLotes(estudiantesData, t);
+                    
+                    // Agregar nombre de archivo a cada resultado
+                    resultadosArchivo.forEach(resultado => {
                         resultados.push({
                             ...resultado,
                             archivo: file.originalname
                         });
-                    } catch (error) {
-                        // Si hay cualquier error al procesar, cancelar toda la transacción
-                        await t.rollback();
-                        return res.status(500).json({
-                            error: "Error al procesar estudiante",
-                            detalle: error.message,
-                            archivo: file.originalname,
-                            estudiante: `${data.nombre} ${data.apellidoUno} (${data.cedula})`,
-                            mensaje: "Se canceló el proceso completo debido a errores al crear el estudiante"
-                        });
-                    }
-                }
+                    });
 
-                // Resumen del archivo procesado
-                resumenArchivos.push({
-                    archivo: file.originalname,
-                    totalEstudiantes: estudiantesData.length,
-                    exitosos: resultadosArchivo.filter(r => r.accion !== "error").length,
-                    errores: resultadosArchivo.filter(r => r.accion === "error").length
-                });
+                    // Resumen del archivo procesado
+                    resumenArchivos.push({
+                        archivo: file.originalname,
+                        totalEstudiantes: estudiantesData.length,
+                        exitosos: resultadosArchivo.filter(r => r.accion !== "error").length,
+                        errores: resultadosArchivo.filter(r => r.accion === "error").length
+                    });
+                    
+                    console.log(`Archivo procesado exitosamente`);
+
+                } catch (error) {
+                    // Si hay error al procesar lote, cancelar toda la transacción
+                    await t.rollback();
+                    return res.status(500).json({
+                        error: "Error al procesar estudiantes en lote",
+                        detalle: error.message,
+                        archivo: file.originalname,
+                        mensaje: "Se canceló el proceso completo debido a errores al procesar los datos"
+                    });
+                }
 
             } catch (error) {
                 // Error al procesar el archivo Excel (incluyendo especialidades no encontradas)

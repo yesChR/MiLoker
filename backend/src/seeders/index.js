@@ -9,6 +9,7 @@ import { sequelize } from '../bd_config/conexion.js';
 import { seedEspecialidades } from './especialidades.seeder.js';
 import { seedEstadosIncidente } from './estadosIncidente.seeder.js';
 import { seedEstadosCasillero } from './estadosCasillero.seeder.js';
+import { seedUsuarioAdmin } from './usuarioAdmin.seeder.js';
 
 /**
  * Ejecuta todos los seeders en orden
@@ -25,6 +26,7 @@ export async function runSeeders() {
         await seedEspecialidades();
         await seedEstadosIncidente();
         await seedEstadosCasillero();
+        await seedUsuarioAdmin();
 
         console.log('\nTodos los seeders ejecutados correctamente');
         return true;
@@ -49,6 +51,8 @@ export async function runSeedersIfNeeded() {
             await runSeeders();
         } else {
             console.log('Base de datos ya tiene datos iniciales\n');
+            // Siempre verificar que exista el usuario admin
+            await seedUsuarioAdmin();
         }
     } catch (error) {
         console.error('Error al verificar seeders:', error.message);
