@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import CabezeraDinamica from "../Layout/CabeceraDinamica";
 import TablaDinamica from "../Tabla";
@@ -45,20 +45,20 @@ const ListaIncidentes = () => {
         { name: "Acciones", uid: "acciones" },
     ];
 
-    // Cargar incidentes solo cuando la sesión esté lista
-    useEffect(() => {
-        if (status === 'authenticated' && session?.user) {
-            cargarIncidentes();
-        }
-    }, [status, session]);
-
-    const cargarIncidentes = async () => {
+    const cargarIncidentes = useCallback(async () => {
         try {
             await listarIncidentes();
         } catch (error) {
             Toast.error('Error', 'No se pudieron cargar los incidentes');
         }
-    };
+    }, [listarIncidentes]);
+
+    // Cargar incidentes solo cuando la sesión esté lista
+    useEffect(() => {
+        if (status === 'authenticated' && session?.user) {
+            cargarIncidentes();
+        }
+    }, [status, session, cargarIncidentes]);
 
     const formatearFecha = (fecha) => {
         return new Date(fecha).toLocaleDateString('es-ES', {

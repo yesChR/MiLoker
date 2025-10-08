@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Spinner, Chip, Avatar } from "@heroui/react";
 import { obtenerTextoEstado, obtenerColorEstado, TIPOS_INVOLUCRAMIENTO, obtenerTextoTipo } from "../../utils/incidenteConstants";
 import { FiClock, FiUser, FiFileText, FiAlertCircle, FiMapPin, FiCalendar } from "react-icons/fi";
@@ -12,13 +12,7 @@ const DetalleIncidente = ({ incidenteId }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (incidenteId) {
-            cargarDetalles();
-        }
-    }, [incidenteId]);
-
-    const cargarDetalles = async () => {
+    const cargarDetalles = useCallback(async () => {
         try {
             setLoading(true);
             const data = await incidenteService.obtenerDetalles(incidenteId);
@@ -29,7 +23,13 @@ const DetalleIncidente = ({ incidenteId }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [incidenteId]);
+
+    useEffect(() => {
+        if (incidenteId) {
+            cargarDetalles();
+        }
+    }, [incidenteId, cargarDetalles]);
 
     const formatearFecha = (fecha) => {
         if (!fecha) return 'N/A';

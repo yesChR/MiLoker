@@ -4,7 +4,7 @@ import { BiEditAlt } from "react-icons/bi";
 import { useDisclosure } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
 import ConfirmModal from "../../ConfirmModal";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getDocentes, createDocente, updateDocente } from "../../../services/docenteService";
 import { getEspecialidades } from "../../../services/especialidadService";
 import { restablecerContraseñaService } from "../../../services/authService";
@@ -85,7 +85,7 @@ const Docentes = () => {
         cargarDatos();
     }, []);
 
-    const cargarDocentes = async () => {
+    const cargarDocentes = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getDocentes();
@@ -111,13 +111,13 @@ const Docentes = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [especialidades]);
 
     useEffect(() => {
         if (especialidades.length > 0) {
             cargarDocentes();
         }
-    }, [especialidades]);
+    }, [especialidades, cargarDocentes]);
 
     const handleEditar = (item) => {
         setAccion(1);

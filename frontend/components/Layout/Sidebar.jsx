@@ -2,7 +2,7 @@ import classNames from "classnames";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { FiChevronLeft, FiChevronDown, FiChevronUp, FiChevronRight} from "react-icons/fi";
 import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
@@ -39,17 +39,46 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
     }
   }, []);
 
-  // Función para filtrar elementos del menú basado en permisos
-  const filterMenuItems = (items, userRole) => {
+  // Función recursiva para filtrar subItems
+  const filterSubItems = useCallback((subItems, userRole) => {
+    return subItems.filter(subItem => {
+      // Si el subItem tiene un link directo, verificar acceso
+      if (subItem.link) {
+        return tieneAccesoRuta(userRole, subItem.link);
+      }
+
+      // Si el subItem tiene subItems anidados, filtrarlos recursivamente
+      if (subItem.subItems) {
+        const filteredNestedSubItems = filterSubItems(subItem.subItems, userRole);
+        // Solo mostrar el subItem padre si tiene al menos un subitem accesible
+        return filteredNestedSubItems.length > 0;
+      }
+
+      // Si no tiene link ni subItems, mostrar por defecto
+      return true;
+    }).map(subItem => {
+      // Si tiene subItems anidados, aplicar el filtro recursivamente
+      if (subItem.subItems) {
+        return {
+          ...subItem,
+          subItems: filterSubItems(subItem.subItems, userRole)
+        };
+      }
+      return subItem;
+    });
+  }, []);
+
+  // Función para filtrar items del menú basado en el rol del usuario
+  const filterMenuItems = useCallback((items, userRole) => {
     if (!userRole) return [];
 
     return items.filter(item => {
-      // Si el item tiene un link directo, verificar acceso
+      // Si tiene un link directo, verificar acceso
       if (item.link) {
         return tieneAccesoRuta(userRole, item.link);
       }
 
-      // Si el item tiene subItems, filtrarlos recursivamente
+      // Si tiene subItems, filtrarlos recursivamente
       if (item.subItems) {
         const filteredSubItems = filterSubItems(item.subItems, userRole);
         // Solo mostrar el item padre si tiene al menos un subitem accesible
@@ -68,36 +97,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
       }
       return item;
     });
-  };
-
-  // Función recursiva para filtrar subItems
-  const filterSubItems = (subItems, userRole) => {
-    return subItems.filter(subItem => {
-      // Si el subItem tiene un link directo, verificar acceso
-      if (subItem.link) {
-        return tieneAccesoRuta(userRole, subItem.link);
-      }
-
-      // Si el subItem tiene subItems anidados, filtrarlos recursivamente
-      if (subItem.subItems) {
-        const filteredNestedSubItems = filterSubItems(subItem.subItems, userRole);
-        // Solo mostrar el subItem padre si tiene al menos un subitem accesible
-        return filteredNestedSubItems.length > 0;
-      }
-
-      // Si no tiene link ni subItems, mostrar por defecto
-      return true;
-    }).map(subItem => {
-      // Si el subItem tiene subItems anidados, aplicar el filtro
-      if (subItem.subItems) {
-        return {
-          ...subItem,
-          subItems: filterSubItems(subItem.subItems, userRole)
-        };
-      }
-      return subItem;
-    });
-  };
+  }, [filterSubItems]);
 
   // Usar useMemo para optimizar el filtrado
   const filteredMenuItems = useMemo(() => {
@@ -105,7 +105,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
       return [];
     }
     return filterMenuItems(menuItems, session.user.role);
-  }, [session?.user?.role, status]);
+  }, [session?.user?.role, status, filterMenuItems]);
 
   const handleExpand = (id) => {
     setExpandedItems((prev) =>

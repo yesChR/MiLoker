@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import Image from "next/image";
 import { Select, Button, SelectItem, Spinner } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import { PlusIcon } from "../icons/PlusIcon";
@@ -26,23 +27,6 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     const [loadingCasilleros, setLoadingCasilleros] = useState(false);
 
     const fileInputRef = useRef(null);
-
-    // Verificar que el usuario esté autenticado
-    if (status === "loading") {
-        return (
-            <div className="flex justify-center items-center h-32">
-                <Spinner size="lg" />
-            </div>
-        );
-    }
-
-    if (status === "unauthenticated" || !session?.user) {
-        return (
-            <div className="text-center p-4">
-                <p className="text-red-500">Debes estar autenticado para reportar incidentes</p>
-            </div>
-        );
-    }
 
     // Cargar armarios y casilleros por especialidad del usuario
     useEffect(() => {
@@ -92,8 +76,25 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
 
     // Exponer handleSubmit al componente padre
     useImperativeHandle(ref, () => ({
-        handleSubmit: handleSubmit
+        handleSubmit: () => handleSubmit()
     }));
+
+    // Verificar que el usuario esté autenticado
+    if (status === "loading") {
+        return (
+            <div className="flex justify-center items-center h-32">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
+
+    if (status === "unauthenticated" || !session?.user) {
+        return (
+            <div className="text-center p-4">
+                <p className="text-red-500">Debes estar autenticado para reportar incidentes</p>
+            </div>
+        );
+    }
 
     // Filtrar casilleros por armario seleccionado
     const casillerosFiltrados = armarioSeleccionado
@@ -185,11 +186,6 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
         }
     };
 
-    // Exponer handleSubmit al componente padre mediante ref
-    useImperativeHandle(ref, () => ({
-        handleSubmit
-    }));
-
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -280,10 +276,12 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                         <div key={idx} className="relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden group">
                             <div>
                                 <div className="relative w-full h-32">
-                                    <img
+                                    <Image
                                         src={URL.createObjectURL(file)}
-                                        alt="Vista previa"
-                                        className="w-full h-full object-cover"
+                                        alt="Vista previa de evidencia"
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
                                     />
                                     <button
                                         type="button"
@@ -327,5 +325,7 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
         </div>
     );
 });
+
+FormularioCreacion.displayName = 'FormularioCreacion';
 
 export default FormularioCreacion;
