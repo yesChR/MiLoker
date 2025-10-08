@@ -18,7 +18,7 @@ export const crear = async (req, res) => {
     let incidente;
     let usuario;
     let duenoCasillero;
-    const { idCasillero, detalle, evidenciasIds, cedulaUsuario } = req.body;
+    const { idCasillero, detalle, evidenciasIds, cedulaUsuario, idSancion } = req.body;
     const transaction = await sequelize.transaction();
     try {
         // Validar que se envió el usuario
@@ -41,7 +41,11 @@ export const crear = async (req, res) => {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        const estadoInicial = usuario.rol === ROLES.ESTUDIANTE ? ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE : ESTADOS_INCIDENTE.REPORTADO_PROFESOR;
+        // Si es profesor y envió sanción, validar que existe
+        let estadoInicial = ESTADOS_INCIDENTE.REPORTADO;
+        if (usuario.rol === ROLES.PROFESOR && idSancion) {
+            estadoInicial = ESTADOS_INCIDENTE.EN_INVESTIGACION;
+        }
 
         // Crear incidente
         incidente = await Incidente.create({
@@ -49,17 +53,18 @@ export const crear = async (req, res) => {
             idCasillero,
             detalle,
             fechaCreacion: new Date(),
-            idEstadoIncidente: estadoInicial
+            idEstadoIncidente: estadoInicial,
+            idSancion: idSancion || null
         }, { transaction });
 
         // Registrar en el historial la creación del incidente
         await HistorialIncidente.create({
             idIncidente: incidente.idIncidente,
-            estadoAnterior: null, // Primer estado, no hay anterior
+            estadoAnterior: null,
             estadoNuevo: estadoInicial,
             usuarioModificador: cedulaUsuario,
             fechaCambio: new Date(),
-            observaciones: 'Incidente creado',
+            observaciones: idSancion ? 'Incidente creado con sanción asignada' : 'Incidente reportado',
             solucion: null
         }, { transaction });
 

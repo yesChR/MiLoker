@@ -9,6 +9,7 @@ import { EvidenciaXIncidente } from "../../models/evidenciaXincidente.model.js";
 import { Casillero } from "../../models/casillero.model.js";
 import { Armario } from "../../models/armario.model.js";
 import { Encargado } from "../../models/encargado.model.js";
+import { Sancion } from "../../models/sancion.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS_INCIDENTE } from "../../common/estadosIncidente.js";
 import { ROLES } from "../../common/roles.js";
@@ -30,6 +31,12 @@ export const obtenerDetallesIncidente = async (req, res) => {
                         as: 'armario',
                         attributes: ['id', 'idEspecialidad']
                     }]
+                },
+                {
+                    model: Sancion,
+                    as: 'sancion',
+                    attributes: ['idSancion', 'gravedad', 'detalle'],
+                    required: false
                 },
                 {
                     model: Usuario,
@@ -116,7 +123,7 @@ export const obtenerDetallesIncidente = async (req, res) => {
  */
 export const actualizarEstadoIncidente = async (req, res) => {
     const { id } = req.params;
-    const { nuevoEstado, observaciones, solucion, detalle, usuarioModificador, evidenciasIds } = req.body;
+    const { nuevoEstado, observaciones, solucion, detalle, usuarioModificador, evidenciasIds, idSancion } = req.body;
     
     const transaction = await sequelize.transaction();
 
@@ -141,14 +148,13 @@ export const actualizarEstadoIncidente = async (req, res) => {
             return res.status(400).json({ error: "Estado no válido" });
         }
 
-        // Validar transiciones de estado (solo puede avanzar secuencialmente)
+        // Validar transiciones de estado
         const transicionesValidas = {
-            1: [2, 3],  // REPORTADO_ESTUDIANTE -> REPORTADO_PROFESOR o EN_INVESTIGACION
-            2: [3],     // REPORTADO_PROFESOR -> EN_INVESTIGACION
-            3: [4, 5],  // EN_INVESTIGACION -> RESPONSABLE_IDENTIFICADO o RESUELTO
-            4: [5],     // RESPONSABLE_IDENTIFICADO -> RESUELTO
-            5: [6],     // RESUELTO -> CERRADO
-            6: []       // CERRADO (estado final)
+            1: [2, 3, 4],     // REPORTADO -> EN_INVESTIGACION, EN_PROCESO o RESUELTO
+            2: [3, 4],        // EN_INVESTIGACION -> EN_PROCESO o RESUELTO
+            3: [4],           // EN_PROCESO -> RESUELTO
+            4: [5],           // RESUELTO -> CERRADO
+            5: []             // CERRADO (estado final)
         };
 
         const estadoAnterior = incidente.idEstadoIncidente;
@@ -164,8 +170,14 @@ export const actualizarEstadoIncidente = async (req, res) => {
             });
         }
 
-        // Si el nuevo estado es RESUELTO (5), la solución es obligatoria
-        if (nuevoEstado === 5 && (!solucion || solucion.trim() === '')) {
+        // Si el nuevo estado es EN_INVESTIGACION (2), EN_PROCESO (3) o RESUELTO (4), la sanción es obligatoria
+        if ([2, 3, 4].includes(nuevoEstado) && !incidente.idSancion && !idSancion) {
+            await transaction.rollback();
+            return res.status(400).json({ error: "Debe asignar una sanción para cambiar a este estado" });
+        }
+
+        // Si el nuevo estado es RESUELTO (4), la solución es obligatoria
+        if (nuevoEstado === 4 && (!solucion || solucion.trim() === '')) {
             await transaction.rollback();
             return res.status(400).json({ error: "La solución es obligatoria para marcar el incidente como resuelto" });
         }
@@ -175,13 +187,18 @@ export const actualizarEstadoIncidente = async (req, res) => {
             idEstadoIncidente: nuevoEstado
         };
 
+        // Actualizar sanción si se proporcionó
+        if (idSancion !== undefined) {
+            datosActualizar.idSancion = idSancion;
+        }
+
         // Actualizar detalle si se proporcionó
         if (detalle !== undefined) {
             datosActualizar.detalle = detalle;
         }
 
-        // Actualizar solución y fecha de resolución si el nuevo estado es RESUELTO (5)
-        if (nuevoEstado === 5) {
+        // Actualizar solución y fecha de resolución si el nuevo estado es RESUELTO (4)
+        if (nuevoEstado === 4) {
             if (solucion) {
                 datosActualizar.solucionPlanteada = solucion;
             }

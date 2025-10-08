@@ -114,6 +114,33 @@ const DetalleIncidente = ({ incidenteId }) => {
                         </div>
                     </div>
 
+                    {/* Sanción asignada */}
+                    {incidente.sancion && (
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                <FiAlertCircle className="text-base" />
+                                <span>Sanción Asignada</span>
+                            </div>
+                            <div className="pl-6">
+                                <Chip
+                                    color={
+                                        incidente.sancion.gravedad === 'Muy Grave' ? 'danger' :
+                                        incidente.sancion.gravedad === 'Grave' ? 'warning' :
+                                        incidente.sancion.gravedad === 'Leve' ? 'primary' :
+                                        'default'
+                                    }
+                                    variant="flat"
+                                    size="sm"
+                                >
+                                    {incidente.sancion.gravedad}
+                                </Chip>
+                                {incidente.sancion.detalle && (
+                                    <p className="text-xs text-gray-500 mt-1">{incidente.sancion.detalle}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 text-gray-500 text-sm">
                             <FiCalendar className="text-base" />

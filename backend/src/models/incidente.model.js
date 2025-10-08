@@ -3,6 +3,7 @@ import { sequelize } from "../bd_config/conexion.js";
 import { Casillero } from "./casillero.model.js";
 import { Usuario } from "./usuario.model.js";
 import { EstadoIncidente } from "./estadoIncidente.model.js";
+import { Sancion } from "./sancion.model.js";
 
 export const Incidente = sequelize.define("incidente", {
     idIncidente: {
@@ -39,6 +40,11 @@ export const Incidente = sequelize.define("incidente", {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1
+    },
+    idSancion: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: 'incidente',
@@ -73,6 +79,16 @@ EstadoIncidente.hasMany(Incidente, {
 Incidente.belongsTo(EstadoIncidente, {
     foreignKey: 'idEstadoIncidente',
     as: 'estadoIncidente'
+});
+
+// Relación: Un incidente puede tener una sanción asignada
+Sancion.hasMany(Incidente, {
+    foreignKey: 'idSancion',
+    as: 'incidentes'
+});
+Incidente.belongsTo(Sancion, {
+    foreignKey: 'idSancion',
+    as: 'sancion'
 });
 
 // Importar dinámicamente para evitar dependencias circulares

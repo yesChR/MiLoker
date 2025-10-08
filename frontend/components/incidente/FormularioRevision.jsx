@@ -4,6 +4,7 @@ import Carousel from "react-multi-carousel";
 import Image from "next/image";
 import { AiOutlinePlus } from "react-icons/ai";
 import { useFormularioRevision } from "../../hooks/useFormularioRevision";
+import { useSanciones } from "../../hooks/useSanciones";
 import { obtenerTextoEstado, ESTADOS_INCIDENTE, obtenerEstadosSiguientes, TIPOS_INVOLUCRAMIENTO } from "../../utils/incidenteConstants";
 import { ROLES } from "../../utils/rolesConstants";
 import { Toast } from "../CustomAlert";
@@ -17,11 +18,16 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
         setSolucion,
         estadoSeleccionado,
         setEstadoSeleccionado,
+        sancionSeleccionada,
+        setSancionSeleccionada,
         observaciones,
         setObservaciones,
         actualizarEstado,
         verificarPermisos
     } = useFormularioRevision(selectedItem?.idIncidente);
+
+    // Obtener sanciones dinámicamente
+    const { sanciones, loading: loadingSanciones } = useSanciones();
 
     // Combinar loading del prop y del hook
     const loading = loadingProp || loadingHook;
@@ -113,10 +119,24 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
     useImperativeHandle(ref, () => ({
         handleSubmit: async () => {
             if (permisos.puedeEditar) {
+                // Validar sanción obligatoria para ciertos estados
+                if ([ESTADOS_INCIDENTE.EN_INVESTIGACION, ESTADOS_INCIDENTE.EN_PROCESO, ESTADOS_INCIDENTE.RESUELTO].includes(estadoSeleccionado)) {
+                    if (!sancionSeleccionada && !detalles?.idSancion) {
+                        Toast.error('Validación', 'Debe seleccionar una sanción para cambiar a este estado');
+                        return;
+                    }
+                }
+                
+                // Validar solución obligatoria para estado RESUELTO
+                if (estadoSeleccionado === ESTADOS_INCIDENTE.RESUELTO && !solucion?.trim()) {
+                    Toast.error('Validación', 'La solución es obligatoria para marcar el incidente como resuelto');
+                    return;
+                }
+                
                 await actualizarEstado(detalleEditable, nuevasEvidencias);
             }
         }
-    }), [permisos.puedeEditar, actualizarEstado, detalleEditable, nuevasEvidencias]);
+    }), [permisos.puedeEditar, actualizarEstado, detalleEditable, nuevasEvidencias, estadoSeleccionado, sancionSeleccionada, detalles, solucion]);
 
     if (loading) {
         return (
@@ -277,6 +297,51 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
                                 ))}
                             </Select>
                         </div>
+
+                        {/* Selector de Sanción - Obligatorio para estados EN_INVESTIGACION, EN_PROCESO, RESUELTO */}
+                        {[ESTADOS_INCIDENTE.EN_INVESTIGACION, ESTADOS_INCIDENTE.EN_PROCESO, ESTADOS_INCIDENTE.RESUELTO].includes(estadoSeleccionado) && (
+                            <div className="space-y-2">
+                                <label className="block text-sm text-gray-700">
+                                    Sanción/Gravedad <span className="text-red-500">*</span>
+                                </label>
+                                {loadingSanciones ? (
+                                    <div className="flex justify-center py-4">
+                                        <Spinner size="sm" />
+                                    </div>
+                                ) : (
+                                    <Select
+                                        placeholder="Seleccione la gravedad de la sanción..."
+                                        variant="bordered"
+                                        color="primary"
+                                        selectedKeys={sancionSeleccionada ? [sancionSeleccionada.toString()] : []}
+                                        onChange={(e) => setSancionSeleccionada(Number(e.target.value))}
+                                        isRequired
+                                        description={sancionSeleccionada && sanciones.find(s => s.idSancion === sancionSeleccionada)?.detalle}
+                                    >
+                                        {sanciones.map((sancion) => (
+                                            <SelectItem key={sancion.idSancion} value={sancion.idSancion}>
+                                                {sancion.gravedad}
+                                            </SelectItem>
+                                        ))}
+                                    </Select>
+                                )}
+                                {!sancionSeleccionada && estadoSeleccionado && (
+                                    <p className="text-xs text-red-500">La sanción es obligatoria para este estado</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Mostrar sanción actual si existe */}
+                        {detalles?.idSancion && !estadoSeleccionado && (
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md p-4">
+                                <p className="text-sm">
+                                    <span className="text-gray-600">Sanción actual:</span>
+                                    <span className="ml-2 text-yellow-700 font-medium">
+                                        {sanciones.find(s => s.idSancion === detalles.idSancion)?.gravedad || 'N/A'}
+                                    </span>
+                                </p>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <label className="block text-sm text-gray-700">Observaciones</label>

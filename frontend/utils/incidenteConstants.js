@@ -1,8 +1,6 @@
 // Tipos de involucramiento (deben coincidir con el backend)
 export const TIPOS_INVOLUCRAMIENTO = {
     REPORTANTE: 1,
-    RESPONSABLE: 2,
-    TESTIGO: 3,
     AFECTADO: 4
 };
 
@@ -10,8 +8,6 @@ export const TIPOS_INVOLUCRAMIENTO = {
 export const obtenerTextoTipo = (tipo) => {
     const textos = {
         [TIPOS_INVOLUCRAMIENTO.REPORTANTE]: 'Reportante',
-        [TIPOS_INVOLUCRAMIENTO.RESPONSABLE]: 'Responsable',
-        [TIPOS_INVOLUCRAMIENTO.TESTIGO]: 'Testigo',
         [TIPOS_INVOLUCRAMIENTO.AFECTADO]: 'Afectado'
     };
     return textos[tipo] || 'Desconocido';
@@ -19,21 +15,19 @@ export const obtenerTextoTipo = (tipo) => {
 
 // Estados de incidentes
 export const ESTADOS_INCIDENTE = {
-    REPORTADO_ESTUDIANTE: 1,
-    REPORTADO_PROFESOR: 2,
-    EN_INVESTIGACION: 3,
-    RESPONSABLE_IDENTIFICADO: 4,
-    RESUELTO: 5,
-    CERRADO: 6
+    REPORTADO: 1,
+    EN_INVESTIGACION: 2,
+    EN_PROCESO: 3,
+    RESUELTO: 4,
+    CERRADO: 5
 };
 
 // Helper para obtener el texto del estado
 export const obtenerTextoEstado = (estado) => {
     const textos = {
-        [ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE]: 'Reportado por Estudiante',
-        [ESTADOS_INCIDENTE.REPORTADO_PROFESOR]: 'Reportado por Profesor',
+        [ESTADOS_INCIDENTE.REPORTADO]: 'Reportado',
         [ESTADOS_INCIDENTE.EN_INVESTIGACION]: 'En Investigación',
-        [ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO]: 'Responsable Identificado',
+        [ESTADOS_INCIDENTE.EN_PROCESO]: 'En Proceso',
         [ESTADOS_INCIDENTE.RESUELTO]: 'Resuelto',
         [ESTADOS_INCIDENTE.CERRADO]: 'Cerrado'
     };
@@ -43,38 +37,34 @@ export const obtenerTextoEstado = (estado) => {
 // Helper para obtener color según el estado
 export const obtenerColorEstado = (estado) => {
     const colores = {
-        [ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE]: 'warning',
-        [ESTADOS_INCIDENTE.REPORTADO_PROFESOR]: 'primary',
-        [ESTADOS_INCIDENTE.EN_INVESTIGACION]: 'secondary',
-        [ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO]: 'danger',
+        [ESTADOS_INCIDENTE.REPORTADO]: 'warning',
+        [ESTADOS_INCIDENTE.EN_INVESTIGACION]: 'primary',
+        [ESTADOS_INCIDENTE.EN_PROCESO]: 'secondary',
         [ESTADOS_INCIDENTE.RESUELTO]: 'success',
         [ESTADOS_INCIDENTE.CERRADO]: 'default'
     };
     return colores[estado] || 'default';
 };
 
-// Helper para obtener los estados siguientes permitidos (secuencial)
+// Helper para obtener los estados siguientes permitidos
 export const obtenerEstadosSiguientes = (estadoActual) => {
-    // Mapeo de transiciones permitidas (solo hacia adelante)
     const transiciones = {
-        [ESTADOS_INCIDENTE.REPORTADO_ESTUDIANTE]: [
-            ESTADOS_INCIDENTE.REPORTADO_PROFESOR,
-            ESTADOS_INCIDENTE.EN_INVESTIGACION
-        ],
-        [ESTADOS_INCIDENTE.REPORTADO_PROFESOR]: [
-            ESTADOS_INCIDENTE.EN_INVESTIGACION
-        ],
-        [ESTADOS_INCIDENTE.EN_INVESTIGACION]: [
-            ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO,
+        [ESTADOS_INCIDENTE.REPORTADO]: [
+            ESTADOS_INCIDENTE.EN_INVESTIGACION,
+            ESTADOS_INCIDENTE.EN_PROCESO,
             ESTADOS_INCIDENTE.RESUELTO
         ],
-        [ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO]: [
+        [ESTADOS_INCIDENTE.EN_INVESTIGACION]: [
+            ESTADOS_INCIDENTE.EN_PROCESO,
+            ESTADOS_INCIDENTE.RESUELTO
+        ],
+        [ESTADOS_INCIDENTE.EN_PROCESO]: [
             ESTADOS_INCIDENTE.RESUELTO
         ],
         [ESTADOS_INCIDENTE.RESUELTO]: [
             ESTADOS_INCIDENTE.CERRADO
         ],
-        [ESTADOS_INCIDENTE.CERRADO]: [] // Estado final, no permite cambios
+        [ESTADOS_INCIDENTE.CERRADO]: []
     };
     
     return transiciones[estadoActual] || [];

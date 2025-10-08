@@ -10,6 +10,7 @@ import { seedEspecialidades } from './especialidades.seeder.js';
 import { seedEstadosIncidente } from './estadosIncidente.seeder.js';
 import { seedEstadosCasillero } from './estadosCasillero.seeder.js';
 import { seedUsuarioAdmin } from './usuarioAdmin.seeder.js';
+import { seedSanciones } from './sanciones.seeder.js';
 
 /**
  * Ejecuta todos los seeders en orden
@@ -26,6 +27,7 @@ export async function runSeeders() {
         await seedEspecialidades();
         await seedEstadosIncidente();
         await seedEstadosCasillero();
+        await seedSanciones();
         await seedUsuarioAdmin();
 
         console.log('\nTodos los seeders ejecutados correctamente');

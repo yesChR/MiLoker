@@ -4,20 +4,24 @@ import { Select, Button, SelectItem, Spinner } from "@heroui/react";
 import { useSession } from "next-auth/react";
 import { PlusIcon } from "../icons/PlusIcon";
 import { useIncidentes } from "../../hooks/useIncidentes";
+import { useSanciones } from "../../hooks/useSanciones";
 import { obtenerArmariosPorEspecialidad, obtenerCasillerosPorEspecialidad } from "../../services/armarioService";
 import { Toast } from "../CustomAlert";
 import { subirEvidencias } from "../../services/evidenciaService";
 import { validarArchivo, validarFormulario, obtenerDetalleIncidente } from "../../utils/formValidation";
 import { ordenarCasillerosPorNumero, limpiarURLsArchivos } from "../../utils/dataUtils";
+import { ROLES } from "../../utils/rolesConstants";
 
 const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     const { data: session, status } = useSession();
     const { crearIncidente, loading, error, limpiarError } = useIncidentes();
+    const { sanciones, loading: loadingSanciones } = useSanciones();
 
     const [formData, setFormData] = useState({
         idCasillero: "",
         detalle: "",
-        evidencias: []
+        evidencias: [],
+        idSancion: null
     });
 
     const [armarios, setArmarios] = useState([]);
@@ -133,18 +137,21 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
             return;
         }
 
+        // Validar sanción para profesores
+        if (session?.user?.role === ROLES.PROFESOR && formData.idSancion) {
+            // Profesor puede opcionalmente agregar sanción
+        }
+
         try {
             let evidenciasIds = [];
 
             if (formData.evidencias.length > 0) {
-                if (formData.evidencias.length > 0) {
-                    const resultadoEvidencias = await subirEvidencias(formData.evidencias);
-                    if (resultadoEvidencias.error) {
-                        Toast.error("Error al reportar incidente", resultadoEvidencias.message);
-                        return;
-                    }
-                    evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
+                const resultadoEvidencias = await subirEvidencias(formData.evidencias);
+                if (resultadoEvidencias.error) {
+                    Toast.error("Error al reportar incidente", resultadoEvidencias.message);
+                    return;
                 }
+                evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
             }
 
             const incidenteData = {
@@ -152,7 +159,8 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                 detalle: formData.detalle.trim(),
                 cedulaUsuario: session.user.id,
                 evidenciasIds: evidenciasIds,
-                seccionReportante: session.user.seccion || "N/A"
+                seccionReportante: session.user.seccion || "N/A",
+                idSancion: formData.idSancion || null
             };
 
             const resultado = await crearIncidente(incidenteData);
@@ -169,7 +177,8 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
             setFormData({
                 idCasillero: "",
                 detalle: "",
-                evidencias: []
+                evidencias: [],
+                idSancion: null
             });
             setArmarioSeleccionado("");
 
@@ -240,16 +249,49 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                             </SelectItem>
                         ))
                     ) : (
-                        <SelectItem
-                            key="no-casilleros"
-                            isReadOnly
-                            textValue={!armarioSeleccionado ? "Seleccione un armario primero" : "No hay casilleros disponibles"}
-                        >
-                            {!armarioSeleccionado ? "Seleccione un armario primero" : "No hay casilleros disponibles"}
+                        <SelectItem key="no-casilleros" isDisabled>
+                            {armarioSeleccionado ? "No hay casilleros disponibles" : "Seleccione un armario primero"}
                         </SelectItem>
                     )}
                 </Select>
             </div>
+
+            {/* Selector de Sanción - Solo para PROFESORES */}
+            {session?.user?.role === ROLES.PROFESOR && (
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Sanción/Gravedad (Opcional)
+                    </label>
+                    {loadingSanciones ? (
+                        <div className="flex justify-center py-4">
+                            <Spinner size="sm" />
+                        </div>
+                    ) : (
+                        <Select
+                            aria-label="Selección de Sanción"
+                            placeholder="Seleccione la gravedad de la sanción..."
+                            variant="bordered"
+                            color="primary"
+                            selectedKeys={formData.idSancion ? new Set([String(formData.idSancion)]) : new Set()}
+                            onSelectionChange={(keys) => {
+                                const selectedKey = Array.from(keys)[0];
+                                setFormData(prev => ({ ...prev, idSancion: selectedKey ? Number(selectedKey) : null }));
+                            }}
+                            description={formData.idSancion ? sanciones.find(s => s.idSancion === formData.idSancion)?.detalle : "Si asigna una sanción, el incidente pasará directamente a investigación"}
+                        >
+                            {sanciones.map((sancion) => (
+                                <SelectItem
+                                    key={String(sancion.idSancion)}
+                                    value={String(sancion.idSancion)}
+                                    textValue={sancion.gravedad}
+                                >
+                                    {sancion.gravedad}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                    )}
+                </div>
+            )}
 
             <div>
                 <div className="flex items-center gap-2 mb-2">

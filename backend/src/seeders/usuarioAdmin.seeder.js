@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import { Usuario } from '../models/usuario.model.js';
 import { Administrador } from '../models/administrador.model.js';
 import { ROLES } from '../common/roles.js';
+import { ESTADOS } from '../common/estados.js';
 
 export async function seedUsuarioAdmin() {
     try {
@@ -38,7 +39,7 @@ export async function seedUsuarioAdmin() {
                 nombreUsuario: adminEmail,
                 contraseña: contraseñaHash,
                 rol: ROLES.ADMINISTRADOR,
-                estado: 2,
+                estado: ESTADOS.ACTIVO,
                 token: null
             });
             console.log(' Usuario administrador creado');
@@ -53,7 +54,7 @@ export async function seedUsuarioAdmin() {
                 apellidoDos: 'Sistema',
                 correo: adminEmail,
                 telefono: '0000-0000',
-                estado: 2
+                estado: ESTADOS.ACTIVO
             });
             console.log(' Perfil de administrador creado');
         }

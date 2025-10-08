@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../bd_config/conexion.js";
-import { Incidente } from "./incidente.model.js";
 
 export const Sancion = sequelize.define("sancion", {
   idSancion: {
@@ -27,12 +26,4 @@ export const Sancion = sequelize.define("sancion", {
   timestamps: false
 });
 
-// Incidente pertenece a una Sancion
-Sancion.hasMany(Incidente, {
-    foreignKey: 'idSancion',
-    as: 'incidentes'
-});
-Incidente.belongsTo(Sancion, {
-    foreignKey: 'idSancion',
-    as: 'sancion'
-});
+// Las relaciones con Incidente se definen en incidente.model.js para evitar dependencias circulares

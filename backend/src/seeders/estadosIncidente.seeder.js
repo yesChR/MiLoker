@@ -7,12 +7,11 @@
 import { EstadoIncidente } from '../models/estadoIncidente.model.js';
 
 const estadosIncidente = [
-    { idEstadoIncidente: 1, nombre: 'REPORTADO POR ESTUDIANTE', descripcion: 'Incidente reportado por estudiante, responsable desconocido' },
-    { idEstadoIncidente: 2, nombre: 'REPORTADO POR PROFESOR', descripcion: 'Incidente reportado por profesor, puede conocer responsable' },
-    { idEstadoIncidente: 3, nombre: 'EN INVESTIGACION', descripcion: 'Profesor investigando el incidente' },
-    { idEstadoIncidente: 4, nombre: 'RESPONSABLE IDENTIFICADO', descripcion: 'Ya se identificó al responsable del incidente' },
-    { idEstadoIncidente: 5, nombre: 'RESUELTO', descripcion: 'Incidente resuelto con solución implementada' },
-    { idEstadoIncidente: 6, nombre: 'CERRADO', descripcion: 'Caso cerrado definitivamente' }
+    { idEstadoIncidente: 1, nombre: 'REPORTADO', descripcion: 'Incidente reportado, pendiente de revisión' },
+    { idEstadoIncidente: 2, nombre: 'EN INVESTIGACION', descripcion: 'Incidente en proceso de investigación' },
+    { idEstadoIncidente: 3, nombre: 'EN PROCESO', descripcion: 'Incidente con sanción asignada, en proceso de resolución' },
+    { idEstadoIncidente: 4, nombre: 'RESUELTO', descripcion: 'Incidente resuelto' },
+    { idEstadoIncidente: 5, nombre: 'CERRADO', descripcion: 'Caso cerrado definitivamente' }
 ];
 
 export async function seedEstadosIncidente() {

@@ -12,6 +12,7 @@ export const useFormularioRevision = (idIncidente) => {
     const [historial, setHistorial] = useState([]);
     const [solucion, setSolucion] = useState('');
     const [estadoSeleccionado, setEstadoSeleccionado] = useState(null);
+    const [sancionSeleccionada, setSancionSeleccionada] = useState(null);
     const [observaciones, setObservaciones] = useState('');
     const [error, setError] = useState(null);
 
@@ -37,6 +38,7 @@ export const useFormularioRevision = (idIncidente) => {
                 
                 setDetalles(datosTransformados);
                 setEstadoSeleccionado(resultado.idEstadoIncidente);
+                setSancionSeleccionada(resultado.idSancion || null);
                 setSolucion(resultado.solucionPlanteada || '');
             }
 
@@ -81,7 +83,8 @@ export const useFormularioRevision = (idIncidente) => {
                 solucion,
                 detalle: detalleModificado,
                 usuarioModificador: usuarioId,
-                evidenciasIds: evidenciasIds
+                evidenciasIds: evidenciasIds,
+                idSancion: sancionSeleccionada
             });
 
             Toast.success('Éxito', 'Incidente actualizado correctamente');
@@ -141,6 +144,8 @@ export const useFormularioRevision = (idIncidente) => {
         setSolucion,
         estadoSeleccionado,
         setEstadoSeleccionado,
+        sancionSeleccionada,
+        setSancionSeleccionada,
         observaciones,
         setObservaciones,
         actualizarEstado,

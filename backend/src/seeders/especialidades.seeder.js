@@ -5,13 +5,14 @@
  */
 
 import { Especialidad } from '../models/especialidad.model.js';
+import { ESTADOS } from '../common/estados.js';
 
 const especialidades = [
-    { idEspecialidad: 1, nombre: 'ADMINISTRACION LOGISTICA Y DISTRIBUCION', estado: 1 },
-    { idEspecialidad: 2, nombre: 'ADMINISTRACION Y OPERACION ADUANERA', estado: 1 },
-    { idEspecialidad: 3, nombre: 'GESTION DE LA PRODUCCION', estado: 1 },
-    { idEspecialidad: 4, nombre: 'CONFIGURACION Y SOPORTE DE REDES', estado: 1 },
-    { idEspecialidad: 5, nombre: 'SALUD OCUPACIONAL', estado: 1 }
+    { idEspecialidad: 1, nombre: 'ADMINISTRACION LOGISTICA Y DISTRIBUCION', estado: ESTADOS.ACTIVO },
+    { idEspecialidad: 2, nombre: 'ADMINISTRACION Y OPERACION ADUANERA', estado: ESTADOS.ACTIVO },
+    { idEspecialidad: 3, nombre: 'GESTION DE LA PRODUCCION', estado: ESTADOS.ACTIVO },
+    { idEspecialidad: 4, nombre: 'CONFIGURACION Y SOPORTE DE REDES', estado: ESTADOS.ACTIVO },
+    { idEspecialidad: 5, nombre: 'SALUD OCUPACIONAL', estado: ESTADOS.ACTIVO }
 ];
 
 export async function seedEspecialidades() {

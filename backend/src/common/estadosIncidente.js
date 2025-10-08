@@ -1,8 +1,7 @@
 export const ESTADOS_INCIDENTE = {
-    REPORTADO_ESTUDIANTE: 1,      // Estudiante reporta (responsable desconocido)
-    REPORTADO_PROFESOR: 2,        // Profesor reporta (puede conocer responsable)
-    EN_INVESTIGACION: 3,          // Profesor investigando
-    RESPONSABLE_IDENTIFICADO: 4,  // Ya se sabe quién fue responsable
-    RESUELTO: 5,                 // Incidente solucionado
-    CERRADO: 6                   // Caso cerrado
+    REPORTADO: 1,           // Incidente reportado, pendiente de revisión
+    EN_INVESTIGACION: 2,    // En proceso de investigación
+    EN_PROCESO: 3,          // Con sanción asignada, en proceso de resolución
+    RESUELTO: 4,            // Incidente resuelto
+    CERRADO: 5              // Caso cerrado definitivamente
 };
