@@ -6,6 +6,7 @@ import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
 import { enviarCorreo } from "../nodemailer/nodemailer.controller.js";
 import { plantillaNuevaCuenta } from "../nodemailer/plantillas.js";
 import { ROLES } from "../../common/roles.js";
+import { Op } from "sequelize";
 
 export const crearAdministrador = async (req, res) => {
     const { cedula, nombre, apellidoUno, apellidoDos, telefono, correo, rol } = req.body;
@@ -88,7 +89,36 @@ export const crearAdministrador = async (req, res) => {
 
 export const visualizar = async (req, res) => {
     try {
+        const { search, filters } = req.query;
+        let where = {};
+        
+        if (search) {
+            where[Op.or] = [
+                { cedula: { [Op.like]: `%${search}%` } },
+                { nombre: { [Op.like]: `%${search}%` } },
+                { correo: { [Op.like]: `%${search}%` } },
+                { telefono: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        
+        if (filters) {
+            const f = JSON.parse(filters);
+            if (f.estadoTexto) {
+                if (Array.isArray(f.estadoTexto)) {
+                    if (f.estadoTexto.length === 1) {
+                        where.estado = f.estadoTexto[0] === 'Activo' ? 2 : 1;
+                    } else if (f.estadoTexto.length > 1) {
+                        const estadosNumericos = f.estadoTexto.map(estado => estado === 'Activo' ? 2 : 1);
+                        where.estado = { [Op.in]: estadosNumericos };
+                    }
+                } else {
+                    where.estado = f.estadoTexto === 'Activo' ? 2 : 1;
+                }
+            }
+        }
+        
         const administradores = await Administrador.findAll({
+            where,
             include: {
                 model: Usuario,
                 as: "usuario",

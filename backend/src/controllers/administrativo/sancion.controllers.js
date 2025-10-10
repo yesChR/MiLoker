@@ -1,5 +1,6 @@
 import { sequelize } from "../../bd_config/conexion.js";
 import { Sancion } from "../../models/sancion.model.js";
+import { Op } from "sequelize";
 
 export const crearSancion = async (req, res) => {
     const { gravedad, detalle, estado } = req.body;
@@ -20,8 +21,33 @@ export const crearSancion = async (req, res) => {
 
 export const visualizar = async (req, res) => {
     try {
-        const sanciones = await Sancion
-            .findAll();
+        const { search, filters } = req.query;
+        let where = {};
+        
+        if (search) {
+            where[Op.or] = [
+                { gravedad: { [Op.like]: `%${search}%` } },
+                { detalle: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        
+        if (filters) {
+            const f = JSON.parse(filters);
+            if (f.estado) {
+                if (Array.isArray(f.estado)) {
+                    if (f.estado.length === 1) {
+                        where.estado = f.estado[0] === 'Activo' ? 2 : 1;
+                    } else if (f.estado.length > 1) {
+                        const estadosNumericos = f.estado.map(estado => estado === 'Activo' ? 2 : 1);
+                        where.estado = { [Op.in]: estadosNumericos };
+                    }
+                } else {
+                    where.estado = f.estado === 'Activo' ? 2 : 1;
+                }
+            }
+        }
+        
+        const sanciones = await Sancion.findAll({ where });
         res.status(200).json(sanciones);
     } catch (error) {
         res.status(500).json({ error: "Error interno del servidor" });

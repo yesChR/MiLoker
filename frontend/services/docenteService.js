@@ -28,9 +28,15 @@ const handleResponse = async (response) => {
     return await response.text();
 };
 
-export const getDocentes = async () => {
+export const getDocentes = async (search, filters) => {
     try {
-        const response = await fetch(`${API_URL}/administrativo/docente/visualizar`, {
+        let url = `${API_URL}/administrativo/docente/visualizar`;
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (filters) params.append('filters', JSON.stringify(filters));
+        if (params.toString()) url += `?${params.toString()}`;
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });

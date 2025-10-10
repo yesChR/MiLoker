@@ -48,7 +48,7 @@ const Docentes = () => {
                 idEspecialidad: especialidad ? Number(especialidad) : null
             };
             await updateDocente(formData.cedula, docenteData);
-            await cargarDocentes();
+            await loadDocentes();
             setSelectedItem(null);
             setEspecialidad("");
             onOpenChange();
@@ -85,10 +85,10 @@ const Docentes = () => {
         cargarDatos();
     }, []);
 
-    const cargarDocentes = useCallback(async () => {
+    const loadDocentes = React.useCallback(async (search = '', filters = {}) => {
         setLoading(true);
         try {
-            const data = await getDocentes();
+            const data = await getDocentes(search, filters);
             if (data && data.error) {
                 setDatosDocentes([]);
                 Toast.error("Error", data.message || "Error al cargar docentes");
@@ -115,9 +115,9 @@ const Docentes = () => {
 
     useEffect(() => {
         if (especialidades.length > 0) {
-            cargarDocentes();
+            loadDocentes();
         }
-    }, [especialidades, cargarDocentes]);
+    }, [especialidades, loadDocentes]);
 
     const handleEditar = (item) => {
         setAccion(1);
@@ -165,6 +165,19 @@ const Docentes = () => {
         }
     };
 
+    // Función simple para filtros remotos
+    const handleRemoteFilter = useCallback((search, filters) => {
+        // Si es filtro de especialidad por nombre, convertir a ID
+        if (filters?.especialidadNombre) {
+            const esp = especialidades.find(e => e.nombre === filters.especialidadNombre);
+            if (esp) {
+                filters = { ...filters, idEspecialidad: esp.idEspecialidad };
+                delete filters.especialidadNombre;
+            }
+        }
+        loadDocentes(search, filters);
+    }, [especialidades, loadDocentes]);
+
     useEffect(() => {
         if (isOpen && accion !== 1) {
             setSelectedItem({ idEspecialidad: "" });
@@ -197,7 +210,7 @@ const Docentes = () => {
                 Toast.error('Error', result.message || 'Error al crear docente');
             }
         } else {
-            await cargarDocentes();
+            await loadDocentes();
             setSelectedItem({ idEspecialidad: "" });
             setEspecialidad("");
             Toast.success("Docente creado", "El docente fue creado exitosamente.");
@@ -226,7 +239,7 @@ const Docentes = () => {
             Toast.error('Error', result.message || 'Error al editar docente');
         } else {
             Toast.success("Docente editado", "El docente fue editado exitosamente.");
-            await cargarDocentes();
+            await loadDocentes();
             setSelectedItem(null);
             setEspecialidad("");
             onOpenChange();
@@ -274,6 +287,7 @@ const Docentes = () => {
                         onOpen={onOpen}
                         setAccion={setAccion}
                         loading={loading}
+                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

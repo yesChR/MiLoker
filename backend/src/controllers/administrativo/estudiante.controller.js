@@ -9,6 +9,7 @@ import { ROLES } from "../../common/roles.js";
 import { uploadExcel } from "../../config/multer.js";
 import { leerArchivoExcel } from "../../utils/excelReader.js";
 import { obtenerEspecialidades } from "../../common/especialidades.js";
+import { Op } from "sequelize";
 export { uploadExcel };
 
 // Procesar estudiantes en lotes para optimizar performance
@@ -243,7 +244,43 @@ export const cargarEstudiantesDesdeExcel = async (req, res) => {
 // Visualizar estudiantes
 export const visualizar = async (req, res) => {
     try {
+        const { search, filters } = req.query;
+        let where = {};
+        
+        if (search) {
+            where[Op.or] = [
+                { cedula: { [Op.like]: `%${search}%` } },
+                { nombre: { [Op.like]: `%${search}%` } },
+                { correo: { [Op.like]: `%${search}%` } },
+                { seccion: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        
+        if (filters) {
+            const f = JSON.parse(filters);
+            if (f.estadoTexto) {
+                if (Array.isArray(f.estadoTexto)) {
+                    if (f.estadoTexto.length === 1) {
+                        where.estado = f.estadoTexto[0] === 'Activo' ? 2 : 1;
+                    } else if (f.estadoTexto.length > 1) {
+                        const estadosNumericos = f.estadoTexto.map(estado => estado === 'Activo' ? 2 : 1);
+                        where.estado = { [Op.in]: estadosNumericos };
+                    }
+                } else {
+                    where.estado = f.estadoTexto === 'Activo' ? 2 : 1;
+                }
+            }
+            if (f.idEspecialidad) {
+                if (Array.isArray(f.idEspecialidad)) {
+                    where.idEspecialidad = { [Op.in]: f.idEspecialidad };
+                } else {
+                    where.idEspecialidad = f.idEspecialidad;
+                }
+            }
+        }
+        
         const estudiantes = await Estudiante.findAll({
+            where,
             include: [
                 {
                     model: Usuario,

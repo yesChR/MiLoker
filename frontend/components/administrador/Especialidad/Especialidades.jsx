@@ -31,20 +31,18 @@ const Especialidades = () => {
     };
 
     // Función para recargar especialidades después de crear/editar/eliminar
-    const recargarEspecialidades = async () => {
-        setDrawerLoading(true);
+    const recargarEspecialidades = React.useCallback(async (search = '', filters = {}) => {
         setLoading(true);
         const { getEspecialidades } = await import("../../../services/especialidadService");
-        const data = await getEspecialidades();
+        const data = await getEspecialidades(search, filters);
         if (data && data.error) {
             setEspecialidades([]);
             Toast.error("Error", data.message || "Error al cargar especialidades");
         } else {
             setEspecialidades(data);
         }
-        setDrawerLoading(false);
         setLoading(false);
-    };
+    }, []);
 
     // Crear especialidad
     const handleCrearEspecialidad = async () => {
@@ -122,20 +120,8 @@ const Especialidades = () => {
     };
 
     useEffect(() => {
-        const fetchEspecialidades = async () => {
-            setLoading(true);
-            const { getEspecialidades } = await import("../../../services/especialidadService");
-            const data = await getEspecialidades();
-            if (data && data.error) {
-                setEspecialidades([]);
-                Toast.error("Error", data.message || "Error al cargar especialidades");
-            } else {
-                setEspecialidades(data);
-            }
-            setLoading(false);
-        };
-        fetchEspecialidades();
-    }, []);
+        recargarEspecialidades();
+    }, [recargarEspecialidades]);
 
     const handleEditar = (item) => {
         setAccion(1);
@@ -147,6 +133,11 @@ const Especialidades = () => {
         setShowErrors(false);
         onOpen();
     };
+
+    // Función simple para filtros remotos
+    const handleRemoteFilter = React.useCallback((search, filters) => {
+        recargarEspecialidades(search, filters);
+    }, [recargarEspecialidades]);
 
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
@@ -182,13 +173,15 @@ const Especialidades = () => {
                         data={especialidades.map((esp, idx) => ({
                             ...esp,
                             nombre: capitalizar(esp.nombre),
-                            numero: idx + 1
+                            numero: idx + 1,
+                            estado: esp.estado === 2 ? 'Activo' : 'Inactivo'
                         }))}
                         acciones={accionesPrueba}
                         filterOptions={filterOptions}
                         onOpen={handleAbrirCrear}
                         setAccion={setAccion}
                         loading={loading}
+                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

@@ -25,16 +25,18 @@ const handleResponse = async (response) => {
     return await response.text();
 };
 
-export const getSanciones = async () => {
+export const getSanciones = async (search, filters) => {
     try {
-        const response = await fetch(`${API_URL}/administrativo/sancion/visualizar`);
+        let url = `${API_URL}/administrativo/sancion/visualizar`;
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (filters) params.append('filters', JSON.stringify(filters));
+        if (params.toString()) url += `?${params.toString()}`;
+        
+        const response = await fetch(url);
         const result = await handleResponse(response);
         if (result && result.error) return result;
-        // Mapear para agregar el campo numero (índice + 1)
-        return result.map((s, idx) => ({
-            ...s,
-            numero: idx + 1,
-        }));
+        return result;
     } catch (error) {
         return { error: true, message: "Error de red al obtener sanciones" };
     }

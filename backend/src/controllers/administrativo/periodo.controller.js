@@ -83,7 +83,23 @@ export const actualizarPeriodo = async (req, res) => {
 
 export const visualizarPeriodos = async (req, res) => { 
     try {
-        const periodos = await Periodo.findAll();
+        const { search, filters } = req.query;
+        let where = {};
+        
+        if (search) {
+            const { Op } = require('sequelize');
+            where[Op.or] = [
+                { tipo: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        
+        if (filters) {
+            const f = JSON.parse(filters);
+            if (f.estadoTexto) where.estado = f.estadoTexto === 'Activo' ? 2 : 1;
+            if (f.tipo) where.tipo = f.tipo;
+        }
+        
+        const periodos = await Periodo.findAll({ where });
         res.status(200).json(periodos);
     } catch (error) {
         res.status(500).json({

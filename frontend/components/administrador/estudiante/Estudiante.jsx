@@ -36,10 +36,10 @@ const Estudiante = () => {
         loadEspecialidades();
     }, []);
 
-    const loadEstudiantes = async () => {
+    const loadEstudiantes = React.useCallback(async (search = '', filters = {}) => {
         setLoading(true);
         try {
-            const data = await getEstudiantes();
+            const data = await getEstudiantes(search, filters);
             if (data && data.error) {
                 setEstudiantes([]);
                 Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
@@ -58,7 +58,7 @@ const Estudiante = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const loadEspecialidades = async () => {
         try {
@@ -198,6 +198,19 @@ const Estudiante = () => {
         onConfirmOpen();
     };
 
+    // Función simple para filtros remotos
+    const handleRemoteFilter = React.useCallback((search, filters) => {
+        // Si es filtro de especialidad por nombre, convertir a ID
+        if (filters?.especialidadNombre) {
+            const esp = especialidades.find(e => e.nombre === filters.especialidadNombre);
+            if (esp) {
+                filters = { ...filters, idEspecialidad: esp.idEspecialidad };
+                delete filters.especialidadNombre;
+            }
+        }
+        loadEstudiantes(search, filters);
+    }, [especialidades]);
+
     const confirmarRestablecimiento = async () => {
         if (!itemToReset) return;
 
@@ -261,6 +274,7 @@ const Estudiante = () => {
                         onOpen={onOpen}
                         setAccion={setAccion}
                         loading={loading}
+                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

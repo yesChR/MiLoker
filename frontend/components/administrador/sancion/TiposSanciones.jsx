@@ -30,8 +30,8 @@ const TiposSanciones = () => {
     ];
     // Renderizar el estado con Chip usando el componente Chip de @heroui/react
     const renderEstado = (estado) => {
-        const color = estado === 1 ? "success" : "danger";
-        const label = estado === 1 ? "Activo" : "Inactivo";
+        const color = estado === "Activo" ? "success" : "danger";
+        const label = estado;
         return <Chip color={color} variant="flat" size="sm">{label}</Chip>;
     };
 
@@ -47,9 +47,9 @@ const TiposSanciones = () => {
         fetchSanciones();
     }, []);
 
-    const fetchSanciones = async () => {
+    const fetchSanciones = React.useCallback(async (search = '', filters = {}) => {
         setLoading(true);
-        const data = await sancionService.getSanciones();
+        const data = await sancionService.getSanciones(search, filters);
         if (data && data.error) {
             setSanciones([]);
             Toast.error("Error", data.message || "Error al obtener sanciones");
@@ -57,7 +57,7 @@ const TiposSanciones = () => {
             setSanciones(data);
         }
         setLoading(false);
-    };
+    }, []);
 
     const handleEditar = (item) => {
         setAccion(1);
@@ -69,6 +69,11 @@ const TiposSanciones = () => {
         });
         onOpen();
     };
+
+    // Función simple para filtros remotos
+    const handleRemoteFilter = React.useCallback((search, filters) => {
+        fetchSanciones(search, filters);
+    }, [fetchSanciones]);
 
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
@@ -141,13 +146,18 @@ const TiposSanciones = () => {
                 <div className="flex justify-between mb-4" style={{ marginTop: "50px" }}>
                     <TablaDinamica
                         columns={columnas}
-                        data={sanciones}
+                        data={sanciones.map((sancion, idx) => ({
+                            ...sancion,
+                            numero: idx + 1,
+                            estado: sancion.estado === 2 ? 'Activo' : 'Inactivo'
+                        }))}
                         acciones={acciones}
                         filterOptions={filterOptions}
                         onOpen={handleAbrirCrear}
                         setAccion={setAccion}
                         renderCell={renderCell}
                         loading={loading}
+                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

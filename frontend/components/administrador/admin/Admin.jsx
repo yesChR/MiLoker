@@ -32,10 +32,10 @@ const Admin = () => {
         loadAdministradores();
     }, []);
 
-    const loadAdministradores = async () => {
+    const loadAdministradores = React.useCallback(async (search = '', filters = {}) => {
         setLoading(true);
         try {
-            const data = await getAdministradores();
+            const data = await getAdministradores(search, filters);
             if (data && data.error) {
                 setAdministradores([]);
                 Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
@@ -51,7 +51,7 @@ const Admin = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const handleCrear = async () => {
         // Usar la referencia del formulario para validar y obtener datos
@@ -180,6 +180,11 @@ const Admin = () => {
         }
     };
 
+    // Función simple para filtros remotos
+    const handleRemoteFilter = React.useCallback((search, filters) => {
+        loadAdministradores(search, filters);
+    }, []);
+
     const acciones = [
         {
             tooltip: "Editar",
@@ -218,6 +223,7 @@ const Admin = () => {
                         onOpen={onOpen}
                         setAccion={setAccion}
                         loading={loading}
+                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral
