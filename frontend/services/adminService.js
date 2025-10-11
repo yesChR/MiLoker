@@ -30,13 +30,9 @@ const handleResponse = async (response) => {
 };
 
 // Obtener todos los administradores
-export const getAdministradores = async (search, filters) => {
+export const getAdministradores = async () => {
     try {
-        let url = `${API_URL}/administrativo/administrador/visualizar`;
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        if (filters) params.append('filters', JSON.stringify(filters));
-        if (params.toString()) url += `?${params.toString()}`;
+        const url = `${API_URL}/administrativo/administrador/visualizar`;
         
         const response = await fetch(url, {
             method: 'GET',

@@ -32,16 +32,17 @@ const Admin = () => {
         loadAdministradores();
     }, []);
 
-    const loadAdministradores = React.useCallback(async (search = '', filters = {}) => {
+    const loadAdministradores = React.useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getAdministradores(search, filters);
+            const data = await getAdministradores();
             if (data && data.error) {
                 setAdministradores([]);
                 Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
             } else if (Array.isArray(data)) {
                 const administradoresProcessed = data.map(admin => ({
                     ...admin,
+                    nombreCompleto: `${admin.nombre || ''} ${admin.apellidoUno || ''} ${admin.apellidoDos || ''}`.trim(),
                     estadoTexto: admin.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
                 }));
                 setAdministradores(administradoresProcessed);
@@ -180,11 +181,6 @@ const Admin = () => {
         }
     };
 
-    // Función simple para filtros remotos
-    const handleRemoteFilter = React.useCallback((search, filters) => {
-        loadAdministradores(search, filters);
-    }, []);
-
     const acciones = [
         {
             tooltip: "Editar",
@@ -223,7 +219,6 @@ const Admin = () => {
                         onOpen={onOpen}
                         setAccion={setAccion}
                         loading={loading}
-                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

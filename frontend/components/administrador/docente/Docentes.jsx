@@ -85,10 +85,10 @@ const Docentes = () => {
         cargarDatos();
     }, []);
 
-    const loadDocentes = React.useCallback(async (search = '', filters = {}) => {
+    const loadDocentes = React.useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getDocentes(search, filters);
+            const data = await getDocentes();
             if (data && data.error) {
                 setDatosDocentes([]);
                 Toast.error("Error", data.message || "Error al cargar docentes");
@@ -97,6 +97,7 @@ const Docentes = () => {
                     const especialidadObj = especialidades.find(e => e.idEspecialidad?.toString() === docente.idEspecialidad?.toString());
                     return {
                         ...docente,
+                        nombreCompleto: `${docente.nombre || ''} ${docente.apellidoUno || ''} ${docente.apellidoDos || ''}`.trim(),
                         especialidadNombre: especialidadObj ? especialidadObj.nombre : "Sin especialidad",
                         especialidadCorta: especialidadObj && especialidadObj.nombre?.length > 15
                             ? especialidadObj.nombre.substring(0, 15) + '...'
@@ -164,19 +165,6 @@ const Docentes = () => {
             setItemToReset(null);
         }
     };
-
-    // Función simple para filtros remotos
-    const handleRemoteFilter = useCallback((search, filters) => {
-        // Si es filtro de especialidad por nombre, convertir a ID
-        if (filters?.especialidadNombre) {
-            const esp = especialidades.find(e => e.nombre === filters.especialidadNombre);
-            if (esp) {
-                filters = { ...filters, idEspecialidad: esp.idEspecialidad };
-                delete filters.especialidadNombre;
-            }
-        }
-        loadDocentes(search, filters);
-    }, [especialidades, loadDocentes]);
 
     useEffect(() => {
         if (isOpen && accion !== 1) {
@@ -287,7 +275,6 @@ const Docentes = () => {
                         onOpen={onOpen}
                         setAccion={setAccion}
                         loading={loading}
-                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

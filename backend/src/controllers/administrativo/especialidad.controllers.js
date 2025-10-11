@@ -24,35 +24,8 @@ export const crearEspecialidad = async (req, res) => {
 
 export const visualizar = async (req, res) => {
     try {
-        const { search, filters } = req.query;
-        let where = {};
-        
-        if (search) {
-            where[Op.or] = [
-                { nombre: { [Op.like]: `%${search}%` } }
-            ];
-        }
-        
-        if (filters) {
-            const f = JSON.parse(filters);
-            if (f.estado) {
-                if (Array.isArray(f.estado)) {
-                    // Si es un array con un solo elemento
-                    if (f.estado.length === 1) {
-                        where.estado = f.estado[0] === 'Activo' ? 2 : 1;
-                    } else if (f.estado.length > 1) {
-                        // Múltiples estados seleccionados, usar IN
-                        const estadosNumericos = f.estado.map(estado => estado === 'Activo' ? 2 : 1);
-                        where.estado = { [Op.in]: estadosNumericos };
-                    }
-                } else {
-                    // Valor único (string)
-                    where.estado = f.estado === 'Activo' ? 2 : 1;
-                }
-            }
-        }
-        
-        const especialidades = await Especialidad.findAll({ where });
+        // Devolver todas las especialidades sin filtros - filtrado se hace en frontend
+        const especialidades = await Especialidad.findAll();
         res.status(200).json(especialidades);
     } catch (error) {
         res.status(500).json({ error: "Error interno del servidor" });

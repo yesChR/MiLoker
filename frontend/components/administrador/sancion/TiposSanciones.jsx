@@ -47,9 +47,9 @@ const TiposSanciones = () => {
         fetchSanciones();
     }, []);
 
-    const fetchSanciones = React.useCallback(async (search = '', filters = {}) => {
+    const fetchSanciones = React.useCallback(async () => {
         setLoading(true);
-        const data = await sancionService.getSanciones(search, filters);
+        const data = await sancionService.getSanciones();
         if (data && data.error) {
             setSanciones([]);
             Toast.error("Error", data.message || "Error al obtener sanciones");
@@ -69,11 +69,6 @@ const TiposSanciones = () => {
         });
         onOpen();
     };
-
-    // Función simple para filtros remotos
-    const handleRemoteFilter = React.useCallback((search, filters) => {
-        fetchSanciones(search, filters);
-    }, [fetchSanciones]);
 
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
@@ -157,7 +152,6 @@ const TiposSanciones = () => {
                         setAccion={setAccion}
                         renderCell={renderCell}
                         loading={loading}
-                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

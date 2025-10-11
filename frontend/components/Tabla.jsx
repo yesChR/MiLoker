@@ -5,12 +5,17 @@ import { ChevronDownIcon } from "./icons/ChevronDownIcon";
 import { PlusIcon } from "./icons/PlusIcon";
 import { ESTADOS } from "./common/estados";
 
-const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [], loading = false, onRemoteFilter }) => {
+const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen, onOpenChange, ocultarAgregar = false, mostrarAcciones = true, filterOptions = [], loading = false }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterValue, setFilterValue] = useState("");
     const [selectedFilters, setSelectedFilters] = useState({});
     const [visibleColumns, setVisibleColumns] = useState(new Set(columns.map((col) => col.uid)));
     const numElementos = 7;
+
+    // Resetear página cuando cambian los filtros
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [filterValue, selectedFilters]);
 
     // Componente personalizado para el mensaje de tabla vacía
     const EmptyTableMessage = () => (
@@ -234,6 +239,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                     <Chip
                         color={color}
                         size="sm"
+                        variant="flat"
                     >
                         {getEstadoLabel(cellValue)}
                     </Chip>
@@ -245,26 +251,6 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
         }
     }, [acciones, mostrarAcciones]);
 
-    // Evitar llamada inicial
-    const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
-    
-    // Efecto simple para filtros remotos con debounce
-    React.useEffect(() => {
-        if (!onRemoteFilter || !hasUserInteracted) return;
-        
-        const timeoutId = setTimeout(() => {
-            const filters = {};
-            Object.entries(selectedFilters).forEach(([field, values]) => {
-                if (values.length > 0) {
-                    filters[field] = values.length === 1 ? values[0] : values;
-                }
-            });
-            onRemoteFilter(filterValue, filters);
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [filterValue, selectedFilters, hasUserInteracted]);
-
     const topContent = useMemo(() => {
         return (
             <div className="flex flex-col gap-4">
@@ -275,14 +261,8 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                         placeholder="Buscar..."
                         startContent={<SearchIcon className="text-gray-500" />}
                         value={filterValue}
-                        onClear={() => {
-                            setFilterValue("");
-                            setHasUserInteracted(true);
-                        }}
-                        onValueChange={(value) => {
-                            setFilterValue(value);
-                            setHasUserInteracted(true);
-                        }}
+                        onClear={() => setFilterValue("")}
+                        onValueChange={setFilterValue}
                     />
                     <div className="flex gap-3">
 
@@ -303,7 +283,6 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                                             ...prev,
                                             [field]: [...keys],
                                         }));
-                                        setHasUserInteracted(true);
                                     }}
                                 >
                                     {values.map((value) => (

@@ -46,13 +46,9 @@ export const obtenerHistorialEstudiante = async (cedulaEstudiante) => {
 };
 
 // Obtener todos los estudiantes
-export const getEstudiantes = async (search, filters) => {
+export const getEstudiantes = async () => {
     try {
-        let url = `${API_URL}/administrativo/estudiante/visualizar`;
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        if (filters) params.append('filters', JSON.stringify(filters));
-        if (params.toString()) url += `?${params.toString()}`;
+        const url = `${API_URL}/administrativo/estudiante/visualizar`;
         
         const response = await fetch(url, {
             method: 'GET',

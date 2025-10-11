@@ -25,13 +25,9 @@ const handleResponse = async (response) => {
     return await response.text();
 };
 
-export const getSanciones = async (search, filters) => {
+export const getSanciones = async () => {
     try {
-        let url = `${API_URL}/administrativo/sancion/visualizar`;
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        if (filters) params.append('filters', JSON.stringify(filters));
-        if (params.toString()) url += `?${params.toString()}`;
+        const url = `${API_URL}/administrativo/sancion/visualizar`;
         
         const response = await fetch(url);
         const result = await handleResponse(response);

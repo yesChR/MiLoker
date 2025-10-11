@@ -31,10 +31,10 @@ const Especialidades = () => {
     };
 
     // Función para recargar especialidades después de crear/editar/eliminar
-    const recargarEspecialidades = React.useCallback(async (search = '', filters = {}) => {
+    const recargarEspecialidades = React.useCallback(async () => {
         setLoading(true);
         const { getEspecialidades } = await import("../../../services/especialidadService");
-        const data = await getEspecialidades(search, filters);
+        const data = await getEspecialidades();
         if (data && data.error) {
             setEspecialidades([]);
             Toast.error("Error", data.message || "Error al cargar especialidades");
@@ -134,11 +134,6 @@ const Especialidades = () => {
         onOpen();
     };
 
-    // Función simple para filtros remotos
-    const handleRemoteFilter = React.useCallback((search, filters) => {
-        recargarEspecialidades(search, filters);
-    }, [recargarEspecialidades]);
-
     const filterOptions = [
         { field: "estado", label: "Estado", values: ["Activo", "Inactivo"] },
     ]
@@ -181,7 +176,6 @@ const Especialidades = () => {
                         onOpen={handleAbrirCrear}
                         setAccion={setAccion}
                         loading={loading}
-                        onRemoteFilter={handleRemoteFilter}
                     />
                 </div>
                 <DrawerGeneral

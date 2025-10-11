@@ -92,6 +92,8 @@ const ListaIncidentes = () => {
             return {
                 ...incidente,
                 casillero: incidente.casillero?.numCasillero || 'N/A',
+                reportanteNombre: nombreCompleto, // Agregar campo buscable
+                reportanteEmail: emailReportante, // Agregar campo buscable
                 reportante: (
                     <div className="flex flex-col">
                         <span className="text-sm">{nombreCompleto}</span>

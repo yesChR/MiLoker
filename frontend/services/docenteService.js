@@ -28,13 +28,10 @@ const handleResponse = async (response) => {
     return await response.text();
 };
 
-export const getDocentes = async (search, filters) => {
+export const getDocentes = async () => {
     try {
-        let url = `${API_URL}/administrativo/docente/visualizar`;
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        if (filters) params.append('filters', JSON.stringify(filters));
-        if (params.toString()) url += `?${params.toString()}`;
+        // Ya no se envían filtros - se hace en frontend
+        const url = `${API_URL}/administrativo/docente/visualizar`;
         
         const response = await fetch(url, {
             method: 'GET',
