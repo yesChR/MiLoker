@@ -193,7 +193,11 @@ const Docentes = () => {
         const result = await createDocente(docenteData);
         if (result && result.error) {
             if (result.message && result.message.includes('ya existe')) {
-                Toast.error('Docente ya existe', result.message);
+                if (result.message.includes('correo electrónico')) {
+                    Toast.error('Correo duplicado', 'Este correo electrónico ya está registrado en el sistema');
+                } else {
+                    Toast.error('Docente ya existe', result.message);
+                }
             } else {
                 Toast.error('Error', result.message || 'Error al crear docente');
             }

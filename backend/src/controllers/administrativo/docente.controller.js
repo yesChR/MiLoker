@@ -22,6 +22,14 @@ export const crearProfesor = async (req, res) => {
             return res.status(409).json({ error: "El usuario o profesor ya existe" });
         }
 
+        // Verifica si ya existe un usuario con el mismo correo (nombreUsuario)
+        const existeCorreo = await Usuario.findOne({ where: { nombreUsuario: correo }, transaction: t });
+
+        if (existeCorreo) {
+            await t.rollback();
+            return res.status(409).json({ error: "Ya existe un usuario registrado con este correo electrónico" });
+        }
+
         // Crea el usuario usando la función del nuevo controller con estado activo
         const { usuario, contraseñaGenerada } = await crearUsuario({
             cedula,

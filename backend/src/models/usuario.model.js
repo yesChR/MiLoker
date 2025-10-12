@@ -10,7 +10,8 @@ export const Usuario = sequelize.define("usuario", {
   },
   nombreUsuario: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   token: {
     type: DataTypes.STRING,
