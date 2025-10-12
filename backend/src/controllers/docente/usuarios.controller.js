@@ -107,9 +107,11 @@ export const visualizar = async (req, res) => {
                 },
                 {
                     model: EstudianteXEncargado,
+                    as: 'estudianteXencargados', // Usar el alias definido en la asociación
                     include: [
                         {
                             model: Encargado,
+                            as: 'encargado', // Usar el alias definido en la asociación
                             attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'parentesco', 'correo', 'telefono']
                         }
                     ],
