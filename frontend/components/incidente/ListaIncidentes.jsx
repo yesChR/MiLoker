@@ -183,17 +183,8 @@ const ListaIncidentes = () => {
         },
     ];
 
-    // Mostrar loading mientras se autentica
-    if (status === 'loading') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen">
-                <Spinner size="lg" label="Cargando..." />
-            </div>
-        );
-    }
-
     // Si no hay sesión, no mostrar nada (el middleware debería redirigir)
-    if (!session?.user) {
+    if (status === 'loading' || !session?.user) {
         return null;
     }
 

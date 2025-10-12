@@ -101,6 +101,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
 
   // Usar useMemo para optimizar el filtrado
   const filteredMenuItems = useMemo(() => {
+    // Durante la carga, mostrar menú vacío en lugar de spinner
     if (status === "loading" || !session?.user?.role) {
       return [];
     }
@@ -273,23 +274,9 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
 
         {/* Contenido del Sidebar */}
         <div className="flex flex-col items-start mt-10">
-          {status === "loading" ? (
-            <div className="w-full flex flex-col justify-center items-center py-8 animate-pulse">
-              {/* Spinner principal */}
-              <div className="relative mb-3">
-                <div className="w-8 h-8 border-3 border-celeste border-t-primario rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-8 h-8 border-3 border-transparent border-r-pink-300 rounded-full animate-reverse"></div>
-              </div>
-              <div className="mt-3 text-sm font-medium text-azulOscuro">
-                Cargando menú...
-              </div>
-              <div className="mt-1 text-xs text-gray-500">
-                Verificando permisos
-              </div>
-            </div>
-          ) : (
-            filteredMenuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
-              const hasSubItems = subItems && subItems.length > 0;
+          {/* Siempre mostrar los menús filtrados, sin spinner durante la carga */}
+          {filteredMenuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
+            const hasSubItems = subItems && subItems.length > 0;
 
               return (
                 <div key={id} className="w-full">
@@ -329,8 +316,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
                   )}
                 </div>
               );
-            })
-          )}
+            })}
         </div>
         {/* Botón cerrar sesión */}
         <div
