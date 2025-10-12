@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import { Button, Select, SelectItem } from "@heroui/react";
 import DrawerGeneral from "../../DrawerGeneral";
@@ -14,8 +15,10 @@ import VisualizadorArmario from "./VisualizadorArmario";
 import PaginacionArmarios from "./PaginacionArmarios";
 import LoadingArmarios from "./LoadingArmarios";
 import { ESTADOS_CASILLERO } from "../../common/estadoCasillero";
+import { ROLES } from "../../common/roles";
 
 const Armario = () => {
+    const { data: session, status } = useSession();
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [selectedCasillero, setSelectedCasillero] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -38,10 +41,21 @@ const Armario = () => {
     const formCrearRef = useRef();
     const formEditarRef = useRef();
 
+    // Verificar si el usuario es docente/profesor
+    const esProfesor = session?.user?.role === ROLES.PROFESOR;
+    const especialidadProfesor = session?.user?.idEspecialidad;
+
     // Cargar datos iniciales
     useEffect(() => {
         cargarDatosIniciales();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Si el usuario es profesor, establecer automáticamente su especialidad
+    useEffect(() => {
+        if (status === 'authenticated' && esProfesor && especialidadProfesor) {
+            setEspecialidadSeleccionada(especialidadProfesor.toString());
+        }
+    }, [status, esProfesor, especialidadProfesor]);
 
     // Cargar especialidades y armarios
     const cargarDatosIniciales = async () => {
@@ -66,8 +80,9 @@ const Armario = () => {
                 setLoading(false);
             } else {
                 setEspecialidades(especialidadesResult || []);
-                // Seleccionar automáticamente la primera especialidad si no hay ninguna seleccionada
-                if (!especialidadSeleccionada && especialidadesResult && especialidadesResult.length > 0) {
+                // Seleccionar automáticamente la primera especialidad solo si NO es profesor
+                // y no hay ninguna seleccionada
+                if (!esProfesor && !especialidadSeleccionada && especialidadesResult && especialidadesResult.length > 0) {
                     const primeraEspecialidad = especialidadesResult[0].idEspecialidad.toString();
                     setEspecialidadSeleccionada(primeraEspecialidad);
                     // El useEffect se encargará de cargar los armarios de esta especialidad
@@ -305,6 +320,7 @@ const Armario = () => {
                                 setEspecialidadSeleccionada(selected || '');
                                 setCurrentPage(1); // Resetear a la primera página
                             }}
+                            isDisabled={esProfesor}
                         >
                             {especialidades && especialidades.length > 0 && especialidades.map((especialidad) => {
                                 const nombreFormateado = especialidad.nombre
@@ -322,13 +338,16 @@ const Armario = () => {
                             })}
                         </Select>
                         
-                        <Button
-                            className="bg-primario text-white flex items-center flex-shrink-0"
-                            onPress={() => abrirDrawer()}
-                            endContent={<PlusIcon />}
-                        >
-                            Agregar
-                        </Button>
+                        {/* Solo mostrar botón Agregar si NO es profesor */}
+                        {!esProfesor && (
+                            <Button
+                                className="bg-primario text-white flex items-center flex-shrink-0"
+                                onPress={() => abrirDrawer()}
+                                endContent={<PlusIcon />}
+                            >
+                                Agregar
+                            </Button>
+                        )}
                     </div>
 
                     {loading ? (
