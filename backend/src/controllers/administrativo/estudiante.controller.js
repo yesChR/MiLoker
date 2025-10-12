@@ -282,14 +282,13 @@ export const editarEstudiante = async (req, res) => {
             return res.status(404).json({ error: "El estudiante no existe" });
         }
 
-        // Preparar datos para actualizar estudiante
+        // Preparar datos para actualizar estudiante (sin incluir correo ya que no se puede cambiar)
         const updateData = {
             nombre, 
             apellidoUno, 
             apellidoDos, 
             estado, 
             telefono, 
-            correo, 
             seccion, 
             idEspecialidad
         };

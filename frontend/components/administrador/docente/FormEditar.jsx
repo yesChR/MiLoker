@@ -145,6 +145,7 @@ const FormEditar = forwardRef(({
                 className="focus:border-primario"
                 color="primary"
                 type="email"
+                isDisabled
                 isInvalid={showErrors && !selectedItem?.correo?.trim()}
                 errorMessage="El correo es obligatorio"
             />

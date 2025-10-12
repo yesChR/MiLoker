@@ -110,9 +110,9 @@ export const editarProfesor = async (req, res) => {
             return res.status(404).json({ error: "El profesor no existe" });
         }
 
-        // Actualizar datos del profesor
+        // Actualizar datos del profesor (sin incluir correo ya que no se puede cambiar)
         await Profesor.update(
-            { nombre, apellidoUno, apellidoDos, estado, telefono, correo, idEspecialidad },
+            { nombre, apellidoUno, apellidoDos, estado, telefono, idEspecialidad },
             { where: { cedula }, transaction: t }
         );
 

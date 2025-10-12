@@ -124,9 +124,9 @@ export const editarAdministrador = async (req, res) => {
             return res.status(404).json({ error: "El administrador no existe" });
         }
 
-        // Actualizar datos del administrador
+        // Actualizar datos del administrador (sin incluir correo ya que no se puede cambiar)
         await Administrador.update(
-            { nombre, apellidoUno, apellidoDos, estado, telefono, correo },
+            { nombre, apellidoUno, apellidoDos, estado, telefono },
             { where: { cedula }, transaction: t }
         );
 
