@@ -7,13 +7,27 @@ import { FiChevronLeft, FiChevronDown, FiChevronUp, FiChevronRight} from "react-
 import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
 import { tieneAccesoRuta } from "../../config/routeConfig";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
   const [expandedItems, setExpandedItems] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Función para manejar el cierre de sesión
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut({ 
+        callbackUrl: '/auth/login',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Error durante el logout:', error);
+      // Fallback: redirigir manualmente si hay error
+      router.push('/auth/login');
+    }
+  }, [router]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -327,9 +341,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
               "justify-start": !toggleCollapse, // Alinear a la izquierda cuando está expandido
             }
           )}
-          onClick={() => {
-            console.log("Cerrar sesión");
-          }}
+          onClick={handleLogout}
         >
           <div style={{ width: "2.5rem" }} className="flex justify-center">
             <LogoutIcon className="w-4 h-6 text-red-500" />
