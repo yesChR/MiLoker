@@ -91,7 +91,7 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
             {tarjetas.map((tarjeta, index) => (
                 <div
                     key={index}
-                    className={`flex flex-col items-center justify-center py-6 rounded-lg shadow-md ${tarjeta.color} w-full sm:w-[325px] h-[120px] ${
+                    className={`flex flex-col items-center justify-center py-6 rounded-lg shadow-md ${tarjeta.color} w-full sm:w-[325px] h-[140px] ${
                         tarjeta.titulo === "Restablecer" && !tarjeta.deshabilitado
                             ? "cursor-pointer hover:shadow-lg hover:bg-red-700 transition-all duration-200 hover:scale-105"
                             : tarjeta.titulo === "Restablecer" && tarjeta.deshabilitado
@@ -120,12 +120,13 @@ const TarjetasPeriodo = ({ periodos, onRestablecer }) => {
                         {tarjeta.titulo}
                     </h3>
                     {tarjeta.fechaInicio && tarjeta.fechaFin ? (
-                        <div className="text-center">
-                            <p className={`text-sm ${tarjeta.vencido ? 'text-red-200 line-through' : 'text-gray-100'}`}>
-                                {tarjeta.fechaInicio} a {tarjeta.fechaFin}
+                        <div className="text-center px-2">
+                            <p className={`text-xs ${tarjeta.vencido ? 'text-red-200 line-through' : 'text-gray-100'}`}>
+                                <span className="block font-medium">Inicio: {tarjeta.fechaInicio}</span>
+                                <span className="block font-medium mt-1">Fin: {tarjeta.fechaFin}</span>
                             </p>
                             {tarjeta.vencido && (
-                                <p className="text-xs text-red-200 font-semibold mt-1 mb-2">
+                                <p className="text-xs text-red-200 font-semibold mt-2">
                                     ⚠️ Este periodo {tarjeta.estadoTexto === "INACTIVO" ? "está inactivo" : "ha expirado"}
                                 </p>
                             )}

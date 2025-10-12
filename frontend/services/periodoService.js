@@ -157,14 +157,17 @@ export const getPeriodosParaTarjetas = async () => {
     }
 };
 
-// Formatear fecha para mostrar
+// Formatear fecha para mostrar con fecha y hora
 export const formatearFecha = (fecha) => {
     if (!fecha) return "No definida";
     const date = new Date(fecha);
     return date.toLocaleDateString('es-ES', {
         day: '2-digit',
         month: 'short',
-        year: 'numeric'
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
     });
 };
 

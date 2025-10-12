@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { parseAbsoluteToLocal } from "@internationalized/date";
+import { parseZonedDateTime, getLocalTimeZone } from "@internationalized/date";
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import { Toast } from "../../CustomAlert";
 import TarjetasPeriodo from "./TarjetasPeriodo";
@@ -14,6 +14,27 @@ import {
 } from "../../../services/periodoService";
 
 const PeriodoSolicitud = () => {
+    // Función para convertir ISO string a ZonedDateTime
+    const parseToZonedDateTime = (isoString) => {
+        if (!isoString) return null;
+        try {
+            const date = new Date(isoString);
+            const localTimeZone = getLocalTimeZone();
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            const zonedDateTimeString = `${year}-${month}-${day}T${hours}:${minutes}[${localTimeZone}]`;
+            return parseZonedDateTime(zonedDateTimeString);
+        } catch (error) {
+            console.error('Error parsing date:', error);
+            return null;
+        }
+    };
+
     // Estados para fechas - iniciar como null para campos vacíos
     const [inicioSolicitud, setInicioSolicitud] = useState(null);
     const [finSolicitud, setFinSolicitud] = useState(null);
@@ -51,12 +72,12 @@ const PeriodoSolicitud = () => {
                     const periodoSolicitud = data.find(p => p.tipo === 2);
                     const periodoAsignacion = data.find(p => p.tipo === 1);
                     if (periodoSolicitud) {
-                        setInicioSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaInicio).toISOString()));
-                        setFinSolicitud(parseAbsoluteToLocal(new Date(periodoSolicitud.fechaFin).toISOString()));
+                        setInicioSolicitud(parseToZonedDateTime(new Date(periodoSolicitud.fechaInicio).toISOString()));
+                        setFinSolicitud(parseToZonedDateTime(new Date(periodoSolicitud.fechaFin).toISOString()));
                     }
                     if (periodoAsignacion) {
-                        setInicioAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaInicio).toISOString()));
-                        setFinAsignacion(parseAbsoluteToLocal(new Date(periodoAsignacion.fechaFin).toISOString()));
+                        setInicioAsignacion(parseToZonedDateTime(new Date(periodoAsignacion.fechaInicio).toISOString()));
+                        setFinAsignacion(parseToZonedDateTime(new Date(periodoAsignacion.fechaFin).toISOString()));
                     }
                 } else {
                     setInicioSolicitud(null);

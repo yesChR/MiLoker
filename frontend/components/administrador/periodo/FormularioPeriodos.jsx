@@ -1,5 +1,5 @@
 import { Button, DatePicker } from "@heroui/react";
-import { today, getLocalTimeZone } from "@internationalized/date";
+import { today, getLocalTimeZone, now } from "@internationalized/date";
 
 const FormularioPeriodos = ({ 
     inicioSolicitud, 
@@ -15,8 +15,8 @@ const FormularioPeriodos = ({
     loadingData,
     periodos // Agregar prop para verificar períodos vencidos
 }) => {
-    // Obtener la fecha actual como mínima
-    const fechaActual = today(getLocalTimeZone());
+    // Obtener la fecha y hora actual como mínima
+    const fechaActual = now(getLocalTimeZone());
     
     // Verificar si algún período está vencido
     const verificarPeriodosVencidos = () => {
@@ -32,16 +32,16 @@ const FormularioPeriodos = ({
     const hayPeriodosVencidos = verificarPeriodosVencidos();
     
     // Calcular fechas mínimas dinámicamente
-    const fechaMinimaFinSolicitud = inicioSolicitud ? inicioSolicitud.add({ days: 1 }) : fechaActual.add({ days: 1 });
-    const fechaMinimaInicioAsignacion = finSolicitud ? finSolicitud.add({ days: 1 }) : fechaActual.add({ days: 1 });
-    const fechaMinimaFinAsignacion = inicioAsignacion ? inicioAsignacion.add({ days: 1 }) : fechaMinimaInicioAsignacion;
+    const fechaMinimaFinSolicitud = inicioSolicitud ? inicioSolicitud.add({ minutes: 1 }) : fechaActual.add({ minutes: 1 });
+    const fechaMinimaInicioAsignacion = finSolicitud ? finSolicitud.add({ minutes: 1 }) : fechaActual.add({ minutes: 1 });
+    const fechaMinimaFinAsignacion = inicioAsignacion ? inicioAsignacion.add({ minutes: 1 }) : fechaMinimaInicioAsignacion;
 
     // Función para manejar cambios en inicio de solicitud
     const handleInicioSolicitudChange = (value) => {
         setInicioSolicitud(value);
-        // Si la fecha de fin de solicitud es menor o igual, ajustarla al día siguiente
+        // Si la fecha de fin de solicitud es menor o igual, ajustarla al minuto siguiente
         if (finSolicitud && value && finSolicitud.compare(value) <= 0) {
-            setFinSolicitud(value.add({ days: 1 }));
+            setFinSolicitud(value.add({ minutes: 1 }));
         }
     };
 
@@ -50,13 +50,13 @@ const FormularioPeriodos = ({
         setFinSolicitud(value);
         
         if (value) {
-            // Establecer automáticamente la fecha de inicio de asignación al día siguiente
-            const nuevaFechaInicioAsignacion = value.add({ days: 1 });
+            // Establecer automáticamente la fecha de inicio de asignación al minuto siguiente
+            const nuevaFechaInicioAsignacion = value.add({ minutes: 1 });
             setInicioAsignacion(nuevaFechaInicioAsignacion);
             
             // También ajustar fin de asignación si es necesario o si no está establecido
             if (!finAsignacion || (finAsignacion && finAsignacion.compare(nuevaFechaInicioAsignacion) <= 0)) {
-                setFinAsignacion(nuevaFechaInicioAsignacion.add({ days: 1 }));
+                setFinAsignacion(nuevaFechaInicioAsignacion.add({ minutes: 1 }));
             }
         }
     };
@@ -64,9 +64,9 @@ const FormularioPeriodos = ({
     // Función para manejar cambios en inicio de asignación
     const handleInicioAsignacionChange = (value) => {
         setInicioAsignacion(value);
-        // Si la fecha de fin de asignación es menor o igual, ajustarla al día siguiente
+        // Si la fecha de fin de asignación es menor o igual, ajustarla al minuto siguiente
         if (finAsignacion && value && finAsignacion.compare(value) <= 0) {
-            setFinAsignacion(value.add({ days: 1 }));
+            setFinAsignacion(value.add({ minutes: 1 }));
         }
     };
     return (
@@ -91,13 +91,16 @@ const FormularioPeriodos = ({
                     <div className="w-full sm:w-1/2">
                         <DatePicker
                             isRequired
-                            label="Inicio"
+                            label="Fecha y hora de inicio"
                             labelPlacement="outside"
+                            showMonthAndYearPickers
+                            variant="bordered"
                             value={inicioSolicitud}
                             onChange={handleInicioSolicitudChange}
-                            granularity="day"
+                            granularity="minute"
+                            hideTimeZone
                             className="w-full"
-                            placeholder="Selecciona una fecha"
+                            placeholder="Selecciona fecha y hora"
                             minValue={fechaActual}
                             isDisabled={loading || loadingData}
                             locale="es-ES"
@@ -106,13 +109,16 @@ const FormularioPeriodos = ({
                     <div className="w-full sm:w-1/2">
                         <DatePicker
                             isRequired
-                            label="Fin"
+                            label="Fecha y hora de fin"
                             labelPlacement="outside"
+                            showMonthAndYearPickers
+                            variant="bordered"
                             value={finSolicitud}
                             onChange={handleFinSolicitudChange}
-                            granularity="day"
+                            granularity="minute"
+                            hideTimeZone
                             className="w-full"
-                            placeholder="Selecciona una fecha"
+                            placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaFinSolicitud}
                             isDisabled={loading || loadingData}
                             locale="es-ES"
@@ -124,13 +130,16 @@ const FormularioPeriodos = ({
                     <div className="w-full sm:w-1/2">
                         <DatePicker
                             isRequired
-                            label="Inicio"
+                            label="Fecha y hora de inicio"
                             labelPlacement="outside"
+                            showMonthAndYearPickers
+                            variant="bordered"
                             value={inicioAsignacion}
                             onChange={handleInicioAsignacionChange}
-                            granularity="day"
+                            granularity="minute"
+                            hideTimeZone
                             className="w-full"
-                            placeholder="Selecciona una fecha"
+                            placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaInicioAsignacion}
                             isDisabled={loading || loadingData}
                             locale="es-ES"
@@ -139,13 +148,16 @@ const FormularioPeriodos = ({
                     <div className="w-full sm:w-1/2">
                         <DatePicker
                             isRequired
-                            label="Fin"
+                            label="Fecha y hora de fin"
                             labelPlacement="outside"
+                            showMonthAndYearPickers
+                            variant="bordered"
                             value={finAsignacion}
                             onChange={setFinAsignacion}
-                            granularity="day"
+                            granularity="minute"
+                            hideTimeZone
                             className="w-full"
-                            placeholder="Selecciona una fecha"
+                            placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaFinAsignacion}
                             isDisabled={loading || loadingData}
                             locale="es-ES"
