@@ -2,6 +2,8 @@ import { Estudiante } from "../../models/estudiante.model.js";
 import { Usuario } from "../../models/usuario.model.js";
 import { Especialidad } from "../../models/especialidad.model.js";
 import { Solicitud } from "../../models/solicitud.model.js";
+import { Encargado } from "../../models/encargado.model.js";
+import { EstudianteXEncargado } from "../../models/estudianteXencargado.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS } from "../../common/estados.js";
 import { crearUsuario } from "../../controllers/usuario/usuario.controller.js";
@@ -259,6 +261,18 @@ export const visualizar = async (req, res) => {
                 {
                     model: Solicitud,
                     as: "solicitudes"
+                },
+                {
+                    model: EstudianteXEncargado,
+                    as: 'estudianteXencargados',
+                    include: [
+                        {
+                            model: Encargado,
+                            as: 'encargado',
+                            attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'parentesco', 'correo', 'telefono']
+                        }
+                    ],
+                    required: false
                 }
             ]
         });
@@ -276,10 +290,42 @@ export const editarEstudiante = async (req, res) => {
     const t = await sequelize.transaction();
     
     try {
-        const existeEstudiante = await Estudiante.findByPk(cedula, { transaction: t });
+        const existeEstudiante = await Estudiante.findByPk(cedula, { 
+            include: [
+                {
+                    model: EstudianteXEncargado,
+                    as: 'estudianteXencargados',
+                    include: [
+                        {
+                            model: Encargado,
+                            as: 'encargado'
+                        }
+                    ],
+                    required: false
+                }
+            ],
+            transaction: t 
+        });
         if (!existeEstudiante) {
             await t.rollback();
             return res.status(404).json({ error: "El estudiante no existe" });
+        }
+
+        // Validar si se puede cambiar el estado
+        if (estado !== undefined && estado !== existeEstudiante.estado) {
+            // Si el estudiante está inactivo y no tiene encargados, no permitir cambios de estado
+            if (existeEstudiante.estado === ESTADOS.INACTIVO) {
+                const tieneEncargados = existeEstudiante.estudianteXencargados && 
+                                     existeEstudiante.estudianteXencargados.length > 0;
+                
+                if (!tieneEncargados) {
+                    await t.rollback();
+                    return res.status(400).json({ 
+                        error: "No se puede cambiar el estado del estudiante",
+                        message: "El estudiante está inactivo y no tiene encargados asignados. Debe asignar encargados antes de cambiar el estado."
+                    });
+                }
+            }
         }
 
         // Preparar datos para actualizar estudiante (sin incluir correo ya que no se puede cambiar)

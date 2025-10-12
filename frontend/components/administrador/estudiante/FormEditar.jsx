@@ -7,6 +7,24 @@ import { formatDateForInput, formatDateForSubmit, isValidDate } from "../../../u
 const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especialidades = [] }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
     
+    // Función para determinar si se debe mostrar el campo de estado
+    const shouldShowEstadoField = () => {
+        if (!selectedItem) return true;
+        
+        // Si el estudiante está inactivo
+        if (selectedItem.estado === ESTADOS.INACTIVO) {
+            // Verificar si tiene encargados
+            const tieneEncargados = selectedItem.encargados && selectedItem.encargados.length > 0;
+            
+            // Si no tiene encargados, ocultar el campo de estado
+            if (!tieneEncargados) {
+                return false;
+            }
+        }
+        
+        return true;
+    };
+    
     const validateAndSubmit = () => {
         // Activar la visualización de errores
         setShowErrors(true);
@@ -18,8 +36,8 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
             return !value || !value.toString().trim();
         });
         
-        // Validar que el estado esté seleccionado
-        if (!selectedItem?.estado && selectedItem?.estado !== 0) {
+        // Validar que el estado esté seleccionado solo si el campo es visible
+        if (shouldShowEstadoField() && (!selectedItem?.estado && selectedItem?.estado !== 0)) {
             emptyFields.push('estado');
         }
         
@@ -254,39 +272,41 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                     </SelectItem>
                 ))}
             </Select>
-            <Select
-                isRequired
-                label="Estado"
-                name="estado"
-                selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
-                onSelectionChange={(keys) => {
-                    const selectedValue = Array.from(keys)[0];
-                    setSelectedItem((prev) => ({
-                        ...prev,
-                        estado: parseInt(selectedValue),
-                    }));
-                }}
-                variant="bordered"
-                className="focus:border-primario"
-                color="primary"
-                isInvalid={showErrors && (!selectedItem?.estado && selectedItem?.estado !== 0)}
-                errorMessage="El estado es obligatorio"
-            >
-                <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
-                    <div className="flex items-center gap-2">
-                        <Chip color="success" variant="flat" size="sm">
-                            Activo
-                        </Chip>
-                    </div>
-                </SelectItem>
-                <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO} textValue="Inactivo">
-                    <div className="flex items-center gap-2">
-                        <Chip color="danger" variant="flat" size="sm">
-                            Inactivo
-                        </Chip>
-                    </div>
-                </SelectItem>
-            </Select>
+            {shouldShowEstadoField() && (
+                <Select
+                    isRequired
+                    label="Estado"
+                    name="estado"
+                    selectedKeys={selectedItem?.estado ? [selectedItem.estado.toString()] : []}
+                    onSelectionChange={(keys) => {
+                        const selectedValue = Array.from(keys)[0];
+                        setSelectedItem((prev) => ({
+                            ...prev,
+                            estado: parseInt(selectedValue),
+                        }));
+                    }}
+                    variant="bordered"
+                    className="focus:border-primario"
+                    color="primary"
+                    isInvalid={showErrors && shouldShowEstadoField() && (!selectedItem?.estado && selectedItem?.estado !== 0)}
+                    errorMessage="El estado es obligatorio"
+                >
+                    <SelectItem key={ESTADOS.ACTIVO} value={ESTADOS.ACTIVO} textValue="Activo">
+                        <div className="flex items-center gap-2">
+                            <Chip color="success" variant="flat" size="sm">
+                                Activo
+                            </Chip>
+                        </div>
+                    </SelectItem>
+                    <SelectItem key={ESTADOS.INACTIVO} value={ESTADOS.INACTIVO} textValue="Inactivo">
+                        <div className="flex items-center gap-2">
+                            <Chip color="danger" variant="flat" size="sm">
+                                Inactivo
+                            </Chip>
+                        </div>
+                    </SelectItem>
+                </Select>
+            )}
         </Form>
     );
 });

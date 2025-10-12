@@ -1,5 +1,5 @@
 import CabezeraDinamica from "../Layout/CabeceraDinamica"
-import { Input, Button, useDisclosure } from "@heroui/react"
+import { Input, Button, useDisclosure, Spinner } from "@heroui/react"
 import { SearchIcon } from "../icons/SearchIcon"
 import { Divider } from "@heroui/react";
 import { LuSendHorizontal } from "react-icons/lu";
@@ -656,14 +656,14 @@ const CrearUsuarios = () => {
                         </Button>
                         <Button
                             type="submit"
-                            className={`px-6 text-white w-full sm:w-auto ml-4 ${!isFormReadyToSubmit
+                            className={`px-6 text-white w-full sm:w-auto ml-4 ${!isFormReadyToSubmit || isLoading
                                 ? 'bg-gray-400 cursor-not-allowed opacity-50'
                                 : 'bg-primario hover:bg-primario'
                                 }`}
-                            endContent={<LuSendHorizontal />}
-                            disabled={!isFormReadyToSubmit}
+                            endContent={isLoading ? <Spinner size="sm" color="white" /> : <LuSendHorizontal />}
+                            disabled={!isFormReadyToSubmit || isLoading}
                         >
-                            Enviar
+                            {isLoading ? 'Enviando...' : 'Enviar'}
                         </Button>
                     </div>
                 </form>

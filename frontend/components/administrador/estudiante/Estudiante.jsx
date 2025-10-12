@@ -45,15 +45,22 @@ const Estudiante = () => {
                 Toast.error('Error', data.message || 'Error al cargar los datos iniciales');
             } else {
                 // Procesar datos para mostrar en la tabla
-                const estudiantesProcessed = data.map(estudiante => ({
-                    ...estudiante,
-                    nombreCompleto: `${estudiante.nombre || ''} ${estudiante.apellidoUno || ''} ${estudiante.apellidoDos || ''}`.trim(),
-                    especialidadNombre: estudiante.especialidad?.nombre || 'No asignada',
-                    especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
-                        ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
-                        : estudiante.especialidad?.nombre || 'No asignada',
-                    estadoTexto: estudiante.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo'
-                }));
+                const estudiantesProcessed = data.map(estudiante => {
+                    // Procesar encargados
+                    const encargados = estudiante.estudianteXencargados && Array.isArray(estudiante.estudianteXencargados) ? 
+                        estudiante.estudianteXencargados.map(rel => rel.encargado).filter(enc => enc !== null) : [];
+                    
+                    return {
+                        ...estudiante,
+                        nombreCompleto: `${estudiante.nombre || ''} ${estudiante.apellidoUno || ''} ${estudiante.apellidoDos || ''}`.trim(),
+                        especialidadNombre: estudiante.especialidad?.nombre || 'No asignada',
+                        especialidadCorta: estudiante.especialidad?.nombre?.length > 15 
+                            ? estudiante.especialidad.nombre.substring(0, 15) + '...' 
+                            : estudiante.especialidad?.nombre || 'No asignada',
+                        estadoTexto: estudiante.estado === ESTADOS.ACTIVO ? 'Activo' : 'Inactivo',
+                        encargados: encargados
+                    };
+                });
                 setEstudiantes(estudiantesProcessed);
             }
         } finally {
@@ -188,6 +195,7 @@ const Estudiante = () => {
                 seccion: item.seccion,
                 fechaNacimiento: item.fechaNacimiento,
                 idEspecialidad: item.idEspecialidad,
+                encargados: item.encargados || [], // Incluir encargados
             };
             console.log('Datos enviados al formulario:', data);
             setSelectedItem(data);
