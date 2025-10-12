@@ -3,6 +3,7 @@ import { Input, Form, Select, SelectItem, Chip, DateInput } from "@heroui/react"
 import { CalendarDate } from "@internationalized/date";
 import { ESTADOS } from "../../common/estados";
 import { formatDateForInput, formatDateForSubmit, isValidDate } from "../../../utils/dateUtils";
+import EncargadosInfo from "./EncargadosInfo";
 
 const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especialidades = [] }, ref) => {
     const [showErrors, setShowErrors] = useState(false);
@@ -307,6 +308,11 @@ const FormEditar = forwardRef(({ selectedItem, setSelectedItem, onSubmit, especi
                     </SelectItem>
                 </Select>
             )}
+            
+            {/* Componente para mostrar información de encargados - Al final del formulario */}
+            <div className="w-full mt-4">
+                <EncargadosInfo encargados={selectedItem?.encargados} />
+            </div>
         </Form>
     );
 });
