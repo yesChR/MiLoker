@@ -98,6 +98,7 @@ const FormularioPeriodos = ({
                             value={inicioSolicitud}
                             onChange={handleInicioSolicitudChange}
                             granularity="minute"
+                            hourCycle={12}
                             hideTimeZone
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
@@ -116,6 +117,7 @@ const FormularioPeriodos = ({
                             value={finSolicitud}
                             onChange={handleFinSolicitudChange}
                             granularity="minute"
+                            hourCycle={12}
                             hideTimeZone
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
@@ -137,6 +139,7 @@ const FormularioPeriodos = ({
                             value={inicioAsignacion}
                             onChange={handleInicioAsignacionChange}
                             granularity="minute"
+                            hourCycle={12}
                             hideTimeZone
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
@@ -155,6 +158,7 @@ const FormularioPeriodos = ({
                             value={finAsignacion}
                             onChange={setFinAsignacion}
                             granularity="minute"
+                            hourCycle={12}
                             hideTimeZone
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
