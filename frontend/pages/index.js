@@ -260,18 +260,7 @@ export default function Home() {
           route: "/docente/solicitudes/1",
           delay: "delay-100"
         },
-        {
-          icon: (
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          ),
-          title: "Alertas",
-          description: "Monitorea incidencias y situaciones que requieren atención",
-          color: "#ef4444",
-          route: "/docente/alertaIncidentes",
-          delay: "delay-200"
-        },
+
         {
           icon: (
             <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -459,26 +448,48 @@ export default function Home() {
           
           <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed animate-fade-in-up">
             {userRole === 1 && "Administra el sistema completo, usuarios y configuraciones"}
-            {userRole === 2 && "Gestiona solicitudes, alertas y supervisa el sistema"}
+            {userRole === 2 && "Gestiona solicitudes y supervisa el sistema"}
             {userRole === 3 && "Solicita casilleros, consulta tu estado y reporta incidencias"}
             {!userRole && "Explora todas las funcionalidades disponibles para gestionar tus casilleros"}
           </p>
         </div>
 
         {/* Grid de tarjetas de funcionalidades */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto space-y-6">
           {features.length > 0 ? (
-            features.map((feature, index) => (
-              <FeatureCard
-                key={index}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-                color={feature.color}
-                delay={feature.delay}
-                onClick={() => handleCardClick(feature.route)}
-              />
-            ))
+            <>
+              {/* Tarjetas regulares */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {features.filter(feature => feature.title !== "Incidentes" && feature.title !== "Informes").map((feature, index) => (
+                  <FeatureCard
+                    key={index}
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                    color={feature.color}
+                    delay={feature.delay}
+                    onClick={() => handleCardClick(feature.route)}
+                  />
+                ))}
+              </div>
+              
+              {/* Fila especial para Incidentes e Informes */}
+              {features.some(f => f.title === "Incidentes" || f.title === "Informes") && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {features.filter(feature => feature.title === "Incidentes" || feature.title === "Informes").map((feature, index) => (
+                    <FeatureCard
+                      key={`special-${index}`}
+                      icon={feature.icon}
+                      title={feature.title}
+                      description={feature.description}
+                      color={feature.color}
+                      delay={feature.delay}
+                      onClick={() => handleCardClick(feature.route)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="col-span-full text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">

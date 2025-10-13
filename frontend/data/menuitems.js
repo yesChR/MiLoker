@@ -38,7 +38,6 @@ export const menuItems = [
           { label: "Rechazadas", link: "/docente/solicitudes/3" },
         ],
       },
-      { label: "Alertas de incidencias", link: "/docente/alertaIncidentes" },
       { label: "Crear usuarios", link: "/docente/crearUsuarios" },
     ],
   },
