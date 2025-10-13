@@ -458,27 +458,47 @@ export default function Home() {
         <div className="max-w-6xl mx-auto space-y-6">
           {features.length > 0 ? (
             <>
-              {/* Tarjetas regulares */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {features.filter(feature => feature.title !== "Incidentes" && feature.title !== "Informes").map((feature, index) => (
-                  <FeatureCard
-                    key={index}
-                    icon={feature.icon}
-                    title={feature.title}
-                    description={feature.description}
-                    color={feature.color}
-                    delay={feature.delay}
-                    onClick={() => handleCardClick(feature.route)}
-                  />
-                ))}
-              </div>
-              
-              {/* Fila especial para Incidentes e Informes */}
-              {features.some(f => f.title === "Incidentes" || f.title === "Informes") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {features.filter(feature => feature.title === "Incidentes" || feature.title === "Informes").map((feature, index) => (
+              {/* Solo para docentes: separar Incidentes e Informes en fila especial */}
+              {userRole === 2 ? (
+                <>
+                  {/* Tarjetas regulares (sin Incidentes e Informes) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {features.filter(feature => feature.title !== "Incidentes" && feature.title !== "Informes").map((feature, index) => (
+                      <FeatureCard
+                        key={index}
+                        icon={feature.icon}
+                        title={feature.title}
+                        description={feature.description}
+                        color={feature.color}
+                        delay={feature.delay}
+                        onClick={() => handleCardClick(feature.route)}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Fila especial para Incidentes e Informes - solo docentes */}
+                  {features.some(f => f.title === "Incidentes" || f.title === "Informes") && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {features.filter(feature => feature.title === "Incidentes" || feature.title === "Informes").map((feature, index) => (
+                        <FeatureCard
+                          key={`special-${index}`}
+                          icon={feature.icon}
+                          title={feature.title}
+                          description={feature.description}
+                          color={feature.color}
+                          delay={feature.delay}
+                          onClick={() => handleCardClick(feature.route)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Para admin y estudiantes: grid normal */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {features.map((feature, index) => (
                     <FeatureCard
-                      key={`special-${index}`}
+                      key={index}
                       icon={feature.icon}
                       title={feature.title}
                       description={feature.description}
