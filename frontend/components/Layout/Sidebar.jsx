@@ -8,6 +8,7 @@ import { LogoutIcon } from "../icons";
 import { menuItems } from "../../data/menuitems";
 import { tieneAccesoRuta } from "../../config/routeConfig";
 import { useSession, signOut } from "next-auth/react";
+import { Tooltip } from "@heroui/react";
 
 const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
   const [expandedItems, setExpandedItems] = useState([]);
@@ -255,12 +256,19 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
         <div className="flex items-center justify-between relative hidden md:flex">
           <div className="flex items-center gap-4">
             {toggleCollapse ? (
-              <div
-                onClick={() => setToggleCollapse(false)}
-                className="flex-shrink-0 cursor-pointer flex items-center justify-center w-12 h-12 hover:bg-gray-100 rounded"
+              <Tooltip
+                content="Expandir menú"
+                placement="right"
+                delay={300}
+                className="bg-gray-200 text-gray-800 text-sm border border-gray-300 shadow-lg"
               >
-                <FiChevronRight className="w-6 h-6 text-gray-500" />
-              </div>
+                <div
+                  onClick={() => setToggleCollapse(false)}
+                  className="flex-shrink-0 cursor-pointer flex items-center justify-center w-12 h-12 hover:bg-gray-100 rounded"
+                >
+                  <FiChevronRight className="w-6 h-6 text-gray-500" />
+                </div>
+              </Tooltip>
             ) : (
               <div className="flex-shrink-0">
                 <Image
@@ -292,7 +300,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
           {filteredMenuItems.map(({ id, icon: Icon, subItems, link, ...menu }) => {
             const hasSubItems = subItems && subItems.length > 0;
 
-              return (
+              const menuElement = (
                 <div key={id} className="w-full">
                   <div
                     className={classNames(
@@ -330,26 +338,70 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
                   )}
                 </div>
               );
+
+              // Si el sidebar está colapsado, envolver con Tooltip
+              if (toggleCollapse) {
+                return (
+                  <Tooltip
+                    key={id}
+                    content={menu.label}
+                    placement="right"
+                    delay={300}
+                    className="bg-gray-200 text-gray-800 text-sm border border-gray-300 shadow-lg"
+                  >
+                    {menuElement}
+                  </Tooltip>
+                );
+              }
+
+              return menuElement;
             })}
         </div>
         {/* Botón cerrar sesión */}
-        <div
-          className={classNames(
-            "flex items-center px-3 py-3 cursor-pointer hover:bg-gray-300 rounded mt-auto",
-            {
-              "justify-center": toggleCollapse, // Centrar el contenido cuando está colapsado
-              "justify-start": !toggleCollapse, // Alinear a la izquierda cuando está expandido
-            }
-          )}
-          onClick={handleLogout}
-        >
-          <div style={{ width: "2.5rem" }} className="flex justify-center">
-            <LogoutIcon className="w-4 h-6 text-red-500" />
+        {toggleCollapse ? (
+          <Tooltip
+            content="Cerrar sesión"
+            placement="right"
+            delay={300}
+            className="bg-gray-200 text-gray-800 text-sm border border-gray-300 shadow-lg"
+          >
+            <div
+              className={classNames(
+                "flex items-center px-3 py-3 cursor-pointer hover:bg-gray-300 rounded mt-auto",
+                {
+                  "justify-center": toggleCollapse,
+                  "justify-start": !toggleCollapse,
+                }
+              )}
+              onClick={handleLogout}
+            >
+              <div style={{ width: "2.5rem" }} className="flex justify-center">
+                <LogoutIcon className="w-4 h-6 text-red-500" />
+              </div>
+              {!toggleCollapse && (
+                <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
+              )}
+            </div>
+          </Tooltip>
+        ) : (
+          <div
+            className={classNames(
+              "flex items-center px-3 py-3 cursor-pointer hover:bg-gray-300 rounded mt-auto",
+              {
+                "justify-center": toggleCollapse,
+                "justify-start": !toggleCollapse,
+              }
+            )}
+            onClick={handleLogout}
+          >
+            <div style={{ width: "2.5rem" }} className="flex justify-center">
+              <LogoutIcon className="w-4 h-6 text-red-500" />
+            </div>
+            {!toggleCollapse && (
+              <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
+            )}
           </div>
-          {!toggleCollapse && (
-            <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
