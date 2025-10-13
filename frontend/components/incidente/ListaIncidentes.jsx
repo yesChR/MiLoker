@@ -24,6 +24,7 @@ const ListaIncidentes = () => {
     
     const [selectedItem, setSelectedItem] = useState(null);
     const [accion, setAccion] = useState(""); // "revisar", "crear" o "detalle"
+    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para trackear envío de formularios
     
     // Referencias a los formularios
     const formularioCreacionRef = useRef(null);
@@ -60,6 +61,11 @@ const ListaIncidentes = () => {
         }
     }, [status, session, cargarIncidentes]);
 
+    // Resetear estado de envío cuando cambie la acción del drawer
+    useEffect(() => {
+        setIsSubmitting(false);
+    }, [accion]);
+
     const formatearFecha = (fecha) => {
         return new Date(fecha).toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -89,11 +95,15 @@ const ListaIncidentes = () => {
                 emailReportante = incidente.creadorUsuario.nombreUsuario;
             }
 
+            // Determinar si el usuario actual es el creador del incidente
+            const esCreador = incidente.creadorUsuario?.cedula === session?.user?.id;
+
             return {
                 ...incidente,
                 casillero: incidente.casillero?.numCasillero || 'N/A',
                 reportanteNombre: nombreCompleto, // Agregar campo buscable
                 reportanteEmail: emailReportante, // Agregar campo buscable
+                esCreador, // Agregar flag para identificar si es creador
                 reportante: (
                     <div className="flex flex-col">
                         <span className="text-sm">{nombreCompleto}</span>
@@ -128,7 +138,7 @@ const ListaIncidentes = () => {
                 fechaCreacion: formatearFecha(incidente.fechaCreacion)
             };
         });
-    }, [incidentes]);
+    }, [incidentes, session?.user?.id]);
 
     // Opciones de filtro para la tabla
     const filterOptions = [
@@ -146,6 +156,7 @@ const ListaIncidentes = () => {
         // Obtener el incidente completo de los datos que ya tenemos
         const incidenteCompleto = incidentes.find(inc => inc.idIncidente === item.idIncidente);
         setSelectedItem(incidenteCompleto);
+        setIsSubmitting(false); // Resetear estado de envío
         onOpen();
     };
 
@@ -153,6 +164,7 @@ const ListaIncidentes = () => {
         if (!item?.idIncidente) return;
         setAccion(ACCIONES_DRAWER.DETALLE);
         setSelectedItem(item);
+        setIsSubmitting(false); // Resetear estado de envío
         onOpen();
     };
 
@@ -170,18 +182,31 @@ const ListaIncidentes = () => {
         }
     };
 
-    const accionesTabla = [
-        {
-            tooltip: "Ver detalles",
-            icon: <FiEye size={18} />,
-            handler: handleVerDetalle,
-        },
-        {
-            tooltip: "Revisar",
-            icon: <PiNotePencilFill size={18} />,
-            handler: handleRevisar,
-        },
-    ];
+    // Función para determinar las acciones disponibles según el usuario y el incidente
+    const getAccionesParaIncidente = useCallback((item) => {
+        const acciones = [
+            {
+                tooltip: "Ver detalles",
+                icon: <FiEye size={18} />,
+                handler: handleVerDetalle,
+            }
+        ];
+
+        // Solo agregar "Revisar" si el usuario NO es el creador del incidente
+        // Los profesores pueden revisar cualquier incidente
+        if (esProfesor || !item.esCreador) {
+            acciones.push({
+                tooltip: "Revisar",
+                icon: <PiNotePencilFill size={18} />,
+                handler: handleRevisar,
+            });
+        }
+
+        return acciones;
+    }, [esProfesor, handleVerDetalle, handleRevisar]);
+
+    // Acciones por defecto (se usarán para determinar dinámicamente por item)
+    const accionesTabla = useCallback((item) => getAccionesParaIncidente(item), [getAccionesParaIncidente]);
 
     // Si no hay sesión, no mostrar nada (el middleware debería redirigir)
     if (status === 'loading' || !session?.user) {
@@ -224,11 +249,13 @@ const ListaIncidentes = () => {
                     mostrarBotones={accion !== ACCIONES_DRAWER.DETALLE}
                     onBotonPrimario={handleBotonPrimario}
                     onBotonSecundario={() => onOpenChange(false)}
+                    loadingBotonPrimario={isSubmitting}
                 >
                     {accion === ACCIONES_DRAWER.REVISAR ? (
                         <FormularioRevision
                             ref={formularioRevisionRef}
                             selectedItem={selectedItem}
+                            onSubmittingChange={setIsSubmitting}
                         />
                     ) : accion === ACCIONES_DRAWER.DETALLE ? (
                         <DetalleIncidente
@@ -239,6 +266,7 @@ const ListaIncidentes = () => {
                             ref={formularioCreacionRef}
                             onSuccess={handleSuccessCreacion}
                             onClose={() => onOpenChange(false)}
+                            onSubmittingChange={setIsSubmitting}
                         />
                     ) : null}
                 </DrawerGeneral>
