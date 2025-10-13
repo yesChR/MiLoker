@@ -32,8 +32,8 @@ const ListaIncidentes = () => {
 
     // Esperar a que la sesión esté lista antes de validar el rol
     const esProfesor = useMemo(() => {
-        if (status === 'loading' || !session?.user?.rol) return false;
-        return session.user.rol === ROLES.PROFESOR;
+        if (status === 'loading' || !session?.user?.role) return false;
+        return session.user.role === ROLES.PROFESOR;
     }, [session, status]);
 
     const columnas = [
@@ -71,8 +71,9 @@ const ListaIncidentes = () => {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
         });
     };
 
@@ -174,11 +175,29 @@ const ListaIncidentes = () => {
     };
 
     // Función que se ejecuta cuando se hace clic en el botón del drawer
-    const handleBotonPrimario = () => {
+    const handleBotonPrimario = async () => {
+        // Verificar si el incidente está cerrado o resuelto
+        if (accion === ACCIONES_DRAWER.REVISAR && selectedItem?.idEstadoIncidente) {
+            if (selectedItem.idEstadoIncidente === 3) {
+                Toast.warning('Incidente Resuelto', 'Este incidente ya está resuelto y no puede ser modificado');
+                return;
+            }
+            if (selectedItem.idEstadoIncidente === 4) {
+                Toast.warning('Incidente Cerrado', 'Este incidente ya está cerrado y no puede ser modificado');
+                return;
+            }
+        }
+
         if (accion === ACCIONES_DRAWER.CREAR && formularioCreacionRef.current) {
             formularioCreacionRef.current.handleSubmit();
         } else if (accion === ACCIONES_DRAWER.REVISAR && formularioRevisionRef.current) {
-            formularioRevisionRef.current.handleSubmit();
+            const resultado = await formularioRevisionRef.current.handleSubmit();
+            
+            // Si fue exitoso, cerrar drawer y recargar lista
+            if (resultado?.success) {
+                onOpenChange(false); // Cerrar drawer
+                await cargarIncidentes(); // Recargar lista
+            }
         }
     };
 
@@ -188,22 +207,22 @@ const ListaIncidentes = () => {
             {
                 tooltip: "Ver detalles",
                 icon: <FiEye size={18} />,
-                handler: handleVerDetalle,
+                handler: () => handleVerDetalle(item),
             }
         ];
 
-        // Solo agregar "Revisar" si el usuario NO es el creador del incidente
-        // Los profesores pueden revisar cualquier incidente
-        if (esProfesor || !item.esCreador) {
+        // Solo los profesores pueden revisar incidentes
+        // Los estudiantes únicamente pueden ver detalles
+        if (esProfesor) {
             acciones.push({
                 tooltip: "Revisar",
                 icon: <PiNotePencilFill size={18} />,
-                handler: handleRevisar,
+                handler: () => handleRevisar(item),
             });
         }
 
         return acciones;
-    }, [esProfesor, handleVerDetalle, handleRevisar]);
+    }, [esProfesor]);
 
     // Acciones por defecto (se usarán para determinar dinámicamente por item)
     const accionesTabla = useCallback((item) => getAccionesParaIncidente(item), [getAccionesParaIncidente]);

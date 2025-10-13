@@ -56,7 +56,7 @@ export const useFormularioRevision = (idIncidente) => {
         const usuarioId = session?.user?.id;
         if (!usuarioId) {
             Toast.error('Error', 'No hay sesión de usuario válida');
-            return;
+            return { success: false };
         }
 
         try {
@@ -71,7 +71,7 @@ export const useFormularioRevision = (idIncidente) => {
                 
                 if (resultadoUpload.error) {
                     Toast.error('Error', 'No se pudieron subir las evidencias');
-                    return;
+                    return { success: false };
                 }
                 
                 evidenciasIds = resultadoUpload.evidencias?.map(e => e.idEvidencia) || [];
@@ -89,8 +89,10 @@ export const useFormularioRevision = (idIncidente) => {
 
             Toast.success('Éxito', 'Incidente actualizado correctamente');
             await cargarDetalles(); // Recargar detalles
+            return { success: true };
         } catch (error) {
             Toast.error('Error', 'No se pudo actualizar el incidente');
+            return { success: false };
         } finally {
             setLoading(false);
         }

@@ -184,7 +184,7 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
     // Exponer la función actualizarEstado al componente padre
     useImperativeHandle(ref, () => ({
         handleSubmit: async () => {
-            if (submitting) return; // Prevenir múltiples envíos
+            if (submitting) return { success: false }; // Prevenir múltiples envíos
             
             if (permisos.puedeEditar) {
                 // Validar sanción obligatoria para EN_INVESTIGACION y RESUELTO
@@ -192,23 +192,25 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
                 if ([ESTADOS_INCIDENTE.EN_INVESTIGACION, ESTADOS_INCIDENTE.RESUELTO].includes(estadoSeleccionado)) {
                     if (!sancionSeleccionada && !detalles?.idSancion) {
                         Toast.error('Validación', 'Debe seleccionar una sanción para cambiar a este estado');
-                        return;
+                        return { success: false };
                     }
                 }
                 
                 // Validar solución obligatoria para estado RESUELTO
                 if (estadoSeleccionado === ESTADOS_INCIDENTE.RESUELTO && !solucion?.trim()) {
                     Toast.error('Validación', 'La solución es obligatoria para marcar el incidente como resuelto');
-                    return;
+                    return { success: false };
                 }
                 
                 setSubmitting(true);
                 try {
-                    await actualizarEstado(detalleEditable, nuevasEvidencias);
+                    const resultado = await actualizarEstado(detalleEditable, nuevasEvidencias);
+                    return resultado;
                 } finally {
                     setSubmitting(false);
                 }
             }
+            return { success: false };
         }
     }), [permisos.puedeEditar, actualizarEstado, detalleEditable, nuevasEvidencias, estadoSeleccionado, sancionSeleccionada, detalles, solucion, submitting]);
 
