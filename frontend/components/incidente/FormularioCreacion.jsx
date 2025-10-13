@@ -12,11 +12,12 @@ import { validarArchivo, validarFormulario, obtenerDetalleIncidente } from "../.
 import { ordenarCasillerosPorNumero, limpiarURLsArchivos } from "../../utils/dataUtils";
 import { ROLES } from "../../utils/rolesConstants";
 
-const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
+const FormularioCreacion = forwardRef(({ onSuccess, onClose, onSubmittingChange }, ref) => {
     const { data: session, status } = useSession();
     const { crearIncidente, loading, error, limpiarError } = useIncidentes();
     const { sanciones, loading: loadingSanciones } = useSanciones();
 
+    const [submitting, setSubmitting] = useState(false); // Estado local para prevenir múltiples envíos
     const [formData, setFormData] = useState({
         idCasillero: "",
         detalle: "",
@@ -78,9 +79,17 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
         }
     }, [session]);
 
+    // Notificar al padre cuando cambie el estado de submitting
+    useEffect(() => {
+        if (onSubmittingChange) {
+            onSubmittingChange(submitting);
+        }
+    }, [submitting, onSubmittingChange]);
+
     // Exponer handleSubmit al componente padre
     useImperativeHandle(ref, () => ({
-        handleSubmit: () => handleSubmit()
+        handleSubmit: () => handleSubmit(),
+        isSubmitting: () => submitting
     }));
 
     // Verificar que el usuario esté autenticado
@@ -128,6 +137,11 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
     };
 
     const handleSubmit = async () => {
+        // Prevenir múltiples envíos
+        if (submitting) {
+            return;
+        }
+
         limpiarError();
 
         const validacion = validarFormulario(formData);
@@ -142,6 +156,8 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
             // Profesor puede opcionalmente agregar sanción
         }
 
+        setSubmitting(true); // Bloquear botón
+
         try {
             let evidenciasIds = [];
 
@@ -149,6 +165,7 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
                 const resultadoEvidencias = await subirEvidencias(formData.evidencias);
                 if (resultadoEvidencias.error) {
                     Toast.error("Error al reportar incidente", resultadoEvidencias.message);
+                    setSubmitting(false);
                     return;
                 }
                 evidenciasIds = resultadoEvidencias.evidencias.map(ev => ev.idEvidencia);
@@ -192,6 +209,8 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose }, ref) => {
         } catch (error) {
             console.error("Error al crear incidente:", error);
             Toast.error("Error al reportar incidente", error.message || "Ocurrió un error inesperado");
+        } finally {
+            setSubmitting(false); // Desbloquear botón
         }
     };
 

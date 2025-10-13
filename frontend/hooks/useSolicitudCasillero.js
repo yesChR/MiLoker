@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { crearSolicitud } from "../services/solicitudService";
 import { getPeriodoActivo } from "../services/periodoService";
 import { Toast } from "../components/CustomAlert";
@@ -7,6 +8,7 @@ import { ESTADOS_SOLICITUD } from "@/components/common/estadosSolicutudes";
 
 export const useSolicitudCasillero = () => {
     const { data: session, status } = useSession();
+    const router = useRouter();
     const [selectedCasilleros, setSelectedCasilleros] = useState([]);
     const [especialidadId, setEspecialidadId] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -90,6 +92,11 @@ export const useSolicitudCasillero = () => {
             } else {
                 Toast.success("Éxito", "Solicitud de casillero enviada exitosamente");
                 setSelectedCasilleros([]);
+                
+                // Redirigir a la página de estado de solicitud después de 1 segundo
+                setTimeout(() => {
+                    router.push('/estudiante/estadoSolicitud');
+                }, 1000);
             }
         } catch (error) {
             console.error("Error al enviar solicitud:", error);

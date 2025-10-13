@@ -182,6 +182,9 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
 
             case "acciones":
                 if (mostrarAcciones) {
+                    // Obtener acciones dinámicas si acciones es una función, sino usar array estático
+                    const accionesDinamicas = typeof acciones === 'function' ? acciones(item) : acciones;
+                    
                     return (
                         <div className="flex items-center justify-center">
                             <Dropdown>
@@ -191,7 +194,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                                     </Button>
                                 </DropdownTrigger>
                                 <DropdownMenu aria-label="Acciones">
-                                    {acciones.map((accion, i) => (
+                                    {accionesDinamicas.map((accion, i) => (
                                         <DropdownItem
                                             key={i}
                                             onPress={() => accion.handler(item)}
@@ -208,7 +211,8 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                         </div>
                     );
                 } else {
-                    const accion = acciones[0];
+                    const accionesDinamicas = typeof acciones === 'function' ? acciones(item) : acciones;
+                    const accion = accionesDinamicas[0];
                     return (
                         <button
                             onClick={() => accion.handler(item)}

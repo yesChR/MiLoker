@@ -10,7 +10,7 @@ import { ROLES } from "../../utils/rolesConstants";
 import { Toast } from "../CustomAlert";
 import { descargarEvidencia } from "../../services/evidenciaService";
 
-const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, ref) => {
+const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onSubmittingChange }, ref) => {
     const {
         loading: loadingHook,
         detalles,
@@ -31,6 +31,7 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
 
     // Combinar loading del prop y del hook
     const loading = loadingProp || loadingHook;
+    const [submitting, setSubmitting] = useState(false); // Estado local para prevenir múltiples envíos
     const [evidenciasExistentes, setEvidenciasExistentes] = useState([]); // Evidencias ya guardadas (URLs)
     const [nuevasEvidencias, setNuevasEvidencias] = useState([]); // Archivos nuevos a subir
     const [detalleEditable, setDetalleEditable] = useState(selectedItem?.detalle || ''); // Estado para el detalle editable
@@ -115,9 +116,18 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
     // Obtener permisos del hook
     const permisos = verificarPermisos();
 
+    // Notificar al padre cuando cambie el estado de submitting
+    useEffect(() => {
+        if (onSubmittingChange) {
+            onSubmittingChange(submitting);
+        }
+    }, [submitting, onSubmittingChange]);
+
     // Exponer la función actualizarEstado al componente padre
     useImperativeHandle(ref, () => ({
         handleSubmit: async () => {
+            if (submitting) return; // Prevenir múltiples envíos
+            
             if (permisos.puedeEditar) {
                 // Validar sanción obligatoria para ciertos estados
                 if ([ESTADOS_INCIDENTE.EN_INVESTIGACION, ESTADOS_INCIDENTE.EN_PROCESO, ESTADOS_INCIDENTE.RESUELTO].includes(estadoSeleccionado)) {
@@ -133,10 +143,15 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp }, r
                     return;
                 }
                 
-                await actualizarEstado(detalleEditable, nuevasEvidencias);
+                setSubmitting(true);
+                try {
+                    await actualizarEstado(detalleEditable, nuevasEvidencias);
+                } finally {
+                    setSubmitting(false);
+                }
             }
         }
-    }), [permisos.puedeEditar, actualizarEstado, detalleEditable, nuevasEvidencias, estadoSeleccionado, sancionSeleccionada, detalles, solucion]);
+    }), [permisos.puedeEditar, actualizarEstado, detalleEditable, nuevasEvidencias, estadoSeleccionado, sancionSeleccionada, detalles, solucion, submitting]);
 
     if (loading) {
         return (

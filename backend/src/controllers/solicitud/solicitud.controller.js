@@ -331,7 +331,7 @@ export const obtenerSolicitudesPorEstado = async (req, res) => {
                     attributes: ["idPeriodo", "tipo", "fechaInicio", "fechaFin"]
                 }
             ],
-            order: [['fechaSolicitud', 'DESC']]
+            order: [['fechaSolicitud', 'ASC']] // Ordenar por fecha de solicitud ascendente (más antiguas primero)
         });
 
         // Formatear datos para el frontend
