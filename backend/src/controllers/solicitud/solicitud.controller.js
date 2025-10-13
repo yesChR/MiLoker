@@ -203,6 +203,41 @@ export const crearSolicitud = async (req, res) => {
             });
         }
 
+        // Verificar que el periodo existe y está vigente
+        const periodo = await Periodo.findByPk(idPeriodo);
+        
+        if (!periodo) {
+            return res.status(404).json({ 
+                error: "El período especificado no existe" 
+            });
+        }
+
+        // Verificar que el periodo está activo
+        if (periodo.estado !== ESTADOS.ACTIVO) {
+            return res.status(400).json({ 
+                error: "El período no está activo" 
+            });
+        }
+
+        // Verificar que estamos dentro del rango de fechas del periodo
+        const ahora = new Date();
+        const fechaInicio = new Date(periodo.fechaInicio);
+        const fechaFin = new Date(periodo.fechaFin);
+
+        if (ahora < fechaInicio) {
+            return res.status(400).json({ 
+                error: "El período de solicitudes aún no ha iniciado",
+                fechaInicio: periodo.fechaInicio
+            });
+        }
+
+        if (ahora > fechaFin) {
+            return res.status(400).json({ 
+                error: "El período de solicitudes ha finalizado",
+                fechaFin: periodo.fechaFin
+            });
+        }
+
         // Verificar que todos los casilleros existen
         const casilleroIds = opciones.map(opcion => opcion.idCasillero);
         const casillerosExistentes = await Casillero.findAll({

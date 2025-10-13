@@ -1,7 +1,9 @@
 import { Periodo } from "../../models/periodo.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
+import { Casillero } from "../../models/casillero.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS } from "../../common/estados.js";
+import { ESTADOS_CASILLERO } from "../../common/estadoCasillero.js";
 
 export const actualizarPeriodo = async (req, res) => {
     const { tipo, fechaInicio, fechaFin } = req.body;
@@ -154,13 +156,22 @@ export const restablecerAsignaciones = async (req, res) => {
     const t = await sequelize.transaction();
     
     try {
-        // Solo eliminar las relaciones estudiante-casillero (asignaciones)
+        // 1. Eliminar las relaciones estudiante-casillero (asignaciones)
         await EstudianteXCasillero.destroy({ 
             where: {},
             transaction: t 
         });
 
-        // Desactivar todos los períodos activos
+        // 2. Liberar todos los casilleros ocupados (estado 2 -> estado 1)
+        await Casillero.update(
+            { idEstadoCasillero: ESTADOS_CASILLERO.DISPONIBLE },
+            { 
+                where: { idEstadoCasillero: ESTADOS_CASILLERO.OCUPADO },
+                transaction: t 
+            }
+        );
+
+        // 3. Desactivar todos los períodos activos
         await Periodo.update(
             { estado: ESTADOS.INACTIVO },
             { where: { estado: ESTADOS.ACTIVO }, transaction: t }
@@ -168,7 +179,7 @@ export const restablecerAsignaciones = async (req, res) => {
 
         await t.commit();
         res.status(200).json({
-            message: "Asignaciones restablecidas exitosamente"
+            message: "Asignaciones restablecidas exitosamente. Los casilleros ocupados han sido liberados."
         });
     } catch (error) {
         await t.rollback();

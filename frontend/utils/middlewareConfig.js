@@ -4,7 +4,7 @@ export const MIDDLEWARE_CONFIG = {
   API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
   
   // Tiempos de cache para verificaciones (en milisegundos)
-  CACHE_PERIODO_MS: 5 * 60 * 1000, // 5 minutos
+  CACHE_PERIODO_MS: 30 * 1000, // 30 segundos - Reducido para validar más frecuentemente
   
   // Configuraciones de redirección
   INCLUDE_CALLBACK_URL: true,
@@ -82,12 +82,13 @@ export async function verificarPeriodoConCache(tipoPeriodo) {
     }
 
     const result = await response.json();
-    const isActive = result.success && result.data;
+    // El endpoint devuelve { vigente: boolean, periodo: object|null }
+    const isActive = result.vigente === true;
     
     // Guardar en cache
     periodoCache.set(cacheKey, isActive);
     
-    logMiddleware(`Período ${tipoPeriodo} verificado desde API: ${isActive}`);
+    logMiddleware(`Período ${tipoPeriodo} verificado desde API: ${isActive}`, result.periodo ? `Periodo: ${result.periodo.fechaInicio} - ${result.periodo.fechaFin}` : 'Sin periodo');
     return isActive;
   } catch (error) {
     logMiddleware(`Error verificando período ${tipoPeriodo}:`, error.message);

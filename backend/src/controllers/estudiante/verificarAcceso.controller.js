@@ -2,6 +2,7 @@ import { Periodo } from "../../models/periodo.model.js";
 import { Solicitud } from "../../models/solicitud.model.js";
 import { Estudiante } from "../../models/estudiante.model.js";
 import { ESTADOS } from "../../common/estados.js";
+import { Op } from "sequelize";
 
 export const verificarAccesoSolicitud = async (req, res) => {
     try {
@@ -28,18 +29,32 @@ export const verificarAccesoSolicitud = async (req, res) => {
             });
         }
 
+        // Obtener fecha y hora actual
+        const ahora = new Date();
+        
+        console.log('Fecha/Hora actual:', ahora);
+
+        // Buscar periodo activo Y que esté dentro del rango de fechas
         const periodoActivo = await Periodo.findOne({
             where: {
                 tipo: tipoPeriodo,
                 estado: ESTADOS.ACTIVO,
+                fechaInicio: { [Op.lte]: ahora }, // fecha inicio <= ahora
+                fechaFin: { [Op.gte]: ahora }     // fecha fin >= ahora
             }
         });
+
+        console.log('Periodo encontrado:', periodoActivo ? {
+            id: periodoActivo.idPeriodo,
+            fechaInicio: periodoActivo.fechaInicio,
+            fechaFin: periodoActivo.fechaFin
+        } : 'null');
 
         if (!periodoActivo) {
             return res.status(200).json({
                 success: false,
                 code: 'PERIODO_INACTIVO',
-                message: 'No hay período activo'
+                message: 'No hay período de solicitud activo en este momento'
             });
         }
 
