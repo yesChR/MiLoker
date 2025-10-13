@@ -7,6 +7,7 @@ import { Solicitud } from "../../models/solicitud.model.js";
 import { SolicitudXCasillero } from "../../models/solicitudXcasillero.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { Especialidad } from "../../models/especialidad.model.js";
+import { TIPOS_INVOLUCRAMIENTO, obtenerTextoTipo } from "../../common/tiposInvolucramiento.js";
 
 export const obtenerHistorialEstudiante = async (req, res) => {
     try {
@@ -71,7 +72,7 @@ export const obtenerHistorialEstudiante = async (req, res) => {
                 }
             ],
             order: [['incidente', 'fechaCreacion', 'DESC']],
-            attributes: ['seccion']
+            attributes: ['seccion', 'tipoInvolucramiento'] // AGREGAR tipoInvolucramiento aquí
         });
 
         // Obtener solicitudes históricas del estudiante
@@ -121,6 +122,8 @@ export const obtenerHistorialEstudiante = async (req, res) => {
             solucionPlanteada: item.incidente.solucionPlanteada,
             usuarioCreador: item.incidente.usuarioCreador,
             seccion: item.seccion,
+            tipoInvolucramiento: item.tipoInvolucramiento, // AGREGAR el tipo de involucramiento
+            tipoInvolucramientoTexto: obtenerTextoTipo(item.tipoInvolucramiento), // AGREGAR el texto
             casillero: item.incidente.casillero ? {
                 numeroSecuencia: `${item.incidente.casillero.armario.idArmario}-${item.incidente.casillero.numCasillero}`,
                 idArmario: item.incidente.casillero.armario.idArmario
@@ -151,7 +154,14 @@ export const obtenerHistorialEstudiante = async (req, res) => {
             incidentesResueltos: incidentes.filter(item => item.incidente.fechaResolucion).length,
             totalSolicitudes: solicitudes.length,
             solicitudesAprobadas: solicitudes.filter(item => item.estado === 2).length,
-            solicitudesRechazadas: solicitudes.filter(item => item.estado === 3).length
+            solicitudesRechazadas: solicitudes.filter(item => item.estado === 3).length,
+            // Agregar estadísticas por tipo de involucramiento
+            incidentesPorTipo: {
+                reportante: incidentes.filter(item => item.tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.REPORTANTE).length,
+                responsable: incidentes.filter(item => item.tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.RESPONSABLE).length,
+                testigo: incidentes.filter(item => item.tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.TESTIGO).length,
+                afectado: incidentes.filter(item => item.tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.AFECTADO).length
+            }
         };
 
         res.status(200).json({

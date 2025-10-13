@@ -23,6 +23,22 @@ const getEstadoInfo = (estado) => {
     }
 };
 
+// Función para obtener información del tipo de involucramiento
+const getTipoInvolucramientoInfo = (tipo) => {
+    switch (tipo) {
+        case 1: // Reportante
+            return { texto: 'Reportante', estilos: 'bg-blue-100 text-blue-700 border-blue-300' };
+        case 2: // Responsable
+            return { texto: 'Responsable', estilos: 'bg-red-100 text-red-700 border-red-300' };
+        case 3: // Testigo
+            return { texto: 'Testigo', estilos: 'bg-yellow-100 text-yellow-700 border-yellow-300' };
+        case 4: // Afectado
+            return { texto: 'Afectado', estilos: 'bg-orange-100 text-orange-700 border-orange-300' };
+        default:
+            return { texto: 'Sin definir', estilos: 'bg-gray-100 text-gray-700 border-gray-300' };
+    }
+};
+
 const HistorialEstudiante = ({ historialEstudiante, cargandoHistorial }) => {
     if (cargandoHistorial) {
         return (
@@ -123,28 +139,73 @@ const HistorialEstudiante = ({ historialEstudiante, cargandoHistorial }) => {
                         </span>
                     )}
                 </h3>
+                
+                {/* Mostrar desglose por tipo de involucramiento si hay incidentes */}
+                {historialEstudiante.estadisticas.incidentesPorTipo && historialEstudiante.estadisticas.totalIncidentes > 0 && (
+                    <div className="mb-3 p-2 bg-gray-50 border border-gray-200 rounded">
+                        <p className="text-xs text-gray-600 mb-1 font-medium">Involucramiento en Incidentes:</p>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                            {historialEstudiante.estadisticas.incidentesPorTipo.reportante > 0 && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded border border-blue-300">
+                                    {historialEstudiante.estadisticas.incidentesPorTipo.reportante} como Reportante
+                                </span>
+                            )}
+                            {historialEstudiante.estadisticas.incidentesPorTipo.responsable > 0 && (
+                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded border border-red-300 font-semibold">
+                                    {historialEstudiante.estadisticas.incidentesPorTipo.responsable} como Responsable
+                                </span>
+                            )}
+                            {historialEstudiante.estadisticas.incidentesPorTipo.testigo > 0 && (
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded border border-yellow-300">
+                                    {historialEstudiante.estadisticas.incidentesPorTipo.testigo} como Testigo
+                                </span>
+                            )}
+                            {historialEstudiante.estadisticas.incidentesPorTipo.afectado > 0 && (
+                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded border border-orange-300">
+                                    {historialEstudiante.estadisticas.incidentesPorTipo.afectado} como Afectado
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                
                 {historialEstudiante.incidentes && historialEstudiante.incidentes.length > 0 ? (
                     <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {historialEstudiante.incidentes.slice(0, 2).map((item, index) => (
-                            <div key={index} className="bg-gray-50 border rounded p-2">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-800 mb-1">{item.detalle}</p>
-                                        <div className="text-xs text-gray-500">
-                                            {item.casillero && `Casillero: ${item.casillero.numeroSecuencia} • `}
-                                            Sección: {item.seccion} • {formatDateShort(item.fechaCreacion)}
+                        {historialEstudiante.incidentes.slice(0, 2).map((item, index) => {
+                            console.log('Incidente:', item); // Debug
+                            console.log('tipoInvolucramiento:', item.tipoInvolucramiento); // Debug
+                            const tipoInfo = getTipoInvolucramientoInfo(item.tipoInvolucramiento);
+                            console.log('tipoInfo:', tipoInfo); // Debug
+                            return (
+                                <div key={index} className={`border rounded p-2 ${
+                                    item.tipoInvolucramiento === 2 
+                                        ? 'bg-red-50 border-red-200' 
+                                        : 'bg-gray-50 border-gray-200'
+                                }`}>
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className={`text-xs font-medium px-2 py-0.5 rounded border ${tipoInfo.estilos}`}>
+                                                    {tipoInfo.texto}
+                                                </span>
+                                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                                    item.fechaResolucion 
+                                                        ? 'bg-green-100 text-green-700' 
+                                                        : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                    {item.fechaResolucion ? 'Resuelto' : 'Pendiente'}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-800 mb-1 line-clamp-2">{item.detalle}</p>
+                                            <div className="text-xs text-gray-500">
+                                                {item.casillero && `Casillero: ${item.casillero.numeroSecuencia} • `}
+                                                Sección: {item.seccion} • {formatDateShort(item.fechaCreacion)}
+                                            </div>
                                         </div>
                                     </div>
-                                    <span className={`text-xs px-2 py-1 rounded ${
-                                        item.fechaResolucion 
-                                            ? 'bg-green-100 text-green-700' 
-                                            : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                        {item.fechaResolucion ? 'Resuelto' : 'Pendiente'}
-                                    </span>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                         {historialEstudiante.incidentes.length > 2 && (
                             <div className="text-center text-xs text-gray-500">
                                 ... y {historialEstudiante.incidentes.length - 2} más
