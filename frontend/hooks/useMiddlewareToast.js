@@ -34,6 +34,9 @@ export function useMiddlewareToast() {
         case 'sin_casillero_asignado':
           Toast.warning('Sin Casillero Asignado', 'No puedes acceder a esta funcionalidad porque no tienes un casillero asignado.');
           break;
+        case 'periodo_asignacion_activo':
+          Toast.info('Periodo de Asignación en Curso', 'El periodo de asignación de casilleros está en curso. Podrás ver tu casillero cuando este periodo finalice.');
+          break;
         case 'error_verificacion':
           Toast.error('Error de Verificación', 'No se pudo verificar el estado de tu solicitud. Inténtalo más tarde.');
           break;

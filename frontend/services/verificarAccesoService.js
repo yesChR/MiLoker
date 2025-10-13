@@ -73,5 +73,30 @@ export const verificarAccesoService = {
         message: 'Error de red al verificar casillero asignado' 
       };
     }
+  },
+
+  async verificarAccesoMiLocker(cedulaEstudiante) {
+    try {
+      const response = await fetch(`${API_URL}/api/estudiante/verificar-acceso-milocker`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          cedulaEstudiante
+        })
+      });
+
+      const result = await handleResponse(response);
+      return result;
+
+    } catch (error) {
+      console.error('Error en verificarAccesoMiLocker:', error);
+      return { 
+        error: true, 
+        message: 'Error de red al verificar acceso a Mi Locker' 
+      };
+    }
   }
 };
+

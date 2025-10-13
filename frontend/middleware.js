@@ -32,7 +32,39 @@ async function verificarCasilleroAsignado(pathname, token) {
   try {
     const cedulaEstudiante = token.id;
     
-    // Usar el service para verificar casillero asignado
+    // Para la ruta de Mi Locker, usar la validación especial
+    if (pathname.startsWith('/estudiante/miLoker')) {
+      const result = await verificarAccesoService.verificarAccesoMiLocker(cedulaEstudiante);
+      
+      if (result.error) {
+        logMiddleware(`Error verificando acceso a Mi Locker para estudiante ${cedulaEstudiante}: ${result.message}`);
+        return { 
+          permitido: false, 
+          mensaje: 'error_verificacion'
+        };
+      }
+
+      if (!result.success) {
+        logMiddleware(`Acceso denegado a Mi Locker para estudiante ${cedulaEstudiante}: ${result.message}`);
+        
+        let tipoMensaje = 'sin_casillero_asignado';
+        if (result.code === 'PERIODO_ASIGNACION_ACTIVO') {
+          tipoMensaje = 'periodo_asignacion_activo';
+        } else if (result.code === 'SIN_CASILLERO') {
+          tipoMensaje = 'sin_casillero_asignado';
+        }
+        
+        return { 
+          permitido: false, 
+          mensaje: tipoMensaje
+        };
+      }
+
+      logMiddleware(`Acceso permitido a Mi Locker para estudiante ${cedulaEstudiante}`);
+      return { permitido: true, mensaje: null };
+    }
+    
+    // Para otras rutas que requieren casillero, usar la validación normal
     const result = await verificarAccesoService.verificarCasilleroAsignado(cedulaEstudiante);
     
     // Si hay error en la respuesta (usando handleResponse)
