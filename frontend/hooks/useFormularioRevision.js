@@ -133,6 +133,17 @@ export const useFormularioRevision = (idIncidente) => {
                 mensaje: 'No puede revisar este incidente porque pertenece a otra especialidad' 
             };
         }
+
+        // Verificar que el incidente no esté RESUELTO (3) o CERRADO (4)
+        const estadoIncidente = detalles?.idEstadoIncidente;
+        if (estadoIncidente === 3 || estadoIncidente === 4) {
+            const nombreEstado = estadoIncidente === 3 ? 'Resuelto' : 'Cerrado';
+            return { 
+                puedeEditar: false, 
+                mensaje: `Este incidente está en estado "${nombreEstado}" y no puede ser modificado` 
+            };
+        }
+
         return { puedeEditar: true, mensaje: '' };
     };
 
