@@ -33,7 +33,8 @@ export const obtenerResponsable = (estudiantesInvolucrados = []) => {
         nombre: formatearNombreCompleto(responsable.estudiante),
         seccion: responsable.seccion || 'N/A',
         telefono: responsable.estudiante.telefono || 'N/A',
-        correo: responsable.estudiante.correo || 'N/A'
+        correo: responsable.estudiante.correo || 'N/A',
+        encargados: responsable.estudiante.encargados || []
     };
 };
 
@@ -47,8 +48,24 @@ export const obtenerAfectado = (estudiantesInvolucrados = []) => {
         nombre: formatearNombreCompleto(afectado.estudiante),
         seccion: afectado.seccion || 'N/A',
         telefono: afectado.estudiante.telefono || 'N/A',
-        correo: afectado.estudiante.correo || 'N/A'
+        correo: afectado.estudiante.correo || 'N/A',
+        encargados: afectado.estudiante.encargados || []
     };
+};
+
+// Helper para obtener testigos (tipo 3) - pueden ser múltiples
+export const obtenerTestigos = (estudiantesInvolucrados = []) => {
+    const testigos = estudiantesInvolucrados.filter(e => e.tipoInvolucramiento === 3);
+    if (!testigos || testigos.length === 0) return [];
+    
+    return testigos.map(testigo => ({
+        cedula: testigo.estudiante?.cedula || 'N/A',
+        nombre: formatearNombreCompleto(testigo.estudiante),
+        seccion: testigo.seccion || 'N/A',
+        telefono: testigo.estudiante?.telefono || 'N/A',
+        correo: testigo.estudiante?.correo || 'N/A',
+        encargados: testigo.estudiante?.encargados || []
+    }));
 };
 
 // Helper para obtener encargados del afectado
@@ -95,7 +112,8 @@ export const transformarIncidente = (incidente) => {
                 seccion: usuario.estudiante.seccion || 'N/A',
                 telefono: usuario.estudiante.telefono || 'N/A',
                 correo: usuario.estudiante.correo || 'N/A',
-                rol: usuario.rol
+                rol: usuario.rol,
+                encargados: usuario.estudiante.encargados || []
             };
         }
         // Si es profesor (rol 2) y tiene datos de profesor
@@ -106,19 +124,35 @@ export const transformarIncidente = (incidente) => {
                 seccion: 'N/A', // Profesores no tienen sección
                 telefono: usuario.profesor.telefono || 'N/A',
                 correo: usuario.profesor.correo || 'N/A',
-                rol: usuario.rol
+                rol: usuario.rol,
+                encargados: []
             };
         }
-        // Fallback: usar datos del usuario si no hay estudiante/profesor
+        // Fallback: buscar en estudianteXincidente si existe como REPORTANTE
         else {
-            demandante = {
-                cedula: usuario.cedula || 'N/A',
-                nombre: usuario.nombreUsuario || 'N/A',
-                seccion: 'N/A',
-                telefono: 'N/A',
-                correo: 'N/A',
-                rol: usuario.rol
-            };
+            const reportante = estudiantesInvolucrados.find(e => e.tipoInvolucramiento === 1);
+            if (reportante?.estudiante) {
+                demandante = {
+                    cedula: reportante.estudiante.cedula,
+                    nombre: formatearNombreCompleto(reportante.estudiante),
+                    seccion: reportante.seccion || 'N/A',
+                    telefono: reportante.estudiante.telefono || 'N/A',
+                    correo: reportante.estudiante.correo || 'N/A',
+                    rol: 1,
+                    encargados: reportante.estudiante.encargados || []
+                };
+            } else {
+                // Último fallback
+                demandante = {
+                    cedula: usuario.cedula || 'N/A',
+                    nombre: usuario.nombreUsuario || 'N/A',
+                    seccion: 'N/A',
+                    telefono: 'N/A',
+                    correo: 'N/A',
+                    rol: usuario.rol,
+                    encargados: []
+                };
+            }
         }
     }
 
@@ -139,17 +173,18 @@ export const transformarIncidente = (incidente) => {
         creador: demandante,
 
         // Involucrados
-        demandante: demandante, // El demandante es el creador
+        demandante: demandante, // El demandante es el creador (reportante)
         responsable: obtenerResponsable(estudiantesInvolucrados),
         afectado: obtenerAfectado(estudiantesInvolucrados),
-
-        // Encargados del afectado
-        encargados: obtenerEncargadosAfectado(estudiantesInvolucrados),
+        testigos: obtenerTestigos(estudiantesInvolucrados), // Pueden ser múltiples
 
         // Evidencias
         evidencia: obtenerEvidencias(incidente),
 
         // Historial
-        historial: incidente.HistorialIncidentes || []
+        historial: incidente.HistorialIncidentes || [],
+        
+        // Estudiantes involucrados (para la tabla completa)
+        estudianteXincidentes: estudiantesInvolucrados
     };
 };

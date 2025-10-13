@@ -70,11 +70,14 @@ export const crear = async (req, res) => {
 
         // SOLO agregar a EstudianteXIncidente si el reportante es ESTUDIANTE
         if (usuario.rol === ROLES.ESTUDIANTE) {
+            // Obtener la sección del estudiante desde la BD
+            const estudianteReportante = await Estudiante.findByPk(cedulaUsuario);
+            
             await EstudianteXIncidente.create({
                 cedulaEstudiante: cedulaUsuario,
                 idIncidente: incidente.idIncidente,
                 tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.REPORTANTE,
-                seccion: req.body.seccionReportante || "N/A"
+                seccion: estudianteReportante?.seccion || "N/A"
             }, { transaction });
         }
 
@@ -85,19 +88,22 @@ export const crear = async (req, res) => {
         if (duenoCasillero) {
             const estudianteDueno = await Estudiante.findByPk(duenoCasillero.cedulaEstudiante);
             const yaEsReportante = (usuario.rol === ROLES.ESTUDIANTE && duenoCasillero.cedulaEstudiante === cedulaUsuario);
+            
             if (!yaEsReportante) {
+                // El afectado es diferente al reportante
                 await EstudianteXIncidente.create({
                     cedulaEstudiante: duenoCasillero.cedulaEstudiante,
                     idIncidente: incidente.idIncidente,
                     tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.AFECTADO,
-                    seccion: estudianteDueno.seccion
+                    seccion: estudianteDueno?.seccion || "N/A"
                 }, { transaction });
             } else {
+                // El reportante es también el afectado (reporta daño en su propio casillero)
                 await EstudianteXIncidente.create({
                     cedulaEstudiante: cedulaUsuario,
                     idIncidente: incidente.idIncidente,
                     tipoInvolucramiento: TIPOS_INVOLUCRAMIENTO.AFECTADO,
-                    seccion: req.body.seccionReportante || estudianteDueno.seccion
+                    seccion: estudianteDueno?.seccion || "N/A"
                 }, { transaction });
             }
         }
@@ -173,6 +179,25 @@ export const agregarInvolucrado = async (req, res) => {
             });
         }
 
+        // VALIDAR: Solo se pueden agregar involucrados si el incidente está EN_INVESTIGACION
+        if (incidente.idEstadoIncidente !== ESTADOS_INCIDENTE.EN_INVESTIGACION) {
+            return res.status(400).json({
+                error: "No se pueden agregar involucrados en este estado",
+                mensaje: "El incidente debe estar en estado 'EN_INVESTIGACION' para agregar involucrados. Primero cambia el estado del incidente.",
+                estadoActual: incidente.idEstadoIncidente,
+                estadoRequerido: ESTADOS_INCIDENTE.EN_INVESTIGACION
+            });
+        }
+
+        // Verificar que el estudiante existe
+        const estudiante = await Estudiante.findByPk(cedulaEstudiante);
+        if (!estudiante) {
+            return res.status(404).json({
+                error: "Estudiante no encontrado",
+                mensaje: "La cédula ingresada no corresponde a ningún estudiante registrado"
+            });
+        }
+
         // Verificar que no existe ya esa relación específica
         const relacionExistente = await EstudianteXIncidente.findOne({
             where: {
@@ -196,10 +221,21 @@ export const agregarInvolucrado = async (req, res) => {
             seccion
         });
 
-        // Si se agrega un responsable, cambiar estado del incidente
+        // Si se agrega un responsable, cambiar estado del incidente a EN_INVESTIGACION
         if (tipoInvolucramiento === TIPOS_INVOLUCRAMIENTO.RESPONSABLE) {
             await incidente.update({
-                idEstadoIncidente: ESTADOS_INCIDENTE.RESPONSABLE_IDENTIFICADO
+                idEstadoIncidente: ESTADOS_INCIDENTE.EN_INVESTIGACION
+            });
+            
+            // Registrar en el historial
+            await HistorialIncidente.create({
+                idIncidente: idIncidente,
+                estadoAnterior: incidente.idEstadoIncidente,
+                estadoNuevo: ESTADOS_INCIDENTE.EN_INVESTIGACION,
+                usuarioModificador: cedulaUsuario,
+                fechaCambio: new Date(),
+                observaciones: `Responsable identificado: ${estudiante.nombre} ${estudiante.apellidoUno}`,
+                solucion: null
             });
         }
 

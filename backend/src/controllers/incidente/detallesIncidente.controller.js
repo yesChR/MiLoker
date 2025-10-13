@@ -47,7 +47,12 @@ export const obtenerDetallesIncidente = async (req, res) => {
                             model: Estudiante,
                             as: 'estudiante',
                             attributes: ['cedula', 'nombre', 'apellidoUno', 'apellidoDos', 'seccion', 'telefono', 'correo'],
-                            required: false
+                            required: false,
+                            include: [{
+                                model: Encargado,
+                                as: 'encargados',
+                                required: false
+                            }]
                         },
                         {
                             model: Profesor,
@@ -149,12 +154,14 @@ export const actualizarEstadoIncidente = async (req, res) => {
         }
 
         // Validar transiciones de estado
+        // Flujo: REPORTADO -> EN_INVESTIGACION o CERRADO
+        //        EN_INVESTIGACION -> RESUELTO o CERRADO
+        //        RESUELTO -> CERRADO
         const transicionesValidas = {
-            1: [2, 3, 4],     // REPORTADO -> EN_INVESTIGACION, EN_PROCESO o RESUELTO
-            2: [3, 4],        // EN_INVESTIGACION -> EN_PROCESO o RESUELTO
-            3: [4],           // EN_PROCESO -> RESUELTO
-            4: [5],           // RESUELTO -> CERRADO
-            5: []             // CERRADO (estado final)
+            1: [2, 4],        // REPORTADO -> EN_INVESTIGACION o CERRADO
+            2: [3, 4],        // EN_INVESTIGACION -> RESUELTO o CERRADO
+            3: [4],           // RESUELTO -> CERRADO
+            4: []             // CERRADO (estado final)
         };
 
         const estadoAnterior = incidente.idEstadoIncidente;
@@ -170,14 +177,15 @@ export const actualizarEstadoIncidente = async (req, res) => {
             });
         }
 
-        // Si el nuevo estado es EN_INVESTIGACION (2), EN_PROCESO (3) o RESUELTO (4), la sanción es obligatoria
-        if ([2, 3, 4].includes(nuevoEstado) && !incidente.idSancion && !idSancion) {
+        // Si el nuevo estado es EN_INVESTIGACION (2) o RESUELTO (3), la sanción es obligatoria
+        // CERRADO (4) NO requiere sanción (puede ser caso que no procede)
+        if ([2, 3].includes(nuevoEstado) && !incidente.idSancion && !idSancion) {
             await transaction.rollback();
             return res.status(400).json({ error: "Debe asignar una sanción para cambiar a este estado" });
         }
 
-        // Si el nuevo estado es RESUELTO (4), la solución es obligatoria
-        if (nuevoEstado === 4 && (!solucion || solucion.trim() === '')) {
+        // Si el nuevo estado es RESUELTO (3), la solución es obligatoria
+        if (nuevoEstado === 3 && (!solucion || solucion.trim() === '')) {
             await transaction.rollback();
             return res.status(400).json({ error: "La solución es obligatoria para marcar el incidente como resuelto" });
         }
@@ -197,11 +205,16 @@ export const actualizarEstadoIncidente = async (req, res) => {
             datosActualizar.detalle = detalle;
         }
 
-        // Actualizar solución y fecha de resolución si el nuevo estado es RESUELTO (4)
-        if (nuevoEstado === 4) {
+        // Actualizar solución y fecha de resolución si el nuevo estado es RESUELTO (3)
+        if (nuevoEstado === 3) {
             if (solucion) {
                 datosActualizar.solucionPlanteada = solucion;
             }
+            datosActualizar.fechaResolucion = new Date();
+        }
+        
+        // Si el nuevo estado es CERRADO (4), registrar fecha de cierre
+        if (nuevoEstado === 4) {
             datosActualizar.fechaResolucion = new Date();
         }
 
