@@ -292,11 +292,13 @@ export const listar = async (req, res) => {
                 model: Casillero,
                 as: "casillero",
                 attributes: ['idCasillero', 'numCasillero', 'idArmario'],
+                required: true, // IMPORTANTE: Requerir casillero para aplicar filtro
                 include: [
                     {
                         model: Armario,
                         as: "armario",
                         attributes: ['idEspecialidad'],
+                        required: true, // IMPORTANTE: Requerir armario para aplicar filtro
                         // Filtrar por especialidad para profesores
                         ...(rolNumerico === ROLES.PROFESOR && idEspecialidad ? {
                             where: { idEspecialidad: parseInt(idEspecialidad) }
@@ -323,7 +325,7 @@ export const listar = async (req, res) => {
 
             whereClause.idIncidente = idsIncidentes;
         }
-        // Si es profesor, ya se filtró por especialidad en el include del casillero
+        // Si es profesor, se filtra por especialidad mediante el include requerido del casillero->armario
 
         const incidentes = await Incidente.findAll({
             where: whereClause,
