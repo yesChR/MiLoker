@@ -27,11 +27,6 @@ const Admin = () => {
     const formCrearRef = useRef();
     const formEditarRef = useRef();
 
-    // Cargar administradores al montar el componente
-    useEffect(() => {
-        loadAdministradores();
-    }, []);
-
     const loadAdministradores = React.useCallback(async () => {
         setLoading(true);
         try {
@@ -53,6 +48,11 @@ const Admin = () => {
             setLoading(false);
         }
     }, []);
+
+    // Cargar administradores al montar el componente
+    useEffect(() => {
+        loadAdministradores();
+    }, [loadAdministradores]);
 
     const handleCrear = async () => {
         // Usar la referencia del formulario para validar y obtener datos

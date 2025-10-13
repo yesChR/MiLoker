@@ -43,10 +43,6 @@ const TiposSanciones = () => {
         return item[columnKey];
     };
 
-    useEffect(() => {
-        fetchSanciones();
-    }, []);
-
     const fetchSanciones = React.useCallback(async () => {
         setLoading(true);
         const data = await sancionService.getSanciones();
@@ -58,6 +54,10 @@ const TiposSanciones = () => {
         }
         setLoading(false);
     }, []);
+
+    useEffect(() => {
+        fetchSanciones();
+    }, [fetchSanciones]);
 
     const handleEditar = (item) => {
         setAccion(1);

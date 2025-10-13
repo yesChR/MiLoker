@@ -30,12 +30,6 @@ const Estudiante = () => {
     const formCargarRef = useRef();
     const formEditarRef = useRef();
 
-    // Cargar datos al montar el componente
-    useEffect(() => {
-        loadEstudiantes();
-        loadEspecialidades();
-    }, []);
-
     const loadEstudiantes = React.useCallback(async () => {
         setLoading(true);
         try {
@@ -68,7 +62,7 @@ const Estudiante = () => {
         }
     }, []);
 
-    const loadEspecialidades = async () => {
+    const loadEspecialidades = React.useCallback(async () => {
         try {
             const data = await getEspecialidades();
             if (data && data.error) {
@@ -81,7 +75,13 @@ const Estudiante = () => {
             console.error('Error al cargar especialidades:', error);
             Toast.error('Error', 'Error al cargar especialidades');
         }
-    };
+    }, []);
+
+    // Cargar datos al montar el componente
+    useEffect(() => {
+        loadEstudiantes();
+        loadEspecialidades();
+    }, [loadEstudiantes, loadEspecialidades]);
 
     const handleCargarExcel = async () => {
         // Usar la referencia del formulario para validar y obtener datos

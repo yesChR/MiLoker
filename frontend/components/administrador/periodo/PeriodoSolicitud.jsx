@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { parseZonedDateTime, getLocalTimeZone } from "@internationalized/date";
 import CabezeraDinamica from "../../Layout/CabeceraDinamica";
 import { Toast } from "../../CustomAlert";
@@ -48,13 +48,7 @@ const PeriodoSolicitud = () => {
     const [periodosParaTarjetas, setPeriodosParaTarjetas] = useState([]); // Para tarjetas (incluyendo inactivos)
     const [loadingData, setLoadingData] = useState(true);
 
-    // Cargar datos iniciales
-    useEffect(() => {
-        cargarEstadoPeriodos();
-        cargarPeriodosParaTarjetas();
-    }, []);
-
-    const cargarEstadoPeriodos = async () => {
+    const cargarEstadoPeriodos = React.useCallback(async () => {
         try {
             setLoadingData(true);
             const data = await getEstadoPeriodos();
@@ -89,9 +83,9 @@ const PeriodoSolicitud = () => {
         } finally {
             setLoadingData(false);
         }
-    };
+    }, []);
 
-    const cargarPeriodosParaTarjetas = async () => {
+    const cargarPeriodosParaTarjetas = React.useCallback(async () => {
         try {
             const data = await getPeriodosParaTarjetas();
             if (data && data.error) {
@@ -104,7 +98,13 @@ const PeriodoSolicitud = () => {
             setPeriodosParaTarjetas([]);
             Toast.error("Error", "No se pudieron cargar los períodos para visualización");
         }
-    };
+    }, []);
+
+    // Cargar datos iniciales
+    useEffect(() => {
+        cargarEstadoPeriodos();
+        cargarPeriodosParaTarjetas();
+    }, [cargarEstadoPeriodos, cargarPeriodosParaTarjetas]);
 
     const handleRestablecer = () => {
         setShowAlert(true);

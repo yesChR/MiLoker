@@ -150,7 +150,7 @@ const ListaIncidentes = () => {
         }
     ];
 
-    const handleRevisar = (item) => {
+    const handleRevisar = useCallback((item) => {
         if (!item?.idIncidente) return;
 
         setAccion(ACCIONES_DRAWER.REVISAR);
@@ -159,15 +159,15 @@ const ListaIncidentes = () => {
         setSelectedItem(incidenteCompleto);
         setIsSubmitting(false); // Resetear estado de envío
         onOpen();
-    };
+    }, [incidentes, onOpen]);
 
-    const handleVerDetalle = (item) => {
+    const handleVerDetalle = useCallback((item) => {
         if (!item?.idIncidente) return;
         setAccion(ACCIONES_DRAWER.DETALLE);
         setSelectedItem(item);
         setIsSubmitting(false); // Resetear estado de envío
         onOpen();
-    };
+    }, [onOpen]);
 
     const handleSuccessCreacion = (resultado) => {
         // Recargar la lista de incidentes
@@ -222,7 +222,7 @@ const ListaIncidentes = () => {
         }
 
         return acciones;
-    }, [esProfesor]);
+    }, [esProfesor, handleVerDetalle, handleRevisar]);
 
     // Acciones por defecto (se usarán para determinar dinámicamente por item)
     const accionesTabla = useCallback((item) => getAccionesParaIncidente(item), [getAccionesParaIncidente]);
