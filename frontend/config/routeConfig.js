@@ -19,7 +19,6 @@ export const RUTAS_POR_ROL = {
   [ROLES.PROFESOR]: [
     '/', // Página de bienvenida
     '/docente',
-    '/docente/alertaIncidentes',
     '/docente/crearUsuarios',
     '/docente/solicitudes',
     '/incidente',
