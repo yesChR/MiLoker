@@ -100,6 +100,14 @@ export const renunciarCasillero = async (req, res) => {
 
         console.log('Asignación eliminada exitosamente');
 
+        // Actualizar el estado del casillero a disponible (estado 1)
+        await Casillero.update(
+            { idEstadoCasillero: 1 }, // Estado 1 = Disponible
+            { where: { idCasillero: idCasillero } }
+        );
+
+        console.log('Estado del casillero actualizado a Disponible');
+
         res.status(200).json({
             error: false,
             message: "Renuncia al casillero procesada exitosamente",
