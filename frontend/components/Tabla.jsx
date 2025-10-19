@@ -336,12 +336,20 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
 
         // Aplicar filtro de búsqueda por texto
         if (filterValue) {
-            filtered = filtered.filter((item) =>
-                columns.some((column) => {
-                    const value = item[column.uid];
-                    return value && value.toString().toLowerCase().includes(filterValue.toLowerCase());
-                })
-            );
+            const searchTerm = filterValue.toLowerCase();
+            filtered = filtered.filter((item) => {
+                // Buscar en todos los campos del item
+                return Object.entries(item).some(([key, value]) => {
+                    // Ignorar campos que son objetos React o funciones
+                    if (value === null || value === undefined) return false;
+                    if (typeof value === 'object' && value.$$typeof) return false; // Es un componente React
+                    if (typeof value === 'function') return false;
+                    
+                    // Convertir a string y buscar
+                    const stringValue = String(value).toLowerCase();
+                    return stringValue.includes(searchTerm);
+                });
+            });
         }
 
         // Aplicar filtros por categorías
@@ -352,7 +360,7 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
         });
 
         return filtered;
-    }, [data, filterValue, selectedFilters, columns]);
+    }, [data, filterValue, selectedFilters]);
 
     // Datos paginados
     const datosPaginados = useMemo(() => {
