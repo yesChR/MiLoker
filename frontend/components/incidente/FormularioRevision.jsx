@@ -108,6 +108,36 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
         setNuevasEvidencias((prev) => [...prev, ...files]);
     };
 
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragEnter = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragLeave = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const files = Array.from(event.dataTransfer.files);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        
+        if (imageFiles.length > 0) {
+            setNuevasEvidencias((prev) => [...prev, ...imageFiles]);
+            Toast.success('Evidencias agregadas', `${imageFiles.length} ${imageFiles.length === 1 ? 'imagen agregada' : 'imágenes agregadas'}`);
+        } else {
+            Toast.warning('Archivos no válidos', 'Solo se permiten archivos de imagen');
+        }
+    };
+
     const handleDescargarEvidencia = async (evidencia, index) => {
         // Si es una URL temporal (blob:), no se puede descargar
         if (typeof evidencia === 'string' && evidencia.startsWith('blob:')) {
@@ -628,7 +658,13 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
                                 ))}
                                 {permisos.puedeEditar && (
                                     <div className="p-2">
-                                        <div className="p-2 flex items-center justify-center border-2 border-dashed border-purple-300 rounded-xl shadow-md h-64 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-300 group cursor-pointer">
+                                        <div 
+                                            className="p-2 flex items-center justify-center border-2 border-dashed border-purple-300 rounded-xl shadow-md h-64 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-300 group cursor-pointer"
+                                            onDragOver={handleDragOver}
+                                            onDragEnter={handleDragEnter}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={handleDrop}
+                                        >
                                             <label className="flex flex-col items-center space-y-3 cursor-pointer">
                                                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110 group-hover:rotate-90 duration-300">
                                                     <AiOutlinePlus className="text-white w-10 h-10" />
@@ -651,7 +687,13 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
                             </Carousel>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-lg p-10 text-center border-2 border-dashed border-purple-200 shadow-sm">
+                        <div 
+                            className="bg-white rounded-lg p-10 text-center border-2 border-dashed border-purple-200 shadow-sm"
+                            onDragOver={permisos.puedeEditar ? handleDragOver : undefined}
+                            onDragEnter={permisos.puedeEditar ? handleDragEnter : undefined}
+                            onDragLeave={permisos.puedeEditar ? handleDragLeave : undefined}
+                            onDrop={permisos.puedeEditar ? handleDrop : undefined}
+                        >
                             <div className="flex flex-col items-center space-y-3">
                                 <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center">
                                     <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

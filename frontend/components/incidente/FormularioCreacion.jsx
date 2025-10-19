@@ -128,6 +128,44 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose, onSubmittingChange 
         }));
     };
 
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragEnter = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDragLeave = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (formData.evidencias.length >= 2) {
+            Toast.warning("Límite alcanzado", "Solo puedes agregar hasta 2 evidencias");
+            return;
+        }
+
+        const files = event.dataTransfer.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (validarArchivo(file)) {
+                setFormData(prev => ({
+                    ...prev,
+                    evidencias: [...prev.evidencias, file]
+                }));
+            } else {
+                Toast.warning("Archivo no válido", "Solo se permiten imágenes (JPEG, PNG, JPG, WEBP) de máximo 5MB");
+            }
+        }
+    };
+
     const removeEvidence = (index) => {
         const newEvidencias = formData.evidencias.filter((_, i) => i !== index);
         setFormData(prev => ({
@@ -364,6 +402,10 @@ const FormularioCreacion = forwardRef(({ onSuccess, onClose, onSubmittingChange 
                         <div
                             className="bg-white border-2 border-dashed border-blue-300 rounded-xl flex items-center justify-center h-[160px] cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
                             onClick={handleFileSelect}
+                            onDragOver={handleDragOver}
+                            onDragEnter={handleDragEnter}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
                         >
                             <div className="text-center px-4">
                                 <div className="mb-2 w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto group-hover:bg-blue-100 transition-colors">
