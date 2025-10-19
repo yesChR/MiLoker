@@ -229,7 +229,7 @@ export default function Home() {
           title: "Períodos",
           description: "Gestiona períodos de solicitud y configuraciones temporales",
           color: "#ef4444",
-          route: "/administrador/periodosSolicitud",
+          route: "/administrador/periodoSolicitud",
           delay: "delay-500"
         },
         {
