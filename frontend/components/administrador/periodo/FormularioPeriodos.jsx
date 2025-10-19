@@ -15,25 +15,25 @@ const FormularioPeriodos = ({
     loadingData,
     periodos // Agregar prop para verificar períodos vencidos
 }) => {
-    // Obtener la fecha y hora actual como mínima
-    const fechaActual = now(getLocalTimeZone());
+    // Obtener la fecha y hora actual + 5 minutos como mínima
+    const fechaActual = now(getLocalTimeZone()).add({ minutes: 5 });
     
-    // Verificar si algún período está vencido
-    const verificarPeriodosVencidos = () => {
+    // Verificar si algún período ya ha iniciado (bloquear edición)
+    const verificarPeriodoIniciado = () => {
         if (!periodos || periodos.length === 0) return false;
         
         const ahora = new Date();
         return periodos.some(periodo => {
-            const fechaFin = new Date(periodo.fechaFin);
-            return fechaFin < ahora;
+            const fechaInicio = new Date(periodo.fechaInicio);
+            return fechaInicio <= ahora;
         });
     };
     
-    const hayPeriodosVencidos = verificarPeriodosVencidos();
+    const periodoYaIniciado = verificarPeriodoIniciado();
     
-    // Calcular fechas mínimas dinámicamente
+    // Calcular fechas mínimas dinámicamente (todas deben ser al menos 5 minutos desde ahora)
     const fechaMinimaFinSolicitud = inicioSolicitud ? inicioSolicitud.add({ minutes: 1 }) : fechaActual.add({ minutes: 1 });
-    const fechaMinimaInicioAsignacion = finSolicitud ? finSolicitud.add({ minutes: 1 }) : fechaActual.add({ minutes: 1 });
+    const fechaMinimaInicioAsignacion = finSolicitud ? finSolicitud.add({ minutes: 1 }) : fechaActual;
     const fechaMinimaFinAsignacion = inicioAsignacion ? inicioAsignacion.add({ minutes: 1 }) : fechaMinimaInicioAsignacion;
 
     // Función para manejar cambios en inicio de solicitud
@@ -75,12 +75,21 @@ const FormularioPeriodos = ({
                 {loadingData ? "Cargando datos..." : "Fechas de períodos activos"}
             </div>
             
-            {/* Mensaje de advertencia para períodos vencidos */}
-            {hayPeriodosVencidos && (
-                <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-sm text-red-700">
-                        <strong>⚠️ Períodos Vencidos:</strong> Hay períodos que han expirado. 
-                        Debe restablecer las asignaciones antes de poder actualizar los períodos.
+            {/* Mensaje de advertencia si el período ya inició */}
+            {periodoYaIniciado && (
+                <div className="mt-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-700">
+                        <strong>⚠️ Periodo Iniciado:</strong> Hay períodos que ya han iniciado. 
+                        No se pueden modificar. Debe restablecer las asignaciones para configurar nuevos períodos.
+                    </p>
+                </div>
+            )}
+            
+            {/* Mensaje informativo sobre fechas mínimas */}
+            {!periodoYaIniciado && !loadingData && (
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-700">
+                        <strong>Nota:</strong> Las fechas deben ser al menos 5 minutos desde el momento actual.
                     </p>
                 </div>
             )}
@@ -103,7 +112,8 @@ const FormularioPeriodos = ({
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
                             minValue={fechaActual}
-                            isDisabled={loading || loadingData}
+                            isDisabled={loading || loadingData || periodoYaIniciado}
+                            errorMessage="La fecha debe ser al menos 5 minutos desde ahora"
                             locale="es-ES"
                         />
                     </div>
@@ -122,7 +132,8 @@ const FormularioPeriodos = ({
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaFinSolicitud}
-                            isDisabled={loading || loadingData}
+                            isDisabled={loading || loadingData || periodoYaIniciado}
+                            errorMessage="Debe ser posterior a la fecha de inicio"
                             locale="es-ES"
                         />
                     </div>
@@ -144,7 +155,8 @@ const FormularioPeriodos = ({
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaInicioAsignacion}
-                            isDisabled={loading || loadingData}
+                            isDisabled={loading || loadingData || periodoYaIniciado}
+                            errorMessage="Debe ser posterior al fin del periodo de solicitud"
                             locale="es-ES"
                         />
                     </div>
@@ -163,7 +175,7 @@ const FormularioPeriodos = ({
                             className="w-full"
                             placeholder="Selecciona fecha y hora"
                             minValue={fechaMinimaFinAsignacion}
-                            isDisabled={loading || loadingData}
+                            isDisabled={loading || loadingData || periodoYaIniciado}
                             locale="es-ES"
                         />
                     </div>
@@ -171,12 +183,12 @@ const FormularioPeriodos = ({
                 <div className="flex justify-end mt-4">
                     <Button 
                         type="submit" 
-                        className={`w-[160px] ${hayPeriodosVencidos ? 'bg-gray-400 cursor-not-allowed' : 'bg-primario'} text-white`}
+                        className={`w-[160px] ${periodoYaIniciado ? 'bg-gray-400 cursor-not-allowed' : 'bg-primario'} text-white`}
                         isLoading={loading}
-                        disabled={loading || loadingData || hayPeriodosVencidos}
-                        title={hayPeriodosVencidos ? "Debe restablecer las asignaciones primero" : ""}
+                        disabled={loading || loadingData || periodoYaIniciado}
+                        title={periodoYaIniciado ? "El periodo ya inició, debe restablecer primero" : ""}
                     >
-                        {loading ? "Actualizando..." : hayPeriodosVencidos ? "Bloqueado" : "Actualizar"}
+                        {loading ? "Actualizando..." : periodoYaIniciado ? "Bloqueado" : "Actualizar"}
                     </Button>
                 </div>
             </div>

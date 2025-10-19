@@ -1,6 +1,7 @@
 import { Periodo } from "../../models/periodo.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
 import { Casillero } from "../../models/casillero.model.js";
+import { Solicitud } from "../../models/solicitud.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS } from "../../common/estados.js";
 import { ESTADOS_CASILLERO } from "../../common/estadoCasillero.js";
@@ -23,9 +24,6 @@ export const actualizarPeriodo = async (req, res) => {
             });
         }
 
-        // Buscar el período existente por tipo
-        let periodo = await Periodo.findOne({ where: { tipo }, transaction: t });
-
         // Determinar el estado basado en las fechas
         let estado = ESTADOS.ACTIVO; // Por defecto activo para períodos válidos
         
@@ -34,38 +32,48 @@ export const actualizarPeriodo = async (req, res) => {
             estado = ESTADOS.INACTIVO;
         }
 
-        // Lógica de creación vs actualización basada en vencimiento
-        let debeCrearNuevo = false;
-        
-        if (!periodo) {
-            // No existe período del tipo → Crear nuevo
-            debeCrearNuevo = true;
-        } else {
-            const periodoFin = new Date(periodo.fechaFin);
-            
-            if (periodoFin < ahora) {
-                // El período actual ya venció → Crear nuevo para mantener trazabilidad
-                debeCrearNuevo = true;
-                
-                // Desactivar el período vencido
-                await periodo.update({ estado: ESTADOS.INACTIVO }, { transaction: t });
-            } else {
-                // El período actual aún está vigente o es futuro → Actualizar
-                debeCrearNuevo = false;
-            }
-        }
-
-        if (debeCrearNuevo) {
-            // Crear nuevo período (mantiene historial)
-            periodo = await Periodo.create({
+        // Buscar periodo activo del tipo especificado
+        const periodoActivo = await Periodo.findOne({ 
+            where: { 
                 tipo,
+                estado: ESTADOS.ACTIVO 
+            }, 
+            transaction: t 
+        });
+
+        let periodo;
+
+        if (periodoActivo) {
+            // VALIDACIÓN CRÍTICA: Verificar si hay solicitudes asociadas al periodo
+            const cantidadSolicitudes = await Solicitud.count({
+                where: { idPeriodo: periodoActivo.idPeriodo },
+                transaction: t
+            });
+
+            // Si HAY solicitudes → BLOQUEAR edición (debe restablecer primero)
+            if (cantidadSolicitudes > 0) {
+                await t.rollback();
+                return res.status(400).json({
+                    error: "No se puede modificar el periodo",
+                    message: `Ya existen ${cantidadSolicitudes} solicitud(es) asociadas a este periodo. Para cambiar las fechas, debe restablecer las asignaciones primero.`,
+                    requiereReinicio: true,
+                    totalSolicitudes: cantidadSolicitudes
+                });
+            }
+
+            // Si NO hay solicitudes → Permitir actualización
+            await periodoActivo.update({
                 fechaInicio,
                 fechaFin,
                 estado
             }, { transaction: t });
-        } else {
-            // Actualizar período existente
-            await periodo.update({
+            
+            periodo = periodoActivo;
+        } 
+        // Si NO existe periodo activo → CREAR NUEVO
+        else {
+            periodo = await Periodo.create({
+                tipo,
                 fechaInicio,
                 fechaFin,
                 estado
@@ -176,6 +184,8 @@ export const restablecerAsignaciones = async (req, res) => {
             { estado: ESTADOS.INACTIVO },
             { where: { estado: ESTADOS.ACTIVO }, transaction: t }
         );
+
+        // Nota: Las solicitudes NO se eliminan, se mantienen como historial
 
         await t.commit();
         res.status(200).json({

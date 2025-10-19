@@ -138,6 +138,26 @@ const PeriodoSolicitud = () => {
             Toast.error("Error", "Por favor completa todas las fechas antes de continuar");
             return;
         }
+        
+        // Validar fecha mínima (5 minutos desde ahora)
+        const ahora = new Date();
+        const minimoPermitido = new Date(ahora.getTime() + 5 * 60000); // +5 minutos
+        
+        const inicioSolicitudDate = inicioSolicitud.toDate ? inicioSolicitud.toDate() : new Date(inicioSolicitud);
+        
+        if (inicioSolicitudDate < minimoPermitido) {
+            const horaMinima = minimoPermitido.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            Toast.error(
+                "Fecha inválida", 
+                `La fecha de inicio de solicitud debe ser al menos 5 minutos desde ahora. Hora mínima: ${horaMinima}`
+            );
+            return;
+        }
+        
         setLoading(true);
         try {
             // Actualizar período de solicitud
@@ -146,12 +166,34 @@ const PeriodoSolicitud = () => {
                 fechaInicio: convertirFechaParaBD(inicioSolicitud),
                 fechaFin: convertirFechaParaBD(finSolicitud)
             });
+            
+            // Verificar si requiere reinicio
+            if (resultSolicitud && resultSolicitud.requiereReinicio) {
+                Toast.warning(
+                    "Reinicio requerido", 
+                    `${resultSolicitud.message} Total de solicitudes: ${resultSolicitud.totalSolicitudes || 0}`
+                );
+                setLoading(false);
+                return;
+            }
+            
             // Actualizar período de asignación
             const resultAsignacion = await actualizarPeriodo({
                 tipo: 1, // Asignación
                 fechaInicio: convertirFechaParaBD(inicioAsignacion),
                 fechaFin: convertirFechaParaBD(finAsignacion)
             });
+            
+            // Verificar si requiere reinicio
+            if (resultAsignacion && resultAsignacion.requiereReinicio) {
+                Toast.warning(
+                    "Reinicio requerido", 
+                    `${resultAsignacion.message} Total de solicitudes: ${resultAsignacion.totalSolicitudes || 0}`
+                );
+                setLoading(false);
+                return;
+            }
+            
             if ((resultSolicitud && resultSolicitud.error) || (resultAsignacion && resultAsignacion.error)) {
                 Toast.error("Error", (resultSolicitud && resultSolicitud.message) || (resultAsignacion && resultAsignacion.message) || "No se pudieron actualizar los períodos");
             } else {
