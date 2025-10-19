@@ -125,10 +125,14 @@ const Especialidades = () => {
 
     const handleEditar = (item) => {
         setAccion(1);
+        // Buscar la especialidad original para obtener el estado numérico
+        const especialidadOriginal = especialidades.find(
+            e => (e.idEspecialidad || e.id || e._id) === (item.idEspecialidad || item.id || item._id)
+        );
         setSelectedItem({
             id: item.idEspecialidad || item.id || item._id,
             nombre: item.nombre,
-            estado: item.estado,
+            estado: especialidadOriginal?.estado || (item.estado === 'Activo' ? ESTADOS.ACTIVO : ESTADOS.INACTIVO),
         });
         setShowErrors(false);
         onOpen();

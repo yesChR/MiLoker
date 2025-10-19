@@ -61,11 +61,15 @@ const TiposSanciones = () => {
 
     const handleEditar = (item) => {
         setAccion(1);
+        // Buscar la sanción original para obtener el estado numérico
+        const sancionOriginal = sanciones.find(
+            s => (s.idSancion || s.id) === (item.idSancion || item.id)
+        );
         setSelectedItem({
             id: item.idSancion || item.id,
             gravedad: item.gravedad,
             detalle: item.detalle,
-            estado: item.estado !== undefined ? item.estado : 1
+            estado: sancionOriginal?.estado || (item.estado === 'Activo' ? ESTADOS.ACTIVO : ESTADOS.INACTIVO)
         });
         onOpen();
     };
