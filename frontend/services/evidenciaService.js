@@ -1,5 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
+// Función para forzar URLs de imágenes a localhost (evitar CORS)
+const convertirUrlALocal = (url) => {
+    if (typeof url === 'string' && url.includes('/uploads/evidencias/')) {
+        // Cambiar cualquier dominio por localhost para las imágenes
+        return url.replace(/https?:\/\/[^\/]+/, 'http://localhost:4000');
+    }
+    return url;
+};
+
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response) => {
     try {
@@ -76,9 +85,12 @@ export const descargarEvidencia = async (evidencia) => {
         }
 
         // Construir la URL completa
-        const url = evidencia.imgUrl 
+        let url = evidencia.imgUrl 
             ? `${API_URL}${evidencia.imgUrl}` 
             : evidencia; // Si ya es una URL completa (string)
+        
+        // IMPORTANTE: Convertir a URL local para evitar problemas de CORS
+        url = convertirUrlALocal(url);
         
         const response = await fetch(url);
         
@@ -107,4 +119,15 @@ export const descargarEvidencia = async (evidencia) => {
     } catch (error) {
         return { error: true, message: 'Error de conexión con el servidor' };
     }
+};
+
+// Función exportable para convertir URLs a locales (usar en componentes)
+export const convertirEvidenciaAUrlLocal = (evidencia) => {
+    if (typeof evidencia === 'string') {
+        return convertirUrlALocal(evidencia);
+    }
+    if (evidencia && evidencia.imgUrl) {
+        return convertirUrlALocal(`${API_URL}${evidencia.imgUrl}`);
+    }
+    return evidencia;
 };

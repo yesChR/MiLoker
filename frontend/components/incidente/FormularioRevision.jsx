@@ -9,7 +9,7 @@ import { useSanciones } from "../../hooks/useSanciones";
 import { obtenerTextoEstado, ESTADOS_INCIDENTE, obtenerEstadosSiguientes, TIPOS_INVOLUCRAMIENTO } from "../../utils/incidenteConstants";
 import { ROLES } from "../../utils/rolesConstants";
 import { Toast } from "../CustomAlert";
-import { descargarEvidencia } from "../../services/evidenciaService";
+import { descargarEvidencia, convertirEvidenciaAUrlLocal } from "../../services/evidenciaService";
 import { agregarInvolucrado } from "../../services/incidenteService";
 import { useSession } from "next-auth/react";
 
@@ -49,7 +49,7 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
 
     // Combinar evidencias existentes con las nuevas para mostrar
     const todasLasEvidencias = [
-        ...evidenciasExistentes,
+        ...evidenciasExistentes.map(evidencia => convertirEvidenciaAUrlLocal(evidencia)),
         ...nuevasEvidencias.map(file => URL.createObjectURL(file))
     ];
 
