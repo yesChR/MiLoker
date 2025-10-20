@@ -1,4 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const NEXTAUTH_API_URL = process.env.NEXTAUTH_API_URL;
 
 // Función auxiliar para manejar respuestas HTTP
 const handleResponse = async (response) => {
@@ -27,7 +28,7 @@ const handleResponse = async (response) => {
 
 export async function loginService(email, password) {
   try {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await fetch(`${NEXTAUTH_API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
