@@ -9,7 +9,7 @@ import { useSanciones } from "../../hooks/useSanciones";
 import { obtenerTextoEstado, ESTADOS_INCIDENTE, obtenerEstadosSiguientes, TIPOS_INVOLUCRAMIENTO } from "../../utils/incidenteConstants";
 import { ROLES } from "../../utils/rolesConstants";
 import { Toast } from "../CustomAlert";
-import { descargarEvidencia, convertirEvidenciaAUrlLocal } from "../../services/evidenciaService";
+import { convertirEvidenciaAUrlLocal } from "../../services/evidenciaService";
 import { agregarInvolucrado } from "../../services/incidenteService";
 import { useSession } from "next-auth/react";
 
@@ -135,19 +135,6 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
             Toast.success('Evidencias agregadas', `${imageFiles.length} ${imageFiles.length === 1 ? 'imagen agregada' : 'imágenes agregadas'}`);
         } else {
             Toast.warning('Archivos no válidos', 'Solo se permiten archivos de imagen');
-        }
-    };
-
-    const handleDescargarEvidencia = async (evidencia, index) => {
-        // Si es una URL temporal (blob:), no se puede descargar
-        if (typeof evidencia === 'string' && evidencia.startsWith('blob:')) {
-            Toast.error('No disponible', 'Esta evidencia aún no ha sido guardada. Guarda el incidente primero.');
-            return;
-        }
-
-        const resultado = await descargarEvidencia(evidencia);
-        if (resultado.error) {
-            Toast.error('Error', resultado.message);
         }
     };
 
@@ -634,17 +621,6 @@ const FormularioRevision = forwardRef(({ selectedItem, loading: loadingProp, onS
                                                 alt={`Evidencia ${index + 1}`}
                                                 className="w-full h-64 object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                                             />
-                                            
-                                            {/* Botón de descarga mejorado */}
-                                            <button
-                                                onClick={() => handleDescargarEvidencia(src, index)}
-                                                className="absolute top-3 right-3 bg-gradient-to-br from-purple-500 to-purple-600 p-2.5 rounded-full shadow-xl text-white hover:from-purple-600 hover:to-purple-700 transition-all opacity-0 group-hover:opacity-100 transform hover:scale-110"
-                                                title="Descargar evidencia"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                </svg>
-                                            </button>
                                             
                                             {/* Badge mejorado */}
                                             <div className="absolute bottom-3 left-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
