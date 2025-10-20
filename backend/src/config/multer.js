@@ -59,8 +59,8 @@ export const fileFilterEvidencias = (req, file, cb) => {
 export const uploadEvidencias = multer({
   storage: storageEvidencias,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB máximo
-    files: 2 // Máximo 2 archivos
+    fileSize: 10 * 1024 * 1024, // 10MB máximo (aumentado de 5MB)
+    files: 5 // Máximo 5 archivos (aumentado de 2)
   },
   fileFilter: fileFilterEvidencias
 });
