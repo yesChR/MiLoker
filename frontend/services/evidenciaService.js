@@ -1,12 +1,23 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-// Función para forzar URLs de imágenes a localhost (evitar CORS)
+// Función para forzar URLs de imágenes a localhost (evitar CORS) - SOLO PARA MOSTRAR
 const convertirUrlALocal = (url) => {
     if (typeof url === 'string' && url.includes('/uploads/evidencias/')) {
         // Cambiar cualquier dominio por localhost para las imágenes
         return url.replace(/https?:\/\/[^\/]+/, 'http://localhost:4000');
     }
     return url;
+};
+
+// Función para mantener URL original - SOLO PARA DESCARGAR
+const obtenerUrlOriginalParaDescarga = (evidencia) => {
+    if (typeof evidencia === 'string') {
+        return evidencia; // Ya es una URL, devolverla tal como está
+    }
+    if (evidencia && evidencia.imgUrl) {
+        return `${API_URL}${evidencia.imgUrl}`; // Construir con API_URL remoto
+    }
+    return evidencia;
 };
 
 // Función auxiliar para manejar respuestas
@@ -84,13 +95,8 @@ export const descargarEvidencia = async (evidencia) => {
             return { error: true, message: 'Evidencia no disponible' };
         }
 
-        // Construir la URL completa
-        let url = evidencia.imgUrl 
-            ? `${API_URL}${evidencia.imgUrl}` 
-            : evidencia; // Si ya es una URL completa (string)
-        
-        // IMPORTANTE: Convertir a URL local para evitar problemas de CORS
-        url = convertirUrlALocal(url);
+        // IMPORTANTE: Para descargas, usar URL ORIGINAL (remota) - NO convertir a localhost
+        const url = obtenerUrlOriginalParaDescarga(evidencia);
         
         const response = await fetch(url);
         
