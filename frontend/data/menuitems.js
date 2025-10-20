@@ -54,7 +54,7 @@ export const menuItems = [
     subItems: [
       {label: "Estado solicitud", link: "/estudiante/estadoSolicitud",},
       { label: "Solicitud casillero", link: "/estudiante/solicitudCasillero" },
-      { label: "Mi Locker", link: "/estudiante/miLoker" },
+      { label: "Mi Loker", link: "/estudiante/miLoker" },
       { label: "Renuncia", link: "/estudiante/renunciarCasillero" },
     ],
   },
