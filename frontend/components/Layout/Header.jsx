@@ -15,13 +15,6 @@ const Header = ({ toggleCollapse, setToggleCollapse }) => {
           <FiMenu className="w-6 h-6" />
         </button>
         <div className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="logo"
-            width={40}
-            height={40}
-            className="w-10 h-10"
-          />
           <span className="text-2xl font-bold text-azulOscuro ml-2">
             MiLoker
           </span>
