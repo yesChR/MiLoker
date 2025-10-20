@@ -1,7 +1,7 @@
 import { Periodo } from "../../models/periodo.model.js";
 import { EstudianteXCasillero } from "../../models/estudianteXcasillero.model.js";
 import { Casillero } from "../../models/casillero.model.js";
-import { Solicitud } from "../../models/solicitud.model.js";
+ import { Solicitud } from "../../models/solicitud.model.js";
 import { sequelize } from "../../bd_config/conexion.js";
 import { ESTADOS } from "../../common/estados.js";
 import { ESTADOS_CASILLERO } from "../../common/estadoCasillero.js";

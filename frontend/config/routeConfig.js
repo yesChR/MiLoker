@@ -43,7 +43,7 @@ export const RUTAS_POR_ROL = {
 // Rutas que requieren períodos activos
 export const RUTAS_DEPENDIENTES_PERIODO = [
   '/estudiante/solicitudCasillero',
-  '/estudiante/estadoSolicitud',
+  // '/estudiante/estadoSolicitud' - REMOVIDO: El estudiante debe poder ver su estado en cualquier momento
 ];
 
 // Rutas que requieren validación de casillero asignado

@@ -108,6 +108,17 @@ export const obtenerEstadoSolicitud = async (req, res) => {
             });
         }
 
+        // Verificar si el período de asignación (tipo 1) ya finalizó
+        const periodoAsignacion = await Periodo.findOne({
+            where: {
+                tipo: 1, // Período de asignación
+                estado: ESTADOS.ACTIVO
+            }
+        });
+
+        const ahora = new Date();
+        const periodoAsignacionFinalizado = periodoAsignacion && new Date(periodoAsignacion.fechaFin) < ahora;
+
         // Buscar la solicitud del estudiante en el período activo
         const solicitud = await Solicitud.findOne({
             where: { 
@@ -157,24 +168,31 @@ export const obtenerEstadoSolicitud = async (req, res) => {
         // Preparar la respuesta optimizada
         const respuesta = {
             ...solicitud.toJSON(),
-            // Agregar casillero asignado directamente si está aceptada
             casilleroAsignado: null
         };
 
-        // Si la solicitud está aceptada, encontrar el casillero asignado
-        if (solicitud.estado === ESTADOS_SOLICITUD.ACEPTADA && 
-            solicitud.solicitudXcasilleros && 
-            solicitud.solicitudXcasilleros.length > 0) {
-            
-            const casilleroAceptado = solicitud.solicitudXcasilleros.find(
-                sx => sx.estado === ESTADOS_SOLICITUD.ACEPTADA
-            ) || solicitud.solicitudXcasilleros[0]; // Fallback al primero
-            
-            if (casilleroAceptado && casilleroAceptado.casillero) {
-                respuesta.casilleroAsignado = {
-                    ...casilleroAceptado.casillero.toJSON(),
-                    detalleSolicitud: casilleroAceptado.detalle
-                };
+        // LÓGICA CLAVE: Solo mostrar el resultado real si el período de asignación ya finalizó
+        // Si el período de asignación NO ha finalizado, siempre mostrar EN_ESPERA
+        if (!periodoAsignacionFinalizado) {
+            // Forzar estado EN_ESPERA mientras el período de asignación no finalice
+            respuesta.estado = ESTADOS_SOLICITUD.EN_ESPERA;
+        } else {
+            // El período de asignación ya finalizó, mostrar el estado real
+            // Si la solicitud está aceptada, encontrar el casillero asignado
+            if (solicitud.estado === ESTADOS_SOLICITUD.ACEPTADA && 
+                solicitud.solicitudXcasilleros && 
+                solicitud.solicitudXcasilleros.length > 0) {
+                
+                const casilleroAceptado = solicitud.solicitudXcasilleros.find(
+                    sx => sx.estado === ESTADOS_SOLICITUD.ACEPTADA
+                ) || solicitud.solicitudXcasilleros[0]; // Fallback al primero
+                
+                if (casilleroAceptado && casilleroAceptado.casillero) {
+                    respuesta.casilleroAsignado = {
+                        ...casilleroAceptado.casillero.toJSON(),
+                        detalleSolicitud: casilleroAceptado.detalle
+                    };
+                }
             }
         }
 

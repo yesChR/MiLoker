@@ -58,7 +58,7 @@ export const useEstadoSolicitud = () => {
         
         switch (solicitudData.estado) {
             case ESTADOS_SOLICITUD.EN_ESPERA:
-                return 2; // En espera (paso 2)
+                return 2; // En espera (paso 3)
             case ESTADOS_SOLICITUD.ACEPTADA:
             case ESTADOS_SOLICITUD.RECHAZADA:
                 return 3; // Resultado final (paso 3)
