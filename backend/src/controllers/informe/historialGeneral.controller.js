@@ -6,6 +6,8 @@ import { Armario } from "../../models/armario.model.js";
 import { Especialidad } from "../../models/especialidad.model.js";
 import { Periodo } from "../../models/periodo.model.js";
 import { EstadoCasillero } from "../../models/estadoCasillero.model.js";
+import { ESTADOS } from "../../common/estados.js";
+import { Op } from "sequelize";
 
 /**
  * Genera un informe estadístico de todos los casilleros por estado
@@ -15,6 +17,30 @@ import { EstadoCasillero } from "../../models/estadoCasillero.model.js";
  */
 export const obtenerInformeEstadisticoCasilleros = async (req, res) => {
     try {
+        // Buscar periodo de ASIGNACIÓN activo (tipo 1) y dentro del rango de fechas
+        // Solo en este periodo hay casilleros realmente asignados a estudiantes
+        const ahora = new Date();
+        const periodoAsignacionActivo = await Periodo.findOne({
+            where: {
+                tipo: 1, // Tipo 1 = Periodo de Asignación (cuando ya se asignan casilleros)
+                estado: ESTADOS.ACTIVO,
+                fechaInicio: { [Op.lte]: ahora },
+                fechaFin: { [Op.gte]: ahora }
+            }
+        });
+
+        console.log('\n=== PERIODO DE ASIGNACIÓN ACTIVO ===');
+        if (periodoAsignacionActivo) {
+            console.log(`ID: ${periodoAsignacionActivo.idPeriodo}`);
+            console.log(`Tipo: ${periodoAsignacionActivo.tipo} (Asignación)`);
+            console.log(`Fecha Inicio: ${periodoAsignacionActivo.fechaInicio}`);
+            console.log(`Fecha Fin: ${periodoAsignacionActivo.fechaFin}`);
+        } else {
+            console.log('No hay periodo de asignación activo actualmente');
+            console.log('(Los casilleros solo se consideran ocupados durante el periodo de asignación)');
+        }
+        console.log('====================================\n');
+
         // Obtener todos los casilleros con su información completa
         const casilleros = await Casillero.findAll({
             include: [
@@ -31,34 +57,77 @@ export const obtenerInformeEstadisticoCasilleros = async (req, res) => {
             order: [['armario', 'idArmario'], ['numCasillero']]
         });
 
-        // Obtener casilleros actualmente asignados (con solicitudes aprobadas activas)
-        const asignacionesActivas = await SolicitudXCasillero.findAll({
-            where: { estado: 2 }, // Solo aprobadas
-            include: [
-                {
-                    model: Casillero,
-                    as: 'casillero',
-                    include: [
-                        {
-                            model: Armario,
-                            as: 'armario',
-                            include: [{ model: Especialidad, as: 'especialidad' }]
-                        }
-                    ]
-                },
-                {
-                    model: Solicitud,
-                    as: 'solicitud',
-                    include: [
-                        { model: Estudiante, as: 'estudiante', include: [{ model: Especialidad, as: 'especialidad' }] },
-                        { model: Periodo, as: 'periodo' }
-                    ]
-                }
-            ]
+        // Obtener casilleros actualmente asignados (con solicitudes aprobadas del periodo de asignación activo)
+        // Si no hay periodo de asignación activo, no hay casilleros ocupados
+        let asignacionesActivasRaw = [];
+        
+        if (periodoAsignacionActivo) {
+            asignacionesActivasRaw = await SolicitudXCasillero.findAll({
+                where: { estado: 2 }, // Solo aprobadas (estado 2 = asignación aprobada)
+                include: [
+                    {
+                        model: Casillero,
+                        as: 'casillero',
+                        include: [
+                            {
+                                model: Armario,
+                                as: 'armario',
+                                include: [{ model: Especialidad, as: 'especialidad' }]
+                            }
+                        ]
+                    },
+                    {
+                        model: Solicitud,
+                        as: 'solicitud',
+                        where: { idPeriodo: periodoAsignacionActivo.idPeriodo }, // Solo del periodo de asignación activo
+                        include: [
+                            { model: Estudiante, as: 'estudiante', include: [{ model: Especialidad, as: 'especialidad' }] },
+                            { model: Periodo, as: 'periodo' }
+                        ]
+                    }
+                ],
+                order: [['id', 'DESC']] // Más recientes primero
+            });
+        }
+
+        // Filtrar para obtener solo UNA asignación por casillero (la más reciente)
+        const casillerosUnicos = new Map();
+        asignacionesActivasRaw.forEach(asignacion => {
+            const idCasillero = asignacion.idCasillero;
+            if (!casillerosUnicos.has(idCasillero)) {
+                casillerosUnicos.set(idCasillero, asignacion);
+            }
         });
+        const asignacionesActivas = Array.from(casillerosUnicos.values());
 
         // Crear mapas para análisis rápido
         const casillerosAsignados = new Set(asignacionesActivas.map(a => a.idCasillero));
+        
+        // Debug: Mostrar asignaciones activas por especialidad
+        console.log('\n=== DEBUG: ASIGNACIONES ACTIVAS ===');
+        console.log(`Total asignaciones RAW (con duplicados): ${asignacionesActivasRaw.length}`);
+        console.log(`Total asignaciones ÚNICAS (por casillero): ${asignacionesActivas.length}`);
+        const asignacionesPorEsp = {};
+        asignacionesActivas.forEach(asig => {
+            const esp = asig.casillero?.armario?.especialidad?.nombre || 'Sin especialidad';
+            if (!asignacionesPorEsp[esp]) asignacionesPorEsp[esp] = [];
+            asignacionesPorEsp[esp].push({
+                idCasillero: asig.idCasillero,
+                numCasillero: asig.casillero?.numCasillero,
+                armario: asig.casillero?.armario?.idArmario,
+                estudiante: `${asig.solicitud?.estudiante?.nombre || ''} ${asig.solicitud?.estudiante?.apellidoUno || ''}`.trim(),
+                cedula: asig.solicitud?.cedulaEstudiante,
+                periodo: `${asig.solicitud?.periodo?.fechaInicio} - ${asig.solicitud?.periodo?.fechaFin}`
+            });
+        });
+        console.log('\nAsignaciones ÚNICAS por especialidad:');
+        Object.keys(asignacionesPorEsp).forEach(esp => {
+            console.log(`\n${esp}: ${asignacionesPorEsp[esp].length} casilleros ocupados`);
+            asignacionesPorEsp[esp].forEach(a => {
+                console.log(`  - Casillero #${a.numCasillero} (Armario ${a.armario}) → ${a.estudiante} (${a.cedula})`);
+            });
+        });
+        console.log('\n===================================\n');
         
         // Clasificar casilleros por estado
         const estadisticas = {
@@ -82,10 +151,8 @@ export const obtenerInformeEstadisticoCasilleros = async (req, res) => {
                 estaAsignado
             };
 
-            // Clasificar según estado del casillero
-            if (estado.includes('disponible') && !estaAsignado) {
-                estadisticas.disponibles.push(infoCasillero);
-            } else if (estado.includes('ocupado') || estaAsignado) {
+            // Priorizar asignación real sobre estado del casillero
+            if (estaAsignado) {
                 // Agregar info del estudiante si está asignado
                 const asignacion = asignacionesActivas.find(a => a.idCasillero === casillero.idCasillero);
                 if (asignacion) {
@@ -101,10 +168,18 @@ export const obtenerInformeEstadisticoCasilleros = async (req, res) => {
                     };
                 }
                 estadisticas.ocupados.push(infoCasillero);
+            } else if (estado.includes('disponible')) {
+                estadisticas.disponibles.push(infoCasillero);
             } else if (estado.includes('mantenimiento')) {
                 estadisticas.enMantenimiento.push(infoCasillero);
             } else if (estado.includes('dañado')) {
                 estadisticas.dañados.push(infoCasillero);
+            } else if (estado.includes('ocupado')) {
+                // Casillero marcado como ocupado pero sin asignación activa
+                estadisticas.ocupados.push(infoCasillero);
+            } else {
+                // Estado desconocido, clasificar como disponible por defecto
+                estadisticas.disponibles.push(infoCasillero);
             }
         });
 
@@ -142,14 +217,21 @@ export const obtenerInformeEstadisticoCasilleros = async (req, res) => {
             const estado = casillero.estadoCasillero?.nombre?.toLowerCase() || 'desconocido';
             const estaAsignado = casillerosAsignados.has(casillero.idCasillero);
             
-            if (estado.includes('disponible') && !estaAsignado) {
-                estadisticasPorEspecialidad[especialidad].disponibles++;
-            } else if (estado.includes('ocupado') || estaAsignado) {
+            // Priorizar asignación real sobre estado del casillero
+            if (estaAsignado) {
                 estadisticasPorEspecialidad[especialidad].ocupados++;
+            } else if (estado.includes('disponible')) {
+                estadisticasPorEspecialidad[especialidad].disponibles++;
             } else if (estado.includes('mantenimiento')) {
                 estadisticasPorEspecialidad[especialidad].enMantenimiento++;
             } else if (estado.includes('dañado')) {
                 estadisticasPorEspecialidad[especialidad].dañados++;
+            } else if (estado.includes('ocupado')) {
+                // Casillero marcado como ocupado pero sin asignación activa
+                estadisticasPorEspecialidad[especialidad].ocupados++;
+            } else {
+                // Estado desconocido, clasificar como disponible por defecto
+                estadisticasPorEspecialidad[especialidad].disponibles++;
             }
         });
 
